@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import { getCanonicalUrl } from './utils'
+import { withBasePath } from '@services/config/config'
 
 /**
  * Async canonical URL for Server Components / `generateMetadata`.
@@ -23,15 +24,15 @@ export async function getServerCanonicalUrl(orgslug: string, path: string): Prom
     const proto = h.get('x-forwarded-proto') ?? 'https'
 
     if (customDomain) {
-      return `${proto}://${customDomain}${path}`.replace(/\/+$/, '')
+      return `${proto}://${customDomain}${withBasePath(path)}`.replace(/\/+$/, '')
     }
     if (tenancy === 'multi' && topDomain && topDomain !== 'localhost') {
-      return `https://${orgslug}.${topDomain}${path}`.replace(/\/+$/, '')
+      return `https://${orgslug}.${topDomain}${withBasePath(path)}`.replace(/\/+$/, '')
     }
     const host = h.get('host')
     if (host) {
       const scheme = host.includes('localhost') || host.startsWith('127.') ? 'http' : proto
-      return `${scheme}://${host}${path}`.replace(/\/+$/, '')
+      return `${scheme}://${host}${withBasePath(path)}`.replace(/\/+$/, '')
     }
   } catch {
     // headers() may throw outside a request context.

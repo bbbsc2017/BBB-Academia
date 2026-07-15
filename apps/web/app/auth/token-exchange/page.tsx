@@ -3,6 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Loader2, AlertTriangle } from 'lucide-react'
+import { withBasePath } from '@services/config/config'
 
 const ERROR_MESSAGES: Record<string, string> = {
   missing_code: 'No sign-in code was provided.',
@@ -48,7 +49,7 @@ function TokenExchangeInner() {
 
       try {
         // Call our own API which server-side exchanges the code for tokens
-        const res = await fetch('/api/auth/token-exchange', {
+        const res = await fetch(withBasePath('/api/auth/token-exchange'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code }),

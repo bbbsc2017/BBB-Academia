@@ -5,6 +5,7 @@ import '../styles/globals.css'
 import { classifyError } from '@lib/errors/classify'
 import { AlertTriangle, ChevronDown, ChevronRight, Home, LogOut, MessageSquareWarning, RefreshCcw } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { withBasePath } from '@services/config/config'
 
 // Last-resort boundary: catches errors thrown in the root layout itself, so it
 // renders OUTSIDE every provider (no router, no AuthContext, no i18n). Kept
@@ -61,11 +62,11 @@ export default function GlobalError({
   const doSignOut = async () => {
     setSigningOut(true)
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      await fetch(withBasePath('/api/auth/logout'), { method: 'POST', credentials: 'include' })
     } catch {
       // ignore — we redirect to login regardless
     }
-    window.location.href = '/login'
+    window.location.href = withBasePath('/login')
   }
 
   const btn = 'flex items-center gap-2 px-5 py-2 rounded-full font-bold text-sm transition-colors shadow-sm'

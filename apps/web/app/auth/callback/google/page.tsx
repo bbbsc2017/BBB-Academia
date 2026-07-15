@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Loader2, AlertTriangle, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth, validateOAuthState } from '@components/Contexts/AuthContext'
-import { getLEARNHOUSE_DOMAIN_VAL, getLEARNHOUSE_TOP_DOMAIN_VAL, getAPIUrl } from '@services/config/config'
+import { getLEARNHOUSE_DOMAIN_VAL, getLEARNHOUSE_TOP_DOMAIN_VAL, getAPIUrl, withBasePath } from '@services/config/config'
 import { getErrorMessage } from '@services/utils/ts/errorMessage'
 
 export default function GoogleCallbackPage() {
@@ -147,7 +147,7 @@ export default function GoogleCallbackPage() {
 
         // Exchange code for tokens with our backend
         // First, we need to get Google's access token
-        const tokenResponse = await fetch('/api/auth/google/token', {
+        const tokenResponse = await fetch(withBasePath('/api/auth/google/token'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

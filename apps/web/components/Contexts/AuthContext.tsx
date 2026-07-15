@@ -12,6 +12,7 @@ import {
   getAPIUrl,
   getLEARNHOUSE_TOP_DOMAIN_VAL,
   getLEARNHOUSE_DOMAIN_VAL,
+  withBasePath,
 } from '@services/config/config'
 import { isSubdomainOf, isSameHost, isLocalhost as isLocalhostCheck } from '@services/utils/ts/hostUtils'
 import { safeRedirectUrl } from '@services/auth/redirects'
@@ -306,7 +307,7 @@ export function SessionProvider({
     refreshPromiseRef.current = (async () => {
       try {
         // Use Next.js API route to ensure cookies are set correctly
-        const response = await fetch('/api/auth/refresh', {
+        const response = await fetch(withBasePath('/api/auth/refresh'), {
           method: 'GET',
           credentials: 'include',
         })
@@ -546,7 +547,7 @@ export function SessionProvider({
 
           // Regular credentials login
           // Use Next.js API route to ensure cookies are set correctly
-          const response = await fetch('/api/auth/login', {
+          const response = await fetch(withBasePath('/api/auth/login'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
@@ -663,7 +664,7 @@ export function SessionProvider({
           const redirectUri = `${window.location.protocol}//${getLEARNHOUSE_DOMAIN_VAL()}/auth/callback/google`
 
           // Get Google OAuth URL from server (client ID lives server-side only)
-          const authResponse = await fetch('/api/auth/google/authorize', {
+          const authResponse = await fetch(withBasePath('/api/auth/google/authorize'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ redirect_uri: redirectUri, state, scope: 'openid email profile' }),
@@ -712,7 +713,7 @@ export function SessionProvider({
     let logoutSuccess = false
     try {
       // Use Next.js API route to ensure cookies are cleared correctly
-      const response = await fetch('/api/auth/logout', {
+      const response = await fetch(withBasePath('/api/auth/logout'), {
         method: 'POST',
         credentials: 'include',
       })
@@ -915,7 +916,7 @@ export async function signIn(
     const redirectUri = `${window.location.protocol}//${getLEARNHOUSE_DOMAIN_VAL()}/auth/callback/google`
 
     // Get Google OAuth URL from server (client ID lives server-side only)
-    const authResponse = await fetch('/api/auth/google/authorize', {
+    const authResponse = await fetch(withBasePath('/api/auth/google/authorize'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ redirect_uri: redirectUri, state, scope: 'openid email profile' }),
@@ -953,7 +954,7 @@ export async function signOut(options?: SignOutOptions): Promise<void> {
 
   try {
     // Use Next.js API route to ensure cookies are cleared correctly
-    await fetch('/api/auth/logout', {
+    await fetch(withBasePath('/api/auth/logout'), {
       method: 'POST',
       credentials: 'include',
     })

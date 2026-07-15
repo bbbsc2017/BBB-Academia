@@ -1,5 +1,5 @@
 'use client'
-import { getConfig, getDeploymentMode } from '@services/config/config'
+import { getConfig, getDeploymentMode, withBasePath } from '@services/config/config'
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
@@ -79,7 +79,7 @@ export function useTurnstileRequired(): boolean {
 export async function verifyTurnstileToken(token: string | null): Promise<boolean> {
   if (!isTurnstileConfigured()) return true
   try {
-    const res = await fetch('/api/turnstile/verify', {
+    const res = await fetch(withBasePath('/api/turnstile/verify'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),

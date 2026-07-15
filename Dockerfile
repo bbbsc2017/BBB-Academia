@@ -12,6 +12,8 @@ RUN bun install --frozen-lockfile
 # Stage 2: Frontend build
 # ───────────────────────────────────────────────
 FROM oven/bun:1-alpine AS frontend-builder
+ARG NEXT_PUBLIC_BASE_PATH=""
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
 WORKDIR /app
 COPY --from=frontend-deps /app/node_modules ./node_modules
 COPY apps/web .

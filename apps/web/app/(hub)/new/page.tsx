@@ -46,7 +46,7 @@ import UserAvatar from '@components/Objects/UserAvatar'
 import { createNewOrganization } from '@services/organizations/orgs'
 import { useLHAnalytics } from '@services/analytics/useLHAnalytics'
 import { AnalyticsEvent } from '@services/analytics/events'
-import { getAPIUrl, getUriWithOrg } from '@services/config/config'
+import { getAPIUrl, getUriWithOrg, withBasePath } from '@services/config/config'
 import { apiFetch } from '@services/utils/ts/requests'
 import {
   DropdownMenu,
@@ -663,7 +663,7 @@ function CreateOrgSuccess({ slug, t }: { slug: string; t: any }) {
     // Refresh once to mint a fresh access token, then land on the new org's
     // onboarding (the first page for a brand-new org).
     try {
-      await fetch('/api/auth/refresh', { credentials: 'include' })
+      await fetch(withBasePath('/api/auth/refresh'), { credentials: 'include' })
     } catch {
       /* non-fatal — the existing session cookie still carries over */
     }
@@ -810,7 +810,7 @@ export default function CreateNewOrgPage() {
       // audience (Loops), along with the onboarding choices as contact
       // properties (use_types, chosen_plans, …). Fire-and-forget & SaaS-gated
       // server-side; the email is taken from the verified session there.
-      void fetch('/api/loops/admin', {
+      void fetch(withBasePath('/api/loops/admin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -843,7 +843,7 @@ export default function CreateNewOrgPage() {
       if (needsCheckout) {
         track(AnalyticsEvent.PlanCheckoutInitiated, { plan: selectedPlan, billing, slug: newSlug, source: 'onboarding' })
         try {
-          const res = await fetch('/api/billing/checkout', {
+          const res = await fetch(withBasePath('/api/billing/checkout'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -287,7 +287,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     // Custom domain → relative (we're already on the org's host).
     // Missing slug → relative (caller wants a generic intra-app URL).
     if (tenancy === 'single' || getCustomDomainFromContext() || !orgslug) {
-      return path
+      return withBasePath(path)
     }
 
     // Multi tenancy: relative if we're already on the correct subdomain.
@@ -295,7 +295,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     const currentHostname = window.location.hostname
     const expectedHostname = `${orgslug}.${baseDomain}`
     if (currentHostname === expectedHostname) {
-      return path
+      return withBasePath(path)
     }
 
     // Safety net: only synthesize an absolute subdomain URL when the user is
@@ -311,21 +311,21 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     // (a host is not a subdomain of itself), so without the `isSameHost` check
     // org links would collapse to the apex path and loop back to the selector.
     if (!isSubdomainOf(currentHostname, baseDomain) && !isSameHost(currentHostname, baseDomain)) {
-      return path
+      return withBasePath(path)
     }
 
     // Crossing subdomains — build an absolute URL with current scheme/port.
     const protocol = window.location.protocol + '//'
     const port = window.location.port
     const portSuffix = port && port !== '80' && port !== '443' ? `:${port}` : ''
-    return `${protocol}${orgslug}.${baseDomain}${portSuffix}${path}`
+    return `${protocol}${orgslug}.${baseDomain}${portSuffix}${withBasePath(path)}`
   }
 
   // Server-side
   // Single tenancy → relative. The page will render on whatever host the
   // request came in on; relative URLs resolve correctly at the client.
   if (tenancy === 'single') {
-    return path
+    return withBasePath(path)
   }
 
   // Multi tenancy server-side: build the subdomain URL because we can't
@@ -333,30 +333,30 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
   if (orgslug) {
     const protocol = getLEARNHOUSE_HTTP_PROTOCOL()
     const domain = getLEARNHOUSE_DOMAIN()
-    return `${protocol}${orgslug}.${domain}${path}`
+    return `${protocol}${orgslug}.${domain}${withBasePath(path)}`
   }
   const explicitDomain = getConfig('NEXT_PUBLIC_LEARNHOUSE_DOMAIN')
   if (explicitDomain) {
     const protocol = getLEARNHOUSE_HTTP_PROTOCOL()
-    return `${protocol}${explicitDomain}${path}`
+    return `${protocol}${explicitDomain}${withBasePath(path)}`
   }
-  return path
+  return withBasePath(path)
 }
 
 export const getUriWithoutOrg = (path: string) => {
   // Client-side: always use current origin
   if (typeof window !== 'undefined') {
-    return `${window.location.origin}${path}`
+    return `${window.location.origin}${withBasePath(path)}`
   }
 
   // Server-side fallback
   const explicitDomain = getConfig('NEXT_PUBLIC_LEARNHOUSE_DOMAIN')
   if (explicitDomain) {
     const protocol = getLEARNHOUSE_HTTP_PROTOCOL()
-    return `${protocol}${explicitDomain}${path}`
+    return `${protocol}${explicitDomain}${withBasePath(path)}`
   }
   // No explicit domain configured: return relative path to avoid hardcoded 'localhost' URLs
-  return path
+  return withBasePath(path)
 }
 
 /**
@@ -367,7 +367,7 @@ export const getUriWithoutOrg = (path: string) => {
 export const getMainDomainUri = (path: string) => {
   const protocol = getLEARNHOUSE_HTTP_PROTOCOL()
   const domain = getLEARNHOUSE_DOMAIN()
-  return `${protocol}${domain}${path}`
+  return `${protocol}${domain}${withBasePath(path)}`
 }
 
 export type DeploymentMode = 'saas' | 'oss' | 'ee'
@@ -397,6 +397,10 @@ export const isEEAvailable = (): boolean => {
 
 // Collaboration server WebSocket URL
 export const getCollabUrl = () => getConfig('NEXT_PUBLIC_COLLAB_URL', 'ws://localhost:4000')
+
+// Subpath deployment support (e.g., /courses)
+export const getBasePath = () => getConfig('NEXT_PUBLIC_BASE_PATH', '')
+export const withBasePath = (path: string) => `${getBasePath()}${path}`
 
 export const getDefaultOrg = () => {
   // 1. Env var (backward compat)
