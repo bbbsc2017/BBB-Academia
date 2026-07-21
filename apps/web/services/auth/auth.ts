@@ -1,4 +1,4 @@
-import { getAPIUrl } from '@services/config/config'
+import { getAPIUrl, withBasePath } from '@services/config/config'
 import { RequestBody, getResponseMetadata } from '@services/utils/ts/requests'
 import { getErrorMessage } from '@services/utils/ts/errorMessage'
 
@@ -232,7 +232,7 @@ export async function signup(body: NewAccountBody): Promise<any> {
     redirect: 'follow',
   }
 
-  return await fetch('/api/signup', requestOptions)
+  return await fetch(withBasePath('/api/signup'), requestOptions)
 }
 
 export async function signUpWithInviteCode(
@@ -246,7 +246,7 @@ export async function signUpWithInviteCode(
     redirect: 'follow',
   }
 
-  return await fetch('/api/signup', requestOptions)
+  return await fetch(withBasePath('/api/signup'), requestOptions)
 }
 
 // Email Verification
@@ -272,7 +272,7 @@ export async function verifyEmail(
       credentials: 'include',
     }
 
-    const response = await fetch('/api/auth/verify-email', requestOptions)
+    const response = await fetch(withBasePath('/api/auth/verify-email'), requestOptions)
     const data = await response.json()
 
     if (response.ok) {

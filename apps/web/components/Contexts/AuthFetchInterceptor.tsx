@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { getAPIUrl } from '@services/config/config'
+import { getAPIUrl, withBasePath } from '@services/config/config'
 import { dispatchAuthExpired, dispatchAuthRefreshed } from '@/lib/auth/events'
 import { hasSessionMarker } from '@services/auth/sessionMarker'
 
@@ -28,8 +28,8 @@ function isAuthRoute(url: string): boolean {
 }
 
 function getLoginCallbackUrl(): string {
-  if (typeof window === 'undefined') return '/login'
-  return window.location.pathname.startsWith('/admin') ? '/admin/login' : '/login'
+  if (typeof window === 'undefined') return withBasePath('/login')
+  return withBasePath(window.location.pathname.startsWith(withBasePath('/admin')) ? '/admin/login' : '/login')
 }
 
 export default function AuthFetchInterceptor() {
@@ -44,7 +44,7 @@ export default function AuthFetchInterceptor() {
 
       refreshPromise = (async () => {
         try {
-          const response = await originalFetch('/api/auth/refresh', {
+          const response = await originalFetch(withBasePath('/api/auth/refresh'), {
             method: 'GET',
             credentials: 'include',
             headers: {

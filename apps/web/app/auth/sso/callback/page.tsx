@@ -7,6 +7,7 @@ import { useAuth } from '@components/Contexts/AuthContext'
 import { Shield, AlertTriangle, Loader2, Info, Copy, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import { withBasePath } from '@services/config/config'
 
 interface ErrorDetails {
   message: string
@@ -64,7 +65,7 @@ export default function SSOCallbackPage() {
         const result = await handleSSOCallback(code, state)
 
         // Use absolute URL with current origin for custom domain support
-        const defaultRedirect = `${window.location.origin}/redirect_from_auth`
+        const defaultRedirect = `${window.location.origin}${withBasePath('/redirect_from_auth')}`
         const redirectUrl = result.redirect_url || defaultRedirect
 
         // Use the credentials provider with SSO tokens

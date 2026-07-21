@@ -10,7 +10,7 @@ import { checkSSOEnabled, redirectToSSOLogin } from '@services/auth/sso'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@components/Contexts/AuthContext'
-import { getLEARNHOUSE_TOP_DOMAIN_VAL, getDeploymentMode, isOnCustomDomain } from '@services/config/config'
+import { getLEARNHOUSE_TOP_DOMAIN_VAL, getDeploymentMode, isOnCustomDomain, withBasePath } from '@services/config/config'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useTranslation } from 'react-i18next'
 import { resendVerificationEmail } from '@services/auth/auth'
@@ -60,7 +60,7 @@ const LoginClient = (props: LoginClientProps) => {
     const params = new URLSearchParams(window.location.search)
     const raw = params.get('next') ?? params.get('redirect')
     const dest = raw && /^\/(?!\/)/.test(raw) ? raw : '/home'
-    return `${window.location.origin}/redirect_from_auth?next=${encodeURIComponent(dest)}`
+    return `${window.location.origin}${withBasePath('/redirect_from_auth')}?next=${encodeURIComponent(dest)}`
   }
 
   const handleGoogleSignIn = () => {

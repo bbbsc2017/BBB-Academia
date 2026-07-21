@@ -6,9 +6,10 @@
 // cookie and enforce org-admin, so we send orgId and NEVER an email.
 
 import type { Billing, PlanId, PackId, PricesResponse } from "./plans";
+import { withBasePath } from "@services/config/config";
 
 async function postJson<T = any>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(withBasePath(path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -91,7 +92,7 @@ export async function fetchSubscription(
   orgId: number | string,
 ): Promise<SubscriptionDetail | null> {
   const res = await fetch(
-    `/api/billing/subscription?orgId=${encodeURIComponent(String(orgId))}`,
+    withBasePath(`/api/billing/subscription?orgId=${encodeURIComponent(String(orgId))}`),
   );
   if (!res.ok) return null;
   return res.json();
@@ -99,7 +100,7 @@ export async function fetchSubscription(
 
 // GET /api/billing/prices → { plans, packs, limits }
 export async function fetchPrices(): Promise<PricesResponse | null> {
-  const res = await fetch("/api/billing/prices");
+  const res = await fetch(withBasePath("/api/billing/prices"));
   if (!res.ok) return null;
   return res.json();
 }

@@ -196,8 +196,8 @@ export default function GoogleCallbackPage() {
 
         // Call Next.js API route to ensure cookies are set properly
         const oauthUrl = orgId
-          ? `/api/auth/oauth?org_id=${orgId}`
-          : '/api/auth/oauth'
+          ? withBasePath(`/api/auth/oauth?org_id=${orgId}`)
+          : withBasePath('/api/auth/oauth')
 
         const oauthResponse = await fetch(oauthUrl, {
           method: 'POST',
