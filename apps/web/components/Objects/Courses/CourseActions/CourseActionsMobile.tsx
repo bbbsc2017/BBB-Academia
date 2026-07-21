@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useOrg, useOrgMembership } from '@components/Contexts/OrgContext'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { getOffersByResource } from '@services/payments/offers'
 import { LogIn, LogOut, ShoppingCart, Lock, UserPlus } from 'lucide-react'
 import { removeCourse, startCourse } from '@services/courses/activity'
@@ -233,7 +233,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
             </p>
           </div>
           <a
-            href={getUriWithOrg(orgslug, '/signup')}
+            href={withBasePathOnRelative(getUriWithOrg(orgslug, '/signup'))}
             className="w-full py-2 px-4 rounded-lg bg-neutral-900 text-white font-semibold text-sm hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
           >
             <UserPlus className="w-4 h-4" />

@@ -52,7 +52,7 @@ const AIEditorSidePanel = dynamic(() => import('./AI/AIEditorSidePanel'), { ssr:
 import AIStreamingMark from './Extensions/AIStreaming/AIStreamingMark'
 import AISelectionHighlight from './Extensions/AISelectionHighlight/AISelectionHighlight'
 import useGetAIFeatures from '@components/Hooks/useGetAIFeatures'
-import { getUriWithOrg, withBasePath } from '@services/config/config'
+import { getUriWithOrg, withBasePath, withBasePathOnRelative } from '@services/config/config'
 import EmbedObjects from './Extensions/EmbedObjects/EmbedObjects'
 import Badges from './Extensions/Badges/Badges'
 import Buttons from './Extensions/Buttons/Buttons'
@@ -450,7 +450,7 @@ function Editor(props: EditorProps) {
                       props.org?.org_uuid,
                       props.course.course_uuid,
                       props.course.thumbnail_image
-                    ) : getUriWithOrg(props.org?.slug, '/empty_thumbnail.png')}`}
+                    ) : withBasePathOnRelative(getUriWithOrg(props.org?.slug, '/empty_thumbnail.png'))}`}
                     alt={props.course.name}
                   />
                 </Link>

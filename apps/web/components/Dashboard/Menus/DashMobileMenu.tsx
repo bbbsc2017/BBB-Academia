@@ -34,7 +34,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import UserAvatar from '../../Objects/UserAvatar'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
-import { getUriWithOrg, getDeploymentMode, withBasePath } from '@services/config/config'
+import { getUriWithOrg, getDeploymentMode, withBasePath, withBasePathOnRelative } from '@services/config/config'
 import { useTranslation } from 'react-i18next'
 import { changeLanguage } from '@/lib/i18n'
 import { AVAILABLE_LANGUAGES } from '@/lib/languages'
@@ -75,7 +75,7 @@ function DashMobileMenu() {
   }
 
   async function logOutUI() {
-    await signOut({ redirect: true, callbackUrl: getUriWithOrg(org.slug, '/login') })
+    await signOut({ redirect: true, callbackUrl: withBasePathOnRelative(getUriWithOrg(org.slug, '/login')) })
   }
 
   const close = () => { setMenuOpen(false); setLangExpanded(false) }

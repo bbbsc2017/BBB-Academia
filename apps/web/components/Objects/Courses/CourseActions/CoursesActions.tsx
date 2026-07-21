@@ -3,7 +3,7 @@ import { removeCourse, startCourse } from '@services/courses/activity'
 import { revalidateTags } from '@services/utils/ts/requests'
 import { useRouter } from 'next/navigation'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { getOffersByResource } from '@services/payments/offers'
 import { UserPen, ClockIcon, ArrowRight, BookOpen, UserPlus } from 'lucide-react'
 import { OfferCard } from './OfferCard'
@@ -400,7 +400,7 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
             </p>
           </div>
           <a
-            href={getUriWithOrg(orgslug, '/signup')}
+            href={withBasePathOnRelative(getUriWithOrg(orgslug, '/signup'))}
             className="w-full bg-neutral-900 text-white py-3 rounded-lg nice-shadow font-semibold hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
           >
             <UserPlus className="w-5 h-5" />

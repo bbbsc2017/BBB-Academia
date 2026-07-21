@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import { WarningCircle, SquaresFour, Microphone, UsersThree, Code, GraduationCap, ArrowSquareOut } from '@phosphor-icons/react'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 
 type ResourceKind = 'course' | 'podcast' | 'community' | 'board' | 'playground'
 
@@ -23,16 +23,16 @@ function buildResourceUrl(kind: ResourceKind, resourceUuid: string, orgslug: str
   if (!resourceUuid) return null
   switch (kind) {
     case 'board':
-      return getUriWithOrg(orgslug, `/board/${resourceUuid.replace('board_', '')}`)
+      return withBasePathOnRelative(getUriWithOrg(orgslug, `/board/${resourceUuid.replace('board_', '')}`))
     case 'community':
-      return getUriWithOrg(orgslug, `/community/${resourceUuid.replace('community_', '')}`)
+      return withBasePathOnRelative(getUriWithOrg(orgslug, `/community/${resourceUuid.replace('community_', '')}`))
     case 'podcast':
-      return getUriWithOrg(orgslug, `/podcast/${resourceUuid.replace('podcast_', '')}`)
+      return withBasePathOnRelative(getUriWithOrg(orgslug, `/podcast/${resourceUuid.replace('podcast_', '')}`))
     case 'playground':
       // Playgrounds use the full prefixed uuid.
-      return getUriWithOrg(orgslug, `/playground/${resourceUuid}`)
+      return withBasePathOnRelative(getUriWithOrg(orgslug, `/playground/${resourceUuid}`))
     case 'course':
-      return getUriWithOrg(orgslug, `/course/${resourceUuid.replace('course_', '')}`)
+      return withBasePathOnRelative(getUriWithOrg(orgslug, `/course/${resourceUuid.replace('course_', '')}`))
     default:
       return null
   }

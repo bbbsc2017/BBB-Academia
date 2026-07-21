@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useOnboarding } from '@components/Hooks/useOnboarding'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { withBasePath } from '@services/config/config'
 import {
   BookOpen,
   CheckCircle,
@@ -38,7 +37,7 @@ import {
 } from '@phosphor-icons/react'
 import { FilePenLine } from 'lucide-react'
 import { useOrg } from '@components/Contexts/OrgContext'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePath, withBasePathOnRelative } from '@services/config/config'
 import { usePlan } from '@components/Hooks/usePlan'
 import { PlanLevel, planMeetsRequirement } from '@services/plans/plans'
 import PlanBadge from '@components/Dashboard/Shared/PlanRestricted/PlanBadge'
@@ -210,8 +209,9 @@ export default function OnboardingBar() {
   const navigateTo = (href: string) => {
     const fullPath = getUriWithOrg(orgSlug, href)
     if (isInEditor) {
-      // Full page navigation from editor since it's outside the dash router
-      window.location.href = fullPath
+      // Full page navigation from editor since it's outside the dash router.
+      // window.location doesn't get Next's automatic basePath prefixing.
+      window.location.href = withBasePathOnRelative(fullPath)
     } else {
       router.push(fullPath)
     }

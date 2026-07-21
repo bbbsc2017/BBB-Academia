@@ -5,7 +5,7 @@ import { useCourses } from '@/hooks/queries/useCourses'
 import LandingClassic from '@components/Landings/LandingClassic'
 import LandingCustom from '@components/Landings/LandingCustom'
 import { JsonLd } from '@components/SEO/JsonLd'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { getOrgLogoMediaDirectory } from '@services/media/media'
 import GeneralWrapperStyled from '@components/Objects/StyledElements/Wrappers/GeneralWrapper'
 
@@ -22,7 +22,7 @@ export default function HomeClient({ orgslug }: { orgslug: string }) {
         '@type': 'Organization',
         name: org.name,
         description: org.description,
-        url: getUriWithOrg(orgslug, '/'),
+        url: withBasePathOnRelative(getUriWithOrg(orgslug, '/')),
         ...(org.logo_image && {
           logo: getOrgLogoMediaDirectory(org.org_uuid, org.logo_image),
         }),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { useParams } from 'next/navigation'
 import { getUserAvatarMediaDirectory } from '@services/media/media'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
@@ -72,7 +72,7 @@ function UserAvatar(props: UserAvatarProps) {
     // If predefined avatar is specified
     if (props.predefined_avatar) {
       const avatarType = props.predefined_avatar === 'ai' ? 'ai_avatar.png' : 'empty_avatar.png'
-      return getUriWithOrg(params.orgslug, `/${avatarType}`)
+      return withBasePathOnRelative(getUriWithOrg(params.orgslug, `/${avatarType}`))
     }
 
     // If avatar_url prop is provided
@@ -104,7 +104,7 @@ function UserAvatar(props: UserAvatarProps) {
     // If a specific userId or username was requested but user has no avatar,
     // don't fall back to session avatar - use empty avatar instead
     if (props.userId || props.username) {
-      return getUriWithOrg(params.orgslug, '/empty_avatar.png')
+      return withBasePathOnRelative(getUriWithOrg(params.orgslug, '/empty_avatar.png'))
     }
 
     // Only use session avatar when no specific user is requested
@@ -119,10 +119,10 @@ function UserAvatar(props: UserAvatarProps) {
     }
 
     // Fallback to empty avatar
-    return getUriWithOrg(params.orgslug, '/empty_avatar.png')
+    return withBasePathOnRelative(getUriWithOrg(params.orgslug, '/empty_avatar.png'))
   }
 
-  const emptyAvatarUrl = getUriWithOrg(params.orgslug, '/empty_avatar.png')
+  const emptyAvatarUrl = withBasePathOnRelative(getUriWithOrg(params.orgslug, '/empty_avatar.png'))
   const resolvedAvatarUrl = getAvatarUrl()
   // Tracking the failed URL (rather than a boolean) resets automatically when
   // the resolved source changes, avoiding a setState-in-effect.

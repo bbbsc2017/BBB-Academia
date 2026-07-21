@@ -46,7 +46,7 @@ import UserAvatar from '@components/Objects/UserAvatar'
 import { createNewOrganization } from '@services/organizations/orgs'
 import { useLHAnalytics } from '@services/analytics/useLHAnalytics'
 import { AnalyticsEvent } from '@services/analytics/events'
-import { getAPIUrl, getUriWithOrg, withBasePath } from '@services/config/config'
+import { getAPIUrl, getUriWithOrg, withBasePath, withBasePathOnRelative } from '@services/config/config'
 import { apiFetch } from '@services/utils/ts/requests'
 import {
   DropdownMenu,
@@ -667,7 +667,7 @@ function CreateOrgSuccess({ slug, t }: { slug: string; t: any }) {
     } catch {
       /* non-fatal — the existing session cookie still carries over */
     }
-    window.location.href = getUriWithOrg(slug, '/dash/onboarding')
+    window.location.href = withBasePathOnRelative(getUriWithOrg(slug, '/dash/onboarding'))
   }
 
   return (

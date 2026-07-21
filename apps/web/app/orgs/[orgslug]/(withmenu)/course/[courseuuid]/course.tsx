@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import React, { useEffect, useState, Suspense } from 'react'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { getCourseMetadata } from '@services/courses/courses'
 import { useTrail } from '@/hooks/queries/useTrail'
 import ActivityIndicators from '@components/Pages/Courses/ActivityIndicators'
@@ -326,7 +326,7 @@ const CourseClient = (props: any) => {
               <h1 className="text-3xl md:text-3xl font-bold">{course.name}</h1>
               <CourseShare
                 courseName={course.name}
-                courseUrl={getUriWithOrg(orgslug, `/course/${courseuuid}`)}
+                courseUrl={withBasePathOnRelative(getUriWithOrg(orgslug, `/course/${courseuuid}`))}
               />
             </div>
 

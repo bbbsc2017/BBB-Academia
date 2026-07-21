@@ -17,7 +17,7 @@ import {
   CaretDown,
 } from '@phosphor-icons/react'
 import { useOrg } from '@components/Contexts/OrgContext'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { useTranslation } from 'react-i18next'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
@@ -178,7 +178,7 @@ export default function OnboardingSteps() {
                           <div className="mt-3.5">
                             {step.completeOnClick ? (
                               <a
-                                href={target}
+                                href={withBasePathOnRelative(target)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => {

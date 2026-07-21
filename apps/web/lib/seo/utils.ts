@@ -1,4 +1,4 @@
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 
 /**
  * Sync canonical URL — safe for client components.
@@ -10,7 +10,7 @@ import { getUriWithOrg } from '@services/config/config'
  * works on cold loads where cookies aren't yet visible to RSC.
  */
 export function getCanonicalUrl(orgslug: string, path: string): string {
-  return getUriWithOrg(orgslug, path).replace(/\/+$/, '')
+  return withBasePathOnRelative(getUriWithOrg(orgslug, path)).replace(/\/+$/, '')
 }
 
 export function getOrgSeoConfig(org: any) {

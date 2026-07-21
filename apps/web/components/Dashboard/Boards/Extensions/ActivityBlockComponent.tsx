@@ -10,7 +10,7 @@ import { useDragResize } from './useDragResize'
 import { getOrgCourses } from '@services/courses/courses'
 import { getCourseMetadata } from '@services/courses/courses'
 import { getActivity } from '@services/courses/activities'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { CourseContext, CourseDispatchContext } from '@components/Contexts/CourseContext'
 
 const Canva = lazy(() => import('@components/Objects/Activities/DynamicCanva/DynamicCanva'))
@@ -239,10 +239,10 @@ export default function ActivityBlockComponent({ node, updateAttributes, selecte
   const orgUuid = courseMeta?.org_uuid || boardOrgUuid
   const courseObj = { course_uuid: cUuid }
   const activityUrl = activity && cUuid
-    ? getUriWithOrg(
+    ? withBasePathOnRelative(getUriWithOrg(
         orgslug,
         `/course/${cUuid.replace('course_', '')}/activity/${activityUuid.replace('activity_', '')}`
-      )
+      ))
     : ''
 
   const renderActivityContent = () => {

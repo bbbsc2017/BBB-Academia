@@ -52,7 +52,7 @@ import React, { useEffect, useState } from 'react'
 import UserAvatar from '../../Objects/UserAvatar'
 import AdminAuthorization from '@components/Security/AdminAuthorization'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
-import { getUriWithOrg, getAPIUrl, getMainDomainUri, isMultiOrgModeEnabled, withBasePath } from '@services/config/config'
+import { getUriWithOrg, getAPIUrl, getMainDomainUri, isMultiOrgModeEnabled, withBasePath, withBasePathOnRelative } from '@services/config/config'
 import { useTranslation } from 'react-i18next'
 import { changeLanguage } from '@/lib/i18n'
 import {
@@ -185,7 +185,7 @@ function DashLeftMenu() {
 
 
   async function logOutUI() {
-    await signOut({ redirect: true, callbackUrl: getUriWithOrg(org.slug, '/login') })
+    await signOut({ redirect: true, callbackUrl: withBasePathOnRelative(getUriWithOrg(org.slug, '/login')) })
   }
 
 

@@ -278,6 +278,17 @@ export const getCustomDomainFromContext = (): string | null => {
  * misconfiguration. A stale env var or legacy cookie can no longer cause
  * the menu to forge a non-existent subdomain like `default.localhost:3000`.
  */
+// getUriWithOrg is a NAVIGATION helper: its relative-path results are meant for
+// next/link's `href` or router.push()/router.replace(), which already apply
+// basePath themselves (that's how Next resolves them against the app mounted
+// under /courses) — so those branches return the bare path, NOT
+// withBasePath(path), to avoid a double `/courses/courses/...` prefix.
+// Absolute cross-origin URLs (crossing subdomains, or built server-side for a
+// different host) are NOT touched by Next's Link/router basePath handling, so
+// those branches keep calling withBasePath(path) themselves.
+// Callers that consume the result OUTSIDE Next's router — raw <a href>,
+// <img src>, <iframe src>, fetch(), clipboard/share text, RSS/JSON-LD URLs —
+// must wrap the relative-path result in withBasePath() themselves.
 export const getUriWithOrg = (orgslug: string, path: string) => {
   const tenancy = getTenancy()
 
@@ -287,7 +298,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     // Custom domain → relative (we're already on the org's host).
     // Missing slug → relative (caller wants a generic intra-app URL).
     if (tenancy === 'single' || getCustomDomainFromContext() || !orgslug) {
-      return withBasePath(path)
+      return path
     }
 
     // Multi tenancy: relative if we're already on the correct subdomain.
@@ -295,7 +306,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     const currentHostname = window.location.hostname
     const expectedHostname = `${orgslug}.${baseDomain}`
     if (currentHostname === expectedHostname) {
-      return withBasePath(path)
+      return path
     }
 
     // Safety net: only synthesize an absolute subdomain URL when the user is
@@ -311,7 +322,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     // (a host is not a subdomain of itself), so without the `isSameHost` check
     // org links would collapse to the apex path and loop back to the selector.
     if (!isSubdomainOf(currentHostname, baseDomain) && !isSameHost(currentHostname, baseDomain)) {
-      return withBasePath(path)
+      return path
     }
 
     // Crossing subdomains — build an absolute URL with current scheme/port.
@@ -325,7 +336,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
   // Single tenancy → relative. The page will render on whatever host the
   // request came in on; relative URLs resolve correctly at the client.
   if (tenancy === 'single') {
-    return withBasePath(path)
+    return path
   }
 
   // Multi tenancy server-side: build the subdomain URL because we can't
@@ -340,7 +351,7 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     const protocol = getLEARNHOUSE_HTTP_PROTOCOL()
     return `${protocol}${explicitDomain}${withBasePath(path)}`
   }
-  return withBasePath(path)
+  return path
 }
 
 export const getUriWithoutOrg = (path: string) => {
@@ -401,6 +412,15 @@ export const getCollabUrl = () => getConfig('NEXT_PUBLIC_COLLAB_URL', 'ws://loca
 // Subpath deployment support (e.g., /courses)
 export const getBasePath = () => getConfig('NEXT_PUBLIC_BASE_PATH', '')
 export const withBasePath = (path: string) => `${getBasePath()}${path}`
+
+// Safe variant for wrapping a getUriWithOrg()/getUriWithoutOrg() result whose
+// shape isn't known ahead of time: those return a bare relative path in the
+// common (single-tenancy / same-subdomain) case, but a full absolute URL
+// (protocol+host+basePath already included) when crossing org subdomains in
+// multi-tenancy. Only relative results need the prefix — prepending it to an
+// already-absolute URL would corrupt it (e.g. "/courseshttps://...").
+export const withBasePathOnRelative = (uri: string) =>
+  uri.startsWith('/') ? withBasePath(uri) : uri
 
 export const getDefaultOrg = () => {
   // 1. Env var (backward compat)

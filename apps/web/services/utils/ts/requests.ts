@@ -1,4 +1,4 @@
-import { getUriWithOrg, getAPIUrl } from '@services/config/config'
+import { getUriWithOrg, getAPIUrl, withBasePathOnRelative } from '@services/config/config'
 import { dispatchAuthExpired } from '@/lib/auth/events'
 import { hasSessionMarker } from '@services/auth/sessionMarker'
 
@@ -183,7 +183,7 @@ export const getResponseMetadata = async (
 }
 
 export const revalidateTags = async (tags: string[], orgslug: string) => {
-  const url = getUriWithOrg(orgslug, '')
+  const url = withBasePathOnRelative(getUriWithOrg(orgslug, ''))
   // Call each tag revalidation multiple times to hit different pods
   // behind the load balancer (cookie affinity only applies to the
   // user's browser session, not to these programmatic fetches).

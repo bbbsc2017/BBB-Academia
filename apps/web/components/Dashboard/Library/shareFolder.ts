@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { removeFolderPrefix } from '@services/folders/folders'
 import { createMediaShareLink, getMediaShareFileUrl } from '@services/media/media-resource'
 
@@ -8,7 +8,7 @@ import { createMediaShareLink, getMediaShareFileUrl } from '@services/media/medi
  * Always points at the public /library/folder/{id} route (not the dashboard one).
  */
 export function getFolderShareUrl(orgslug: string, folderUuid: string): string {
-  const path = getUriWithOrg(orgslug, `/library/folder/${removeFolderPrefix(folderUuid)}`)
+  const path = withBasePathOnRelative(getUriWithOrg(orgslug, `/library/folder/${removeFolderPrefix(folderUuid)}`))
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   if (/^https?:\/\//i.test(path)) return path
   return `${origin}${path.startsWith('/') ? path : `/${path}`}`
