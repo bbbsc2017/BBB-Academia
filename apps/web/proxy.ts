@@ -437,17 +437,21 @@ export default async function proxy(req: NextRequest) {
     const queryString = req.nextUrl.searchParams.toString()
     const customDomain = req.cookies.get('LH_custom_domain')?.value
 
-    let redirectUrl: URL
     if (customDomain) {
       const protocol = req.nextUrl.protocol + '//'
-      redirectUrl = new URL(`${protocol}${customDomain}/`)
-    } else {
-      redirectUrl = urlWithBase(req, '/')
+      const redirectUrl = new URL(`${protocol}${customDomain}/`)
+      if (queryString) redirectUrl.search = queryString
+      return NextResponse.redirect(redirectUrl)
     }
-    if (queryString) {
-      redirectUrl.search = queryString
-    }
-    return NextResponse.redirect(redirectUrl)
+
+    // Built as a plain string (not via the NextURL clone urlWithBase uses)
+    // because NextURL's pathname getter/setter re-normalizes a bare "/" and
+    // drops the trailing slash after basePath is combined in — landing the
+    // redirect on "/courses" (no slash), a route Next's own router 404s on
+    // since skipTrailingSlashRedirect disables the auto-redirect between the
+    // two. Confirmed live: this exact case broke every post-login redirect.
+    const target = `${req.nextUrl.origin}${req.nextUrl.basePath}/${queryString ? `?${queryString}` : ''}`
+    return NextResponse.redirect(target)
   }
 
   // -------------------------------------------------------------------------
