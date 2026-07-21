@@ -1,0 +1,9 @@
+# Force LF line endings for text files regardless of local OS/git config.
+# Without this, Windows checkouts (core.autocrlf=true) silently convert shell
+# scripts to CRLF, which then fail to parse on Linux (the VPS/containers) with
+# cryptic "syntax error: end of file unexpected" errors.
+* text=auto eol=lf
+
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf

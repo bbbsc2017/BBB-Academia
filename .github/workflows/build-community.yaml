@@ -18,7 +18,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: learnhouse/app
+  IMAGE_NAME: bbbsc2017/bbb-academia
 
 jobs:
   build:
