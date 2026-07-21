@@ -202,6 +202,30 @@ function tenantRequestHeaders(
 }
 
 // =============================================================================
+// URL helpers
+// =============================================================================
+
+/**
+ * Build a rewrite/redirect target that preserves the configured basePath
+ * (e.g. /courses). `new URL(path, req.url)` drops the basePath, so Next
+ * would fail to resolve the route and every page would 404 when the app is
+ * mounted under a subpath. Cloning `req.nextUrl` keeps the basePath because
+ * NextURL re-serializes it in front of the pathname.
+ */
+function urlWithBase(req: NextRequest, pathWithOptionalQuery: string) {
+  const url = req.nextUrl.clone()
+  const qIndex = pathWithOptionalQuery.indexOf('?')
+  if (qIndex === -1) {
+    url.pathname = pathWithOptionalQuery
+    url.search = ''
+  } else {
+    url.pathname = pathWithOptionalQuery.slice(0, qIndex)
+    url.search = pathWithOptionalQuery.slice(qIndex)
+  }
+  return url
+}
+
+// =============================================================================
 // Middleware
 // =============================================================================
 
@@ -240,7 +264,7 @@ export default async function proxy(req: NextRequest) {
     '/home', '/billing', '/new', '/account', '/organizations', '/subscriptions',
   ])
   if (pathname !== pathname.toLowerCase() && CANONICAL_LOWER.has(pathname.toLowerCase())) {
-    return NextResponse.redirect(new URL(`${pathname.toLowerCase()}${search}`, req.url), 308)
+    return NextResponse.redirect(urlWithBase(req, `${pathname.toLowerCase()}${search}`), 308)
   }
 
   // -------------------------------------------------------------------------
@@ -253,7 +277,7 @@ export default async function proxy(req: NextRequest) {
     const target = pathname === '/admin' || pathname.startsWith('/admin/')
       ? pathname
       : `/admin${pathname}`
-    const response = NextResponse.rewrite(new URL(`${target}${search}`, req.url))
+    const response = NextResponse.rewrite(urlWithBase(req, `${target}${search}`))
     setInstanceCookies(response, instance)
     return response
   }
@@ -264,7 +288,7 @@ export default async function proxy(req: NextRequest) {
   //     multi mode it's an alternative to the admin.{domain} subdomain.
   // -------------------------------------------------------------------------
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    const response = NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
+    const response = NextResponse.rewrite(urlWithBase(req, `${pathname}${search}`))
     setInstanceCookies(response, instance)
     return response
   }
@@ -293,7 +317,7 @@ export default async function proxy(req: NextRequest) {
     // Preserve query markers (checkout=cancelled, session_id, …). /billing?org=
     // already carries a query, so merge with & in that case.
     const extraQuery = search ? (dest.includes('?') ? `&${search.slice(1)}` : search) : ''
-    return NextResponse.redirect(new URL(`${dest}${extraQuery}`, req.url), 308)
+    return NextResponse.redirect(urlWithBase(req, `${dest}${extraQuery}`), 308)
   }
 
   // -------------------------------------------------------------------------
@@ -322,7 +346,7 @@ export default async function proxy(req: NextRequest) {
       onOrgHost = resolved.source === 'subdomain' || resolved.source === 'custom-domain'
     }
     if (!onOrgHost) {
-      const response = NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
+      const response = NextResponse.rewrite(urlWithBase(req, `${pathname}${search}`))
       setInstanceCookies(response, instance)
       return response
     }
@@ -337,12 +361,12 @@ export default async function proxy(req: NextRequest) {
     // A logged-in user has no business on /login or /signup — bounce them to the
     // hub (the page itself re-verifies, so this is a best-effort UX shortcut).
     if ((pathname === '/login' || pathname === '/signup') && req.cookies.get('LH_session')?.value) {
-      return NextResponse.redirect(new URL('/home', req.url))
+      return NextResponse.redirect(urlWithBase(req, '/home'))
     }
     const resolved = await resolveTenant(req, instance)
     const requestHeaders = tenantRequestHeaders(req, resolved, instance)
     const response = NextResponse.rewrite(
-      new URL(`/auth${pathname}${search}`, req.url),
+      urlWithBase(req, `/auth${pathname}${search}`),
       { request: { headers: requestHeaders } },
     )
     setOrgCookies(response, resolved, instance)
@@ -358,7 +382,7 @@ export default async function proxy(req: NextRequest) {
     || pathname.startsWith('/auth/callback/')
     || pathname.startsWith('/auth/token-exchange')
   ) {
-    const response = NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
+    const response = NextResponse.rewrite(urlWithBase(req, `${pathname}${search}`))
     setInstanceCookies(response, instance)
     return response
   }
@@ -367,15 +391,15 @@ export default async function proxy(req: NextRequest) {
   // 5. Standalone editors / boards — bypass org rewrite
   // -------------------------------------------------------------------------
   if (pathname.match(/^\/course\/[^/]+\/activity\/[^/]+\/edit$/)) {
-    return NextResponse.rewrite(new URL(`/editor${pathname}`, req.url))
+    return NextResponse.rewrite(urlWithBase(req, `/editor${pathname}`))
   }
   if (pathname.startsWith('/board/')) {
-    const response = NextResponse.rewrite(new URL(pathname + search, req.url))
+    const response = NextResponse.rewrite(urlWithBase(req, pathname + search))
     setInstanceCookies(response, instance)
     return response
   }
   if (pathname.startsWith('/editor/playground/')) {
-    const response = NextResponse.rewrite(new URL(pathname + search, req.url))
+    const response = NextResponse.rewrite(urlWithBase(req, pathname + search))
     setInstanceCookies(response, instance)
     return response
   }
@@ -386,7 +410,7 @@ export default async function proxy(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith('/payments/stripe/connect/oauth')) {
     const searchParams = req.nextUrl.searchParams
     const orgslug = searchParams.get('state')?.split('_')[0]
-    const redirectUrl = new URL('/payments/stripe/connect/oauth', req.url)
+    const redirectUrl = urlWithBase(req, '/payments/stripe/connect/oauth')
     searchParams.forEach((value, key) => {
       redirectUrl.searchParams.append(key, value)
     })
@@ -400,7 +424,7 @@ export default async function proxy(req: NextRequest) {
   // 7. Health check
   // -------------------------------------------------------------------------
   if (pathname.startsWith('/health')) {
-    return NextResponse.rewrite(new URL(`/api/health`, req.url))
+    return NextResponse.rewrite(urlWithBase(req, '/api/health'))
   }
 
   // -------------------------------------------------------------------------
@@ -415,7 +439,7 @@ export default async function proxy(req: NextRequest) {
       const protocol = req.nextUrl.protocol + '//'
       redirectUrl = new URL(`${protocol}${customDomain}/`)
     } else {
-      redirectUrl = new URL('/', req.url)
+      redirectUrl = urlWithBase(req, '/')
     }
     if (queryString) {
       redirectUrl.search = queryString
@@ -428,21 +452,21 @@ export default async function proxy(req: NextRequest) {
   // -------------------------------------------------------------------------
   if (pathname.match(/^\/podcast\/([^/]+)\/feed$/)) {
     const resolved = await resolveTenant(req, instance)
-    const feedUrl = new URL(`/api${pathname}`, req.url)
+    const feedUrl = urlWithBase(req, `/api${pathname}`)
     const response = NextResponse.rewrite(feedUrl)
     response.headers.set('X-Feed-Orgslug', resolved.slug)
     return response
   }
   if (pathname.startsWith('/sitemap.xml')) {
     const resolved = await resolveTenant(req, instance)
-    const sitemapUrl = new URL(`/api/sitemap`, req.url)
+    const sitemapUrl = urlWithBase(req, '/api/sitemap')
     const response = NextResponse.rewrite(sitemapUrl)
     response.headers.set('X-Sitemap-Orgslug', resolved.slug)
     return response
   }
   if (pathname === '/robots.txt') {
     const resolved = await resolveTenant(req, instance)
-    const robotsUrl = new URL(`/api/robots`, req.url)
+    const robotsUrl = urlWithBase(req, '/api/robots')
     const response = NextResponse.rewrite(robotsUrl)
     response.headers.set('X-Robots-Orgslug', resolved.slug)
     return response
@@ -471,7 +495,7 @@ export default async function proxy(req: NextRequest) {
       const hasSession = !!req.cookies.get('LH_session')?.value
       const target = hasSession ? `/home${search}` : `/auth/login${search}`
       const requestHeaders = tenantRequestHeaders(req, resolved, instance)
-      const response = NextResponse.rewrite(new URL(target, req.url), {
+      const response = NextResponse.rewrite(urlWithBase(req, target), {
         request: { headers: requestHeaders },
       })
       setOrgCookies(response, resolved, instance)
@@ -486,7 +510,7 @@ export default async function proxy(req: NextRequest) {
   const resolved = await resolveTenant(req, instance)
   const requestHeaders = tenantRequestHeaders(req, resolved, instance)
   const response = NextResponse.rewrite(
-    new URL(`/orgs/${resolved.slug}${pathname}`, req.url),
+    urlWithBase(req, `/orgs/${resolved.slug}${pathname}${search}`),
     { request: { headers: requestHeaders } },
   )
   setOrgCookies(response, resolved, instance)
