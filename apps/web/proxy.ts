@@ -215,12 +215,15 @@ function tenantRequestHeaders(
 function urlWithBase(req: NextRequest, pathWithOptionalQuery: string) {
   const url = req.nextUrl.clone()
   const qIndex = pathWithOptionalQuery.indexOf('?')
-  if (qIndex === -1) {
-    url.pathname = pathWithOptionalQuery
-    url.search = ''
-  } else {
-    url.pathname = pathWithOptionalQuery.slice(0, qIndex)
-    url.search = pathWithOptionalQuery.slice(qIndex)
+  const rawPath = qIndex === -1 ? pathWithOptionalQuery : pathWithOptionalQuery.slice(0, qIndex)
+  url.pathname = rawPath
+  url.search = qIndex === -1 ? '' : pathWithOptionalQuery.slice(qIndex)
+  // NextURL's basePath+pathname combination can drop a bare "/" (e.g.
+  // basePath "/courses" + pathname "/" serializing to "/courses" instead of
+  // "/courses/"), which 404s since Next's own router treats the two as
+  // distinct routes. Restore it explicitly when the caller asked for one.
+  if (rawPath.endsWith('/') && !url.pathname.endsWith('/')) {
+    url.pathname = `${url.pathname}/`
   }
   return url
 }
