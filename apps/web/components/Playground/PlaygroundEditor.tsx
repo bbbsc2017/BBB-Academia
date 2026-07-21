@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, type Transition, type TargetAndTransition } from 'motion/react'
+import { withBasePath } from '@services/config/config'
 import {
   ArrowLeft,
   Check,
@@ -68,7 +69,7 @@ const EditorLearnHouseLogo = () => {
         animate={animation.animate}
         transition={animation.transition}
       >
-        <Image src="/lrn.svg" alt="LearnHouse" width={14} height={14} className="invert" />
+        <Image src={withBasePath('/lrn.svg')} alt="LearnHouse" width={14} height={14} className="invert" />
       </motion.div>
     </div>
   )

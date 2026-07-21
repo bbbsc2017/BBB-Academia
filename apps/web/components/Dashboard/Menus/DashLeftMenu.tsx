@@ -52,7 +52,7 @@ import React, { useEffect, useState } from 'react'
 import UserAvatar from '../../Objects/UserAvatar'
 import AdminAuthorization from '@components/Security/AdminAuthorization'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
-import { getUriWithOrg, getAPIUrl, getMainDomainUri, isMultiOrgModeEnabled } from '@services/config/config'
+import { getUriWithOrg, getAPIUrl, getMainDomainUri, isMultiOrgModeEnabled, withBasePath } from '@services/config/config'
 import { useTranslation } from 'react-i18next'
 import { changeLanguage } from '@/lib/i18n'
 import {
@@ -259,7 +259,7 @@ function DashLeftMenu() {
             />
           ) : (
             <img
-              src="/lrn-dash.svg"
+              src={withBasePath('/lrn-dash.svg')}
               alt="Learnhouse logo"
               className="h-8 w-8"
             />

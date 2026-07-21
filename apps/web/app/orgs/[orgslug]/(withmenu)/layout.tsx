@@ -15,6 +15,7 @@ import { PageViewTracker } from '@components/Analytics/PageViewTracker'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { usePlan } from '@components/Hooks/usePlan'
 import { getGoogleFontUrl, DEFAULT_FONT } from '@/lib/fonts'
+import { withBasePath } from '@services/config/config'
 
 // Helper to convert hex to rgba
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -40,7 +41,7 @@ function OrgFooter() {
         {showWatermark && (
           <Link href="https://learnhouse.app" target="_blank" rel="noopener noreferrer">
             <Image
-              src="/lrn.svg"
+              src={withBasePath('/lrn.svg')}
               alt="LearnHouse"
               width={24}
               height={24}

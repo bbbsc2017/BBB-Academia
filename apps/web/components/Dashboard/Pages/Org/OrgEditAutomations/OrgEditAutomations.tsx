@@ -6,7 +6,7 @@ import { useOrg } from '@components/Contexts/OrgContext'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { toast } from 'react-hot-toast'
 import { Button } from '@components/ui/button'
-import { getAPIUrl } from '@services/config/config'
+import { getAPIUrl, withBasePath } from '@services/config/config'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
 import { apiFetch } from '@services/utils/ts/requests'
@@ -56,7 +56,7 @@ const ZapierLogo: React.FC<{ size?: number; className?: string }> = ({
   className,
 }) => (
   <Image
-    src="/zapier_logo.png"
+    src={withBasePath('/zapier_logo.png')}
     alt="Zapier"
     width={size}
     height={size}

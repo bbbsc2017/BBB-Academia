@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useOnboarding } from '@components/Hooks/useOnboarding'
+import { withBasePath } from '@services/config/config'
 import {
   ArrowRight,
   BookOpen,
@@ -147,7 +148,7 @@ export default function WelcomeModal() {
                 >
                   <div className="px-10 pt-10 pb-2 text-center">
                     <motion.img
-                      src="/lrn-dash.svg"
+                      src={withBasePath('/lrn-dash.svg')}
                       alt="LearnHouse"
                       className="h-12 w-12 mx-auto mb-5"
                       style={{ filter: 'brightness(0)' }}

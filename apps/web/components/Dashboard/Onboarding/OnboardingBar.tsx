@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useOnboarding } from '@components/Hooks/useOnboarding'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { withBasePath } from '@services/config/config'
 import {
   BookOpen,
   CheckCircle,
@@ -673,7 +674,7 @@ export default function OnboardingBar() {
                                           className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
                                         >
                                           <img
-                                            src="/UNI_LOGO.png"
+                                            src={withBasePath('/UNI_LOGO.png')}
                                             alt="LearnHouse University"
                                             className="h-9 w-auto shrink-0 rounded"
                                           />
@@ -694,7 +695,7 @@ export default function OnboardingBar() {
                                           className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
                                         >
                                           <img
-                                            src="/theclassroom.png"
+                                            src={withBasePath('/theclassroom.png')}
                                             alt="The Classroom"
                                             className="h-9 w-auto shrink-0 rounded"
                                           />

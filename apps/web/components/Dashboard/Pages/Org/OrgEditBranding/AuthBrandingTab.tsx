@@ -8,6 +8,7 @@ import { getOrgLogoMediaDirectory, getOrgAuthBackgroundMediaDirectory } from '@s
 import { toast } from 'react-hot-toast'
 import { constructAcceptValue } from '@/lib/constants'
 import { updateOrgAuthBrandingConfig, uploadOrgAuthBackground, AuthBrandingConfig } from '@services/settings/org'
+import { withBasePath } from '@services/config/config'
 import { cn } from '@/lib/utils'
 import { Button } from "@components/ui/button"
 import { Label } from "@components/ui/label"
@@ -324,7 +325,7 @@ export default function AuthBrandingTab() {
                       "w-4 h-4 bg-contain bg-no-repeat",
                       textColor === 'light' ? "opacity-60 invert" : "opacity-40"
                     )}
-                    style={{ backgroundImage: "url(/lrn.svg)" }}
+                    style={{ backgroundImage: `url(${withBasePath('/lrn.svg')})` }}
                   />
                 </div>
               )}

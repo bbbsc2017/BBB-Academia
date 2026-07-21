@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { withBasePath } from '@services/config/config'
 import {
   Cursor,
   Hand,
@@ -93,7 +94,7 @@ export default function BoardToolbar({
       <Link href="/dash/boards">
         <div className="bg-black rounded-md w-[25px] h-[25px] flex items-center justify-center hover:opacity-80 transition-opacity">
           <Image
-            src="/lrn.svg"
+            src={withBasePath('/lrn.svg')}
             alt="LearnHouse"
             width={14}
             height={14}

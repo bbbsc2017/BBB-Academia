@@ -11,6 +11,7 @@ import { createPodcast } from '@services/podcasts/podcasts'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 import { useUpgradeModal } from '@components/Dashboard/Shared/PlanRestricted/UpgradeModalContext'
 import { getOrganizationContextInfoWithoutCredentials } from '@services/organizations/orgs'
+import { withBasePath } from '@services/config/config'
 import React, { useEffect } from 'react'
 import { BarLoader } from 'react-spinners'
 import { revalidateTags } from '@services/utils/ts/requests'
@@ -196,7 +197,7 @@ function CreatePodcastModal({ closeModal, orgslug }: any) {
                 />
               ) : (
                 <img
-                  src="/empty_thumbnail.png"
+                  src={withBasePath('/empty_thumbnail.png')}
                   className="shadow-sm w-[200px] h-[100px] rounded-md bg-gray-200"
                 />
               )}

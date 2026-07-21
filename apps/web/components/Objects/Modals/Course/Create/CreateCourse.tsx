@@ -10,6 +10,7 @@ import * as Form from '@radix-ui/react-form'
 import { createNewCourse } from '@services/courses/courses'
 import { createChapter } from '@services/courses/chapters'
 import { getOrganizationContextInfoWithoutCredentials } from '@services/organizations/orgs'
+import { withBasePath } from '@services/config/config'
 import React, { useEffect } from 'react'
 import { BarLoader } from 'react-spinners'
 import { revalidateTags } from '@services/utils/ts/requests'
@@ -268,7 +269,7 @@ function CreateCourseModal({ closeModal, orgslug }: any) {
                 />
               ) : (
                 <img
-                  src="/empty_thumbnail.png"
+                  src={withBasePath('/empty_thumbnail.png')}
                   className="shadow-sm w-[200px] h-[100px] rounded-md bg-gray-200"
                 />
               )}

@@ -52,7 +52,7 @@ const AIEditorSidePanel = dynamic(() => import('./AI/AIEditorSidePanel'), { ssr:
 import AIStreamingMark from './Extensions/AIStreaming/AIStreamingMark'
 import AISelectionHighlight from './Extensions/AISelectionHighlight/AISelectionHighlight'
 import useGetAIFeatures from '@components/Hooks/useGetAIFeatures'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePath } from '@services/config/config'
 import EmbedObjects from './Extensions/EmbedObjects/EmbedObjects'
 import Badges from './Extensions/Badges/Badges'
 import Buttons from './Extensions/Buttons/Buttons'
@@ -694,7 +694,7 @@ const EditorLearnHouseLogo = () => {
         transition={animation.transition}
       >
         <Image
-          src="/lrn.svg"
+          src={withBasePath('/lrn.svg')}
           alt="LearnHouse"
           width={14}
           height={14}

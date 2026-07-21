@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import learnhouseIcon from 'public/learnhouse_bigicon_1.png'
 import { getOrgLogoMediaDirectory, getOrgAuthBackgroundMediaDirectory } from '@services/media/media'
-import { getUriWithOrg } from '@services/config/config'
+import { getUriWithOrg, withBasePath } from '@services/config/config'
 import { cn } from '@/lib/utils'
 import { usePlan } from '@components/Hooks/usePlan'
 
@@ -43,7 +43,7 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
   const getBackgroundStyle = (): React.CSSProperties => {
     if (noOrg) {
       return {
-        backgroundImage: 'url(/auth-default.png)',
+        backgroundImage: `url(${withBasePath('/auth-default.png')})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }
@@ -147,7 +147,7 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
             <div className="login-topbar">
               <Link prefetch href="https://learnhouse.app" target="_blank">
                 <img
-                  src="/lrn.svg"
+                  src={withBasePath('/lrn.svg')}
                   alt="LearnHouse"
                   width={30}
                   height={30}

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { Command } from 'cmdk'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { withBasePath } from '@services/config/config'
 import {
   BookOpen,
   User as UserIcon,
@@ -251,7 +252,7 @@ export default function CommandPalette() {
                 />
               </div>
               <img
-                src="/lrn-dash.svg"
+                src={withBasePath('/lrn-dash.svg')}
                 alt=""
                 aria-hidden="true"
                 draggable={false}
