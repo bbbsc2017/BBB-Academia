@@ -76,25 +76,13 @@ class TestPlanCheck:
         ):
             assert _check_mode_bypass("Boards") is None
 
+        # OSS (self-hosted) is treated the same as EE: full functionality,
+        # no Enterprise-tier gate — this is a single org, not the SaaS product.
         with patch(
             "src.security.features_utils.plan_check.get_deployment_mode",
             return_value="oss",
-        ), patch(
-            "src.security.features_utils.plan_check.EE_ONLY_FEATURES",
-            {"boards"},
         ):
-            with pytest.raises(HTTPException) as exc:
-                _check_mode_bypass("Boards")
-
-        assert exc.value.status_code == 403
-
-        with patch(
-            "src.security.features_utils.plan_check.get_deployment_mode",
-            return_value="oss",
-        ), patch(
-            "src.security.features_utils.plan_check.EE_ONLY_FEATURES",
-            {"boards"},
-        ):
+            assert _check_mode_bypass("Boards") is True
             assert _check_mode_bypass("Analytics") is True
 
     @pytest.mark.asyncio

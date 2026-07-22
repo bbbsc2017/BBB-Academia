@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.core.deployment_mode import get_deployment_mode, EE_ONLY_FEATURES
+from src.core.deployment_mode import get_deployment_mode
 from src.core.events.database import get_db_session
 from src.db.organization_config import OrganizationConfig
 from src.db.communities.communities import Community
@@ -27,15 +27,10 @@ def _check_mode_bypass(feature_name: str) -> bool | None:
         HTTPException 403 if access is blocked (OSS + EE-only feature)
     """
     mode = get_deployment_mode()
-    if mode == 'ee':
-        return True
-    if mode == 'oss':
-        feature_key = feature_name.lower().replace(' ', '_')
-        if feature_key in EE_ONLY_FEATURES:
-            raise HTTPException(
-                status_code=403,
-                detail=f"{feature_name} is not available in OSS mode. Enterprise Edition is required.",
-            )
+    if mode in ('ee', 'oss'):
+        # Self-hosted deployments (this codebase runs OSS) get full
+        # functionality — the Enterprise-tier gate only applies to the
+        # multi-tenant SaaS product, not to a single self-hosted org.
         return True
     return None  # SaaS — proceed with plan check
 

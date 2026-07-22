@@ -13,9 +13,7 @@ import PaymentsCustomersPage from '@components/Dashboard/Pages/Payments/Payments
 import PaymentsOffersPage from '@components/Dashboard/Pages/Payments/PaymentsOffersPage'
 import PaymentsGroupsPage from '@components/Dashboard/Pages/Payments/PaymentsGroupsPage'
 import FeatureGate from '@components/Dashboard/Shared/FeatureGate/FeatureGate'
-import { isOSSMode } from '@services/config/config'
 import { DashTabBar, DashTabItem } from '@components/Dashboard/Shared/DashTabBar/DashTabBar'
-import { useTrackView, AnalyticsEvent } from '@services/analytics'
 
 export type PaymentsParams = {
   subpage: string
@@ -60,23 +58,6 @@ function PaymentsPage(props: { params: Promise<PaymentsParams> }) {
   const { h1, h2 } = getPageTitle()
   const paymentsEnabled = org?.config?.config?.resolved_features?.payments?.enabled ?? org?.config?.config?.features?.payments?.enabled !== false
 
-  // Fire the gate-blocked impression for the deterministic OSS block.
-  useTrackView(
-    AnalyticsEvent.PaymentsFeatureGateBlocked,
-    { is_oss: true, subpage },
-    isOSSMode(),
-    'dashboard',
-  )
-
-  // Gate 1: OSS deployment → payments is EE-only, blocked entirely
-  if (isOSSMode()) {
-    return (
-      <FeatureGate feature="payments">
-        <></>
-      </FeatureGate>
-    )
-  }
-
   const tabs: DashTabItem[] = [
     {
       key: 'overview',
@@ -108,7 +89,6 @@ function PaymentsPage(props: { params: Promise<PaymentsParams> }) {
     },
   ]
 
-  // Gate 2: plan-based restriction for cloud users (standard required)
   return (
     <FeatureGate feature="payments">
     <div className="h-screen w-full bg-[#f8f8f8] flex flex-col">

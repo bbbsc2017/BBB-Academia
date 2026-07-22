@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Global default role ids seeded by src/services/setup/setup.py — must stay
 # in sync with that seed order (Admin=1, Maintainer=2, Instructor=3, User=4).
+BBBSC_ADMIN_ROLE_ID = 1
 BBBSC_INSTRUCTOR_ROLE_ID = 3
 BBBSC_LEARNER_ROLE_ID = 4
 
@@ -84,7 +85,16 @@ async def _get_default_org_id(db_session: AsyncSession) -> Optional[int]:
 
 
 def _role_id_for_bbbsc_roles(roles: list) -> int:
-    return BBBSC_INSTRUCTOR_ROLE_ID if "INSTRUCTOR" in (roles or []) else BBBSC_LEARNER_ROLE_ID
+    roles = roles or []
+    # SUPER_ADMIN gets full, unrestricted control of LearnHouse (courses,
+    # users, roles, org settings — everything), same as they already have
+    # in bbbsc. INSTRUCTOR (without SUPER_ADMIN) is scoped to course
+    # authoring only, per the Instructor role's rights in setup.py.
+    if "SUPER_ADMIN" in roles:
+        return BBBSC_ADMIN_ROLE_ID
+    if "INSTRUCTOR" in roles:
+        return BBBSC_INSTRUCTOR_ROLE_ID
+    return BBBSC_LEARNER_ROLE_ID
 
 
 async def _sync_membership_role(
@@ -116,8 +126,8 @@ async def provision_or_sync_bbbsc_user(
 ) -> Optional[User]:
     """
     Find-or-create the LearnHouse User matching a bbbsc account, and keep its
-    org membership role in sync with bbbsc's INSTRUCTOR flag on every call
-    (a docente promoted/demoted in bbbsc takes effect on next login).
+    org membership role in sync with bbbsc's SUPER_ADMIN/INSTRUCTOR roles on
+    every call (a promotion/demotion in bbbsc takes effect on next login).
     """
     email = (bbbsc_user.get("email") or "").strip().lower()
     if not email:

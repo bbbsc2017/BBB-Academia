@@ -277,11 +277,9 @@ def is_feature_enabled_for_plan(plan: str, feature: str) -> bool:
     """Check if a feature is enabled for a given plan."""
     from src.core.deployment_mode import get_deployment_mode
     mode = get_deployment_mode()
-    if mode == 'ee':
+    if mode in ('ee', 'oss'):
+        # Self-hosted deployments get every feature — no Enterprise-tier gate.
         return True
-    if mode == 'oss':
-        # OSS enables all non-EE features
-        return feature not in ('analytics', 'api', 'sso', 'audit_logs', 'scorm')
     return get_plan_feature_config(plan, feature).get("enabled", False)
 
 
@@ -342,7 +340,11 @@ def plan_meets_requirement(current_plan: str, required_plan: str) -> bool:
     if mode == 'ee':
         return True
     if mode == 'oss':
-        return required_plan != 'enterprise'
+        # This self-hosted instance runs as a single private org — plan tiers
+        # exist to gate a multi-tenant SaaS product, not to limit the owner's
+        # own deployment. No feature is restricted here, including the
+        # nominally "enterprise" ones (audit_logs, scorm, sso).
+        return True
     # SaaS: normal hierarchy check
     try:
         current_index = PLAN_HIERARCHY.index(current_plan)

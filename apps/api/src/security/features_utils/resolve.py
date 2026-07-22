@@ -4,7 +4,7 @@ Central feature resolution logic (v2 config).
 4-layer resolution: deployment mode → plan config → overrides → purchased packs → admin toggles.
 """
 
-from src.core.deployment_mode import get_deployment_mode, EE_ONLY_FEATURES
+from src.core.deployment_mode import get_deployment_mode
 from src.security.features_utils.plans import (
     FEATURE_PLAN_REQUIREMENTS,
     get_plan_feature_config,
@@ -148,14 +148,12 @@ def resolve_feature(feature: str, config: dict, org_id: int = 0, _extras: dict |
     admin_toggle = _get_admin_toggle(config, feature)
     admin_disabled = admin_toggle.get("disabled", False)
 
-    # EE mode: everything available & unlimited (admin toggle may still turn off)
-    if mode == "ee":
-        return {"enabled": not admin_disabled, "available": True, "limit": 0, "required_plan": required_plan}
-
-    # OSS mode: EE features unavailable, rest available & unlimited
-    if mode == "oss":
-        if feature in EE_ONLY_FEATURES:
-            return {"enabled": False, "available": False, "limit": 0, "required_plan": required_plan}
+    # EE and OSS modes: everything available & unlimited (admin toggle may
+    # still turn a feature off per-org). This deployment is a single
+    # self-hosted org, not the multi-tenant SaaS product, so the
+    # Enterprise-tier gate (audit_logs, sso, payments, scorm,
+    # analytics_advanced — see EE_ONLY_FEATURES) does not apply here.
+    if mode in ("ee", "oss"):
         return {"enabled": not admin_disabled, "available": True, "limit": 0, "required_plan": required_plan}
 
     # SaaS mode: full resolution

@@ -165,7 +165,7 @@ class TestFeatureResolve:
             "required_plan": None,
         }
 
-    def test_ee_and_oss_mode_shortcuts_cover_admin_toggle_and_ee_only_blocks(self):
+    def test_ee_and_oss_mode_shortcuts_cover_admin_toggle_no_ee_only_blocks(self):
         config = {
             "config_version": "2.0",
             "admin_toggles": {
@@ -184,7 +184,7 @@ class TestFeatureResolve:
             ee_disabled = resolve_feature("analytics", config, org_id=0)
 
         with patch("src.security.features_utils.resolve.get_deployment_mode", return_value="oss"):
-            oss_blocked = resolve_feature("sso", config, org_id=0)
+            oss_sso = resolve_feature("sso", config, org_id=0)
             oss_allowed = resolve_feature("analytics", config_allowed, org_id=0)
 
         # EE: available (everything is), but the admin toggle still turned it off.
@@ -194,10 +194,11 @@ class TestFeatureResolve:
             "limit": 0,
             "required_plan": "standard",
         }
-        # OSS: an EE-only feature is unavailable.
-        assert oss_blocked == {
-            "enabled": False,
-            "available": False,
+        # OSS: treated the same as EE — nominally "enterprise" features are
+        # NOT blocked; this is a single self-hosted org, not the SaaS product.
+        assert oss_sso == {
+            "enabled": True,
+            "available": True,
             "limit": 0,
             "required_plan": "enterprise",
         }

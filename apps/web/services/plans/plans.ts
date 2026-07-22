@@ -10,8 +10,6 @@
  *   - Deployment mode helpers (OSS/EE bypass)
  */
 
-import { getDeploymentMode } from '@services/config/config'
-
 // Plan ids MUST match the backend (src/security/features_utils/plans.py): the
 // family tier is 'personal-family', not 'family'. Using 'family' broke
 // PLAN_HIERARCHY.indexOf() (→ -1) so planMeetsRequirement() denied every gated
@@ -22,9 +20,6 @@ export type PlanLevel = 'free' | 'personal' | 'personal-family' | 'standard' | '
 // 'oss' is kept as a display-only type value (not in hierarchy) for OSS mode label rendering.
 export const PLAN_HIERARCHY: PlanLevel[] = ['free', 'personal', 'personal-family', 'standard', 'pro', 'enterprise']
 
-// Features blocked in OSS mode — require EE or SaaS/enterprise plan
-const OSS_BLOCKED_FEATURES = new Set(['sso', 'audit_logs', 'payments', 'analytics_advanced', 'scorm'])
-
 /**
  * Check if the current plan meets or exceeds the required plan level.
  * Only used in SaaS mode — EE/OSS bypass is handled in isFeatureAvailable().
@@ -33,7 +28,11 @@ export function planMeetsRequirement(
   currentPlan: PlanLevel,
   requiredPlan: PlanLevel
 ): boolean {
-  if (currentPlan === 'oss') return requiredPlan !== 'enterprise'
+  // This self-hosted instance runs as a single private org — plan tiers
+  // exist to gate a multi-tenant SaaS product, not the owner's own
+  // deployment. No feature is restricted here, matching the backend
+  // (src/security/features_utils/plans.py).
+  if (currentPlan === 'oss') return true
   const currentIndex = PLAN_HIERARCHY.indexOf(currentPlan)
   const requiredIndex = PLAN_HIERARCHY.indexOf(requiredPlan)
   return currentIndex >= requiredIndex
@@ -44,15 +43,13 @@ export function planMeetsRequirement(
  *
  * In SaaS mode, feature availability is determined by `resolved_features`
  * from the API — this function only handles mode-level bypass:
- * - OSS: EE-only features blocked, all others allowed
+ * - OSS: all features allowed (see planMeetsRequirement)
  * - EE: all features allowed
  * - SaaS: always returns true (callers should check resolved_features)
  */
-export function isFeatureAvailable(featureKey: string, _currentPlan?: PlanLevel): boolean {
-  const mode = getDeploymentMode()
-  if (mode === 'oss') return !OSS_BLOCKED_FEATURES.has(featureKey)
-  if (mode === 'ee') return true
+export function isFeatureAvailable(_featureKey: string, _currentPlan?: PlanLevel): boolean {
   // SaaS: resolved_features from the API is the source of truth.
-  // Return true here — callers gate on resolved_features separately.
+  // Callers gate on resolved_features separately; OSS/EE both allow
+  // everything at the mode level.
   return true
 }

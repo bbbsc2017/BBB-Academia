@@ -56,11 +56,11 @@ class TestFeaturePlans:
             ("saas", "free", "analytics", False),
             ("ee", "free", "analytics", True),
             ("oss", "free", "boards", True),
-            ("oss", "free", "analytics", False),
-            ("oss", "free", "api", False),
-            ("oss", "free", "sso", False),
-            ("oss", "free", "audit_logs", False),
-            ("oss", "free", "scorm", False),
+            ("oss", "free", "analytics", True),
+            ("oss", "free", "api", True),
+            ("oss", "free", "sso", True),
+            ("oss", "free", "audit_logs", True),
+            ("oss", "free", "scorm", True),
         ],
     )
     def test_is_feature_enabled_for_plan(self, mode, plan, feature, expected):
@@ -125,7 +125,7 @@ class TestFeaturePlans:
             assert plan_meets_requirement("free", "enterprise") is True
 
         with _patch_mode("oss"):
-            assert plan_meets_requirement("free", "enterprise") is False
+            assert plan_meets_requirement("free", "enterprise") is True
             assert plan_meets_requirement("free", "pro") is True
 
     def test_get_required_plan_for_feature(self):
