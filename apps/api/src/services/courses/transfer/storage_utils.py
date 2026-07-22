@@ -83,13 +83,20 @@ def get_storage_client():
         # Cloudflare R2 requires SigV4 and the "auto" region; without this,
         # botocore falls back to SigV2 for presigned URLs (the legacy
         # AWSAccessKeyId/Signature/Expires form), which R2 rejects with 401.
-        # Overridable via LEARNHOUSE_S3_API_REGION for real AWS S3 / MinIO, which
+        # Overridable via LEARNHOUSE_S3_API_REGION for real AWS S3 / MinIO / B2, which
         # validate the region against the endpoint.
         region = os.environ.get("LEARNHOUSE_S3_API_REGION") or "auto"
+        # Explicit creds from the LEARNHOUSE_-prefixed vars: passing None here
+        # (rather than omitting the kwargs) still falls back to boto3's normal
+        # credential chain (AWS_ACCESS_KEY_ID/etc, shared config, instance
+        # profile) when these aren't set, so this is a strict superset of the
+        # previous "no explicit credentials" behavior.
         _s3_client = boto3.client(
             "s3",
             endpoint_url=learnhouse_config.hosting_config.content_delivery.s3api.endpoint_url,
             region_name=region,
+            aws_access_key_id=os.environ.get("LEARNHOUSE_S3_API_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.environ.get("LEARNHOUSE_S3_API_SECRET_ACCESS_KEY"),
             config=botocore.config.Config(
                 signature_version="s3v4",
                 connect_timeout=10,

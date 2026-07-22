@@ -21,6 +21,7 @@ Content is persisted in a Docker volume, so it survives container restarts. The 
 For production deployments or when you need scalable storage, you can use any S3-compatible storage service:
 
 - **AWS S3**
+- **Backblaze B2**
 - **CloudFlare R2**
 - **MinIO** (self-hosted)
 - Any other S3-compatible provider
@@ -29,6 +30,9 @@ For production deployments or when you need scalable storage, you can use any S3
 LEARNHOUSE_CONTENT_DELIVERY_TYPE=s3api
 LEARNHOUSE_S3_API_BUCKET_NAME=learnhouse-content
 LEARNHOUSE_S3_API_ENDPOINT_URL=https://s3.amazonaws.com
+LEARNHOUSE_S3_API_REGION=us-east-1
+LEARNHOUSE_S3_API_ACCESS_KEY_ID=<your-access-key-id>
+LEARNHOUSE_S3_API_SECRET_ACCESS_KEY=<your-secret-access-key>
 ```
 
 After updating your storage configuration, restart your instance:
@@ -39,8 +43,21 @@ learnhouse start
 ```
 
 <Callout type="info">
-When using S3-compatible storage, make sure the bucket exists and the credentials have read/write permissions. For AWS S3, credentials are typically provided via standard AWS environment variables or instance roles.
+When using S3-compatible storage, make sure the bucket exists and the credentials have read/write permissions. `LEARNHOUSE_S3_API_REGION` defaults to `auto` (needed for Cloudflare R2) — set it to your provider's real region string for AWS S3, Backblaze B2, or MinIO.
 </Callout>
+
+### Backblaze B2 example
+
+Backblaze B2's S3-compatible endpoint and region are shown on the bucket's details page in the B2 console. Generate an Application Key scoped to the bucket for the access key ID/secret:
+
+```env
+LEARNHOUSE_CONTENT_DELIVERY_TYPE=s3api
+LEARNHOUSE_S3_API_BUCKET_NAME=<your-b2-bucket-name>
+LEARNHOUSE_S3_API_ENDPOINT_URL=https://s3.<region>.backblazeb2.com
+LEARNHOUSE_S3_API_REGION=<region>
+LEARNHOUSE_S3_API_ACCESS_KEY_ID=<b2-application-key-id>
+LEARNHOUSE_S3_API_SECRET_ACCESS_KEY=<b2-application-key>
+```
 
 ## Choosing a Storage Backend
 
