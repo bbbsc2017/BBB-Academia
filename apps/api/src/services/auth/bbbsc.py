@@ -62,7 +62,9 @@ async def verify_bbbsc_credentials(email: str, password: str) -> Optional[dict]:
         logger.warning("bbbsc credential verification endpoint unreachable")
         return None
 
-    if r.status_code != 200:
+    # NestJS's @Post() defaults to 201 Created (no @HttpCode override on the
+    # bbbsc side), so accept any 2xx rather than requiring exactly 200.
+    if r.status_code < 200 or r.status_code >= 300:
         return None
 
     body = r.json()
