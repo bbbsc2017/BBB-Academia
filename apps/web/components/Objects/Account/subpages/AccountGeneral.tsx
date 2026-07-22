@@ -1,6 +1,5 @@
 'use client';
 import { updateProfile } from '@services/settings/profile'
-import { getUser } from '@services/users/users'
 import React, { useEffect, useState, useCallback } from 'react'
 import { Formik, Form } from 'formik'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
@@ -10,7 +9,6 @@ import {
   FileWarning,
   Info,
   UploadCloud,
-  AlertTriangle,
   Briefcase,
   GraduationCap,
   MapPin,
@@ -41,8 +39,6 @@ import {
   SelectValue,
 } from "@components/ui/select"
 import { toast } from 'react-hot-toast'
-import { signOut } from '@components/Contexts/AuthContext'
-import { getUriWithoutOrg } from '@services/config/config';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTranslation } from 'react-i18next';
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics';
@@ -111,11 +107,9 @@ const DETAIL_TEMPLATES = {
   ]
 } as const;
 
+// email/username/first_name/last_name are read-only here (managed in bbbsc),
+// so only bio/details are actually user-editable and need validation.
 const validationSchema = Yup.object().shape({
-  email: Yup.string().email('Invalid email').required('Email is required'),
-  username: Yup.string().required('Username is required'),
-  first_name: Yup.string().required('First name is required'),
-  last_name: Yup.string().required('Last name is required'),
   bio: Yup.string().max(400, 'Bio must be 400 characters or less'),
   details: Yup.object().shape({})
 });
@@ -274,6 +268,11 @@ const UserEditForm = ({
         <div className="flex flex-col lg:flex-row mt-0 mx-5 my-5 gap-8">
           {/* Profile Information Section */}
           <div className="flex-1 min-w-0 space-y-4">
+            <div className="flex items-center space-x-2 text-gray-500 bg-gray-50 p-2.5 rounded-md text-sm">
+              <Info size={16} className="shrink-0" />
+              <span>{t('user.settings.general.identity_managed_elsewhere', { defaultValue: 'Your email and name are managed by your organization account and can’t be edited here.' })}</span>
+            </div>
+
             <div>
               <Label htmlFor="email">{t('user.settings.general.email')}</Label>
               <Input
@@ -281,18 +280,9 @@ const UserEditForm = ({
                 name="email"
                 type="email"
                 value={values.email}
-                onChange={handleChange}
-                placeholder={t('user.settings.general.email_placeholder')}
+                disabled
+                readOnly
               />
-              {touched.email && errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
-              {values.email !== values.email && (
-                <div className="flex items-center space-x-2 mt-2 text-amber-600 bg-amber-50 p-2 rounded-md">
-                  <AlertTriangle size={16} />
-                  <span className="text-sm">{t('user.settings.general.logout_warning')}</span>
-                </div>
-              )}
             </div>
 
             <div>
@@ -301,12 +291,9 @@ const UserEditForm = ({
                 id="username"
                 name="username"
                 value={values.username}
-                onChange={handleChange}
-                placeholder={t('user.settings.general.username_placeholder')}
+                disabled
+                readOnly
               />
-              {touched.username && errors.username && (
-                <p className="text-red-500 text-sm mt-1">{errors.username}</p>
-              )}
             </div>
 
             <div>
@@ -315,12 +302,9 @@ const UserEditForm = ({
                 id="first_name"
                 name="first_name"
                 value={values.first_name}
-                onChange={handleChange}
-                placeholder={t('user.settings.general.first_name_placeholder')}
+                disabled
+                readOnly
               />
-              {touched.first_name && errors.first_name && (
-                <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>
-              )}
             </div>
 
             <div>
@@ -329,12 +313,9 @@ const UserEditForm = ({
                 id="last_name"
                 name="last_name"
                 value={values.last_name}
-                onChange={handleChange}
-                placeholder={t('user.settings.general.last_name_placeholder')}
+                disabled
+                readOnly
               />
-              {touched.last_name && errors.last_name && (
-                <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>
-              )}
             </div>
 
             <div>
@@ -543,25 +524,15 @@ function AccountGeneral() {
   const [isLoading, setIsLoading] = React.useState(false) as any
   const [error, setError] = React.useState() as any
   const [success, setSuccess] = React.useState('') as any
-  const [userData, setUserData] = useState<any>(null);
   const { t } = useTranslation();
   const { track } = useLHAnalytics('learner');
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (session?.data?.user?.id) {
-        try {
-          const data = await getUser(session.data.user.id, access_token);
-          setUserData(data);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          setError('Failed to load user data');
-        }
-      }
-    };
-
-    fetchUserData();
-  }, [session?.data?.user?.id, access_token]);
+  // The session's user object (from GET users/session) already carries the
+  // full record — email included — unlike GET users/id/{id} (UserReadPublic),
+  // which deliberately omits email since it's also used to look up OTHER
+  // users. Using the session directly avoids an extra fetch and the
+  // email/name fields silently rendering blank.
+  const userData = session?.data?.user ?? null;
 
   const handleFileChange = async (event: any) => {
     const userId = session?.data?.user?.id
@@ -637,22 +608,6 @@ function AccountGeneral() {
     }
   }
 
-  const handleEmailChange = async (newEmail: string) => {
-    toast.success(t('user.settings.general.profile_updated'), { duration: 4000 })
-
-    toast((_t_toast: any) => (
-      <div className="flex items-center gap-2">
-        <span>{t('user.settings.general.relogin_message', { email: newEmail })}</span>
-      </div>
-    ), {
-      duration: 4000,
-      icon: '📧'
-    })
-
-    await new Promise(resolve => setTimeout(resolve, 4000))
-    signOut({ redirect: true, callbackUrl: getUriWithoutOrg('/') })
-  }
-
   if (!userData) {
     return (
       <div className="bg-white rounded-xl nice-shadow p-8">
@@ -677,23 +632,19 @@ function AccountGeneral() {
         }}
         validationSchema={validationSchema}
         onSubmit={async (values, { setSubmitting }) => {
-          const isEmailChanged = values.email !== userData.email
+          // email/username/first_name/last_name are read-only (sourced from
+          // bbbsc) — send them back unchanged since the backend's UserUpdate
+          // schema still requires them, but only bio/details actually change.
           const loadingToast = toast.loading(t('user.settings.general.saving'))
 
           try {
             await updateProfile(values, userData.id, access_token)
             toast.dismiss(loadingToast)
             track(AnalyticsEvent.AccountProfileUpdated, {
-              email_changed: isEmailChanged,
               has_bio: !!values.bio?.trim(),
             })
-            if (isEmailChanged) {
-              handleEmailChange(values.email)
-            } else {
-              toast.success(t('user.settings.general.profile_updated'))
-            }
-            const refreshedUser = await getUser(userData.id, access_token)
-            setUserData(refreshedUser)
+            toast.success(t('user.settings.general.profile_updated'))
+            await session.update(true)
           } catch {
             toast.error('Failed to update profile', { id: loadingToast })
           } finally {
