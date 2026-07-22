@@ -123,17 +123,38 @@ async def authenticate_user(
     db_session: AsyncSession,
 ) -> User | bool:
     user = await security_get_user(request, db_session, email)
-    if not user:
+    if user:
+        local_ok = security_verify_password(password, user.password)
+    else:
         # SECURITY: run a real password-verify against a dummy hash so
         # unknown-user responses take roughly the same time as known-user
         # wrong-password responses. Without this, an attacker can enumerate
         # accounts via response timing alone (Argon2 verify is slow, skipping
-        # it is fast).
+        # it is fast). Kept as exactly one verify per call (real or dummy) so
+        # the bbbsc fallback below doesn't reopen that timing gap.
         security_verify_password(password, _DUMMY_PASSWORD_HASH)
-        return False
-    if not security_verify_password(password, user.password):
-        return False
-    return user
+        local_ok = False
+
+    if local_ok:
+        return user
+
+    # No local account, or local password didn't match (also covers a bbbsc
+    # password changed after this account was JIT-provisioned — the local
+    # hash is a random unusable value, so it never matches again): bbbsc is
+    # the actual source of truth for every account. Try delegating there
+    # before giving up — this is what lets a bbbsc user log into LearnHouse
+    # with the exact same email/password, no separate signup.
+    from src.services.auth.bbbsc import (
+        provision_or_sync_bbbsc_user,
+        verify_bbbsc_credentials,
+    )
+    bbbsc_user = await verify_bbbsc_credentials(email, password)
+    if bbbsc_user:
+        provisioned = await provision_or_sync_bbbsc_user(request, db_session, bbbsc_user)
+        if provisioned:
+            return provisioned
+
+    return False
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
