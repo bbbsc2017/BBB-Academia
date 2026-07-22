@@ -123,7 +123,12 @@ async def authenticate_user(
     db_session: AsyncSession,
 ) -> User | bool:
     user = await security_get_user(request, db_session, email)
-    if user:
+    # `user.password` is empty for OAuth/bbbsc-provisioned accounts (no local
+    # password was ever set) — pwdlib.verify() raises UnknownHashError on an
+    # empty/non-hash string instead of returning False, so those accounts
+    # must skip the real verify and fall through to the dummy one below,
+    # same as an unknown user.
+    if user and user.password:
         local_ok = security_verify_password(password, user.password)
     else:
         # SECURITY: run a real password-verify against a dummy hash so
