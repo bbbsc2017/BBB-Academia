@@ -31,7 +31,6 @@ import {
   Robot,
   LinkSimple,
   Key,
-  Lock,
   Wrench,
   ChartLine,
   MagnifyingGlass,
@@ -722,12 +721,6 @@ function DashLeftMenu() {
                     <Link href="/dash/developers/seo" className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors">
                       <MagnifyingGlass size={16} weight="fill" />
                       <span>SEO</span>
-                    </Link>
-                  </HoverMenuItem>
-                  <HoverMenuItem asChild>
-                    <Link href="/dash/developers/sso" className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors">
-                      <Lock size={16} weight="fill" />
-                      <span className="flex items-center">{t('dashboard.organization.settings.tabs.sso', { defaultValue: 'SSO' })}<PlanBadge currentPlan={plan} requiredPlan="enterprise" variant="dark" /></span>
                     </Link>
                   </HoverMenuItem>
                 </HoverMenuContent>
