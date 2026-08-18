@@ -22,12 +22,10 @@ import {
   X,
   Check,
   ChatCircleDots,
-  Book,
   CaretDown,
   MagnifyingGlass,
   Code,
 } from '@phosphor-icons/react'
-import { DiscordIcon } from '@components/Objects/Icons/DiscordIcon'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useState } from 'react'
@@ -92,15 +90,15 @@ function DashMobileMenu() {
           className="flex items-center gap-0.5 px-1.5 py-1.5 bg-[#111113]/90 backdrop-blur-xl rounded-full"
           style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
         >
-          {/* LearnHouse logo — links to home */}
+          {/* BBB Academia logo — links to home */}
           <Link
             href="/dash"
             className="flex items-center justify-center px-2.5 py-2.5 rounded-full transition-all duration-200"
             aria-label="Home"
           >
             <img
-              src={withBasePath('/lrn-dash.svg')}
-              alt="LearnHouse"
+              src={withBasePath('/bbb_academia_logo.webp')}
+              alt="BBB Academia"
               className="h-[18px] w-[18px] opacity-60 hover:opacity-90 transition-opacity"
               style={{ filter: 'brightness(0) invert(1)' }}
             />
@@ -188,7 +186,7 @@ function DashMobileMenu() {
             >
               {/* Org header */}
               <div className="flex items-center gap-3 px-4 py-3.5">
-                {plan === 'enterprise' && org?.logo_image ? (
+                {org?.logo_image ? (
                   <img
                     src={getOrgLogoMediaDirectory(org.org_uuid, org.logo_image)}
                     alt={org?.name}
@@ -196,7 +194,7 @@ function DashMobileMenu() {
                   />
                 ) : (
                   <div className="h-7 w-7 flex items-center justify-center bg-white/[0.06] rounded-lg">
-                    <img src={withBasePath('/lrn-dash.svg')} alt="LearnHouse" className="h-4 w-4" style={{ filter: 'brightness(0) invert(1)' }} />
+                    <img src={withBasePath('/bbb_academia_logo.webp')} alt="BBB Academia" className="h-4 w-4" style={{ filter: 'brightness(0) invert(1)' }} />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -259,17 +257,11 @@ function DashMobileMenu() {
                   </div>
                 )}
 
-                <a href="https://docs.learnhouse.app" target="_blank" rel="noopener noreferrer"
+                <a href="https://bbbacademia.com" target="_blank" rel="noopener noreferrer"
                   className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
                 >
-                  <Book size={15} weight="fill" />
-                  <span className="text-sm font-medium">{t('common.help_menu.documentation')}</span>
-                </a>
-                <a href="https://discord.gg/learnhouse" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
-                >
-                  <DiscordIcon size={15} />
-                  <span className="text-sm font-medium">{t('common.help_menu.discord')}</span>
+                  <Globe size={15} weight="fill" />
+                  <span className="text-sm font-medium">{t('common.help_menu.website')}</span>
                 </a>
                 <button
                   onClick={() => { setFeedbackModalOpen(true); close() }}

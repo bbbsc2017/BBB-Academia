@@ -6,6 +6,7 @@ import GeneralWrapperStyled from '@components/Objects/StyledElements/Wrappers/Ge
 import { getUriWithOrg } from '@services/config/config'
 import { getCourseThumbnailMediaDirectory } from '@services/media/media'
 import { getOfferCheckoutSession } from '@services/payments/offers'
+import { fromApiProviderValue, getPaymentProvider } from '@services/payments/providers'
 import {
   ArrowLeft, RefreshCcw, SquareCheck, Sparkles, BookOpen,
   Mic, Puzzle, AlertCircle, Loader2, ShoppingBag
@@ -133,6 +134,8 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
     ? offer.benefits.split(',').map((b: string) => b.trim()).filter(Boolean)
     : []
   const resources: Resource[] = offer.included_resources ?? []
+  const providerId = fromApiProviderValue(offer?.provider)
+  const providerDef = providerId ? getPaymentProvider(providerId) : null
 
   const handleCheckout = async () => {
     if (!token) {
@@ -243,6 +246,9 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
                 {isSubscription && (
                   <p className="text-sm text-indigo-400 font-medium mt-0.5">recurring</p>
                 )}
+                {providerDef && (
+                  <p className="text-xs text-gray-500 mt-1">{providerDef.checkoutCopy}</p>
+                )}
               </div>
 
               {/* Checkout */}
@@ -299,7 +305,7 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
 
               {/* Trust signals */}
               <div className="mt-5 pt-4 border-t border-gray-100 space-y-1.5">
-                <p className="text-xs text-gray-400 flex items-center gap-1.5"><ShoppingBag size={11} /> Secure checkout via Stripe</p>
+                <p className="text-xs text-gray-400 flex items-center gap-1.5"><ShoppingBag size={11} /> Secure checkout via your payment provider</p>
                 {isSubscription && <p className="text-xs text-gray-400">✓ Cancel anytime</p>}
                 <p className="text-xs text-gray-400">✓ Instant access after payment</p>
               </div>

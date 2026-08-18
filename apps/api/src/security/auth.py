@@ -155,7 +155,14 @@ async def authenticate_user(
     )
     bbbsc_user = await verify_bbbsc_credentials(email, password)
     if bbbsc_user:
-        provisioned = await provision_or_sync_bbbsc_user(request, db_session, bbbsc_user)
+        # Prefer bbbsc's own precomputed learnhouseRoleId (reflects whatever
+        # mapping bbbsc's admin has configured per role) over recomputing it
+        # from the roles list here; None (an older bbbsc deployment that
+        # doesn't send this field yet) falls back to that recomputation.
+        provisioned = await provision_or_sync_bbbsc_user(
+            request, db_session, bbbsc_user,
+            role_id=bbbsc_user.get("learnhouseRoleId"),
+        )
         if provisioned:
             return provisioned
 

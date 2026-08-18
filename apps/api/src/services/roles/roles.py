@@ -17,6 +17,84 @@ from fastapi import HTTPException, Request
 from datetime import datetime
 
 
+def validate_rights_shape(rights_dict: dict) -> dict:
+    """Validate a raw ``rights`` dict against the ``Rights`` shape and return it unchanged.
+
+    Shared by ``create_role``, ``update_role``, and the bbbsc sync-role-rights
+    integration endpoint — all three accept an externally-supplied rights
+    payload and must reject a malformed one the same way, rather than each
+    re-implementing (and potentially drifting from) this check.
+    """
+    required_rights = [
+        'courses', 'users', 'usergroups', 'folders', 'media',
+        'organizations', 'coursechapters', 'activities',
+        'roles', 'dashboard'
+    ]
+
+    for required_right in required_rights:
+        if required_right not in rights_dict:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required right: {required_right}",
+            )
+
+        # Validate the structure of each right
+        right_data = rights_dict[required_right]
+        if not isinstance(right_data, dict):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Right '{required_right}' must be a JSON object",
+            )
+
+        # Validate courses permissions (has additional 'own' permissions)
+        if required_right == 'courses':
+            required_course_permissions = [
+                'action_create', 'action_read', 'action_read_own',
+                'action_update', 'action_update_own', 'action_delete', 'action_delete_own'
+            ]
+            for perm in required_course_permissions:
+                if perm not in right_data:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Missing required course permission: {perm}",
+                    )
+                if not isinstance(right_data[perm], bool):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Course permission '{perm}' must be a boolean",
+                    )
+
+        # Validate other permissions (standard permissions)
+        elif required_right in ['users', 'usergroups', 'folders', 'media', 'organizations', 'coursechapters', 'activities', 'roles']:
+            required_permissions = ['action_create', 'action_read', 'action_update', 'action_delete']
+            for perm in required_permissions:
+                if perm not in right_data:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Missing required permission '{perm}' for '{required_right}'",
+                    )
+                if not isinstance(right_data[perm], bool):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Permission '{perm}' for '{required_right}' must be a boolean",
+                    )
+
+        # Validate dashboard permissions
+        elif required_right == 'dashboard':
+            if 'action_access' not in right_data:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Missing required dashboard permission: action_access",
+                )
+            if not isinstance(right_data['action_access'], bool):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Dashboard permission 'action_access' must be a boolean",
+                )
+
+    return rights_dict
+
+
 async def create_role(
     request: Request,
     db_session: AsyncSession,
@@ -92,83 +170,8 @@ async def create_role(
     # VERIFICATION 7: Validate rights structure if provided
     # ============================================================================
     if role.rights:
-        # Convert Rights model to dict if needed
-        if isinstance(role.rights, dict):
-            # It's already a dict
-            rights_dict = role.rights
-        else:
-            # It's a Pydantic model, convert to dict
-            rights_dict = role.rights.model_dump()
-
-        # Validate rights structure - check for required top-level keys
-        required_rights = [
-            'courses', 'users', 'usergroups', 'folders', 'media',
-            'organizations', 'coursechapters', 'activities',
-            'roles', 'dashboard'
-        ]
-
-        for required_right in required_rights:
-            if required_right not in rights_dict:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Missing required right: {required_right}",
-                )
-
-            # Validate the structure of each right
-            right_data = rights_dict[required_right]
-            if not isinstance(right_data, dict):
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Right '{required_right}' must be a JSON object",
-                )
-
-            # Validate courses permissions (has additional 'own' permissions)
-            if required_right == 'courses':
-                required_course_permissions = [
-                    'action_create', 'action_read', 'action_read_own',
-                    'action_update', 'action_update_own', 'action_delete', 'action_delete_own'
-                ]
-                for perm in required_course_permissions:
-                    if perm not in right_data:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Missing required course permission: {perm}",
-                        )
-                    if not isinstance(right_data[perm], bool):
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Course permission '{perm}' must be a boolean",
-                        )
-
-            # Validate other permissions (standard permissions)
-            elif required_right in ['users', 'usergroups', 'folders', 'media', 'organizations', 'coursechapters', 'activities', 'roles']:
-                required_permissions = ['action_create', 'action_read', 'action_update', 'action_delete']
-                for perm in required_permissions:
-                    if perm not in right_data:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Missing required permission '{perm}' for '{required_right}'",
-                        )
-                    if not isinstance(right_data[perm], bool):
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Permission '{perm}' for '{required_right}' must be a boolean",
-                        )
-
-            # Validate dashboard permissions
-            elif required_right == 'dashboard':
-                if 'action_access' not in right_data:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Missing required dashboard permission: action_access",
-                    )
-                if not isinstance(right_data['action_access'], bool):
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Dashboard permission 'action_access' must be a boolean",
-                    )
-
-        # Convert back to dict if it was a model
+        rights_dict = role.rights if isinstance(role.rights, dict) else role.rights.model_dump()
+        validate_rights_shape(rights_dict)
         if not isinstance(role.rights, dict):
             role.rights = rights_dict
 
@@ -412,83 +415,8 @@ async def update_role(
     # VALIDATE RIGHTS STRUCTURE if rights are being updated
     # ============================================================================
     if role.rights:
-        # Convert Rights model to dict if needed
-        if isinstance(role.rights, dict):
-            # It's already a dict
-            rights_dict = role.rights
-        else:
-            # It's a Pydantic model, convert to dict
-            rights_dict = role.rights.model_dump()
-
-        # Validate rights structure - check for required top-level keys
-        required_rights = [
-            'courses', 'users', 'usergroups', 'folders', 'media',
-            'organizations', 'coursechapters', 'activities',
-            'roles', 'dashboard'
-        ]
-
-        for required_right in required_rights:
-            if required_right not in rights_dict:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Missing required right: {required_right}",
-                )
-
-            # Validate the structure of each right
-            right_data = rights_dict[required_right]
-            if not isinstance(right_data, dict):
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Right '{required_right}' must be a JSON object",
-                )
-
-            # Validate courses permissions (has additional 'own' permissions)
-            if required_right == 'courses':
-                required_course_permissions = [
-                    'action_create', 'action_read', 'action_read_own',
-                    'action_update', 'action_update_own', 'action_delete', 'action_delete_own'
-                ]
-                for perm in required_course_permissions:
-                    if perm not in right_data:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Missing required course permission: {perm}",
-                        )
-                    if not isinstance(right_data[perm], bool):
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Course permission '{perm}' must be a boolean",
-                        )
-
-            # Validate other permissions (standard permissions)
-            elif required_right in ['users', 'usergroups', 'folders', 'media', 'organizations', 'coursechapters', 'activities', 'roles']:
-                required_permissions = ['action_create', 'action_read', 'action_update', 'action_delete']
-                for perm in required_permissions:
-                    if perm not in right_data:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Missing required permission '{perm}' for '{required_right}'",
-                        )
-                    if not isinstance(right_data[perm], bool):
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Permission '{perm}' for '{required_right}' must be a boolean",
-                        )
-
-            # Validate dashboard permissions
-            elif required_right == 'dashboard':
-                if 'action_access' not in right_data:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Missing required dashboard permission: action_access",
-                    )
-                if not isinstance(right_data['action_access'], bool):
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Dashboard permission 'action_access' must be a boolean",
-                    )
-
-        # Convert back to dict if it was a model
+        rights_dict = role.rights if isinstance(role.rights, dict) else role.rights.model_dump()
+        validate_rights_shape(rights_dict)
         if not isinstance(role.rights, dict):
             role.rights = rights_dict
 

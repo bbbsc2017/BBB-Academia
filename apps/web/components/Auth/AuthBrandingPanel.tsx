@@ -2,7 +2,7 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import learnhouseIcon from 'public/learnhouse_bigicon_1.png'
+import bbbAcademiaIcon from 'public/bbb_academia_logo.webp'
 import { getOrgLogoMediaDirectory, getOrgAuthBackgroundMediaDirectory } from '@services/media/media'
 import { getUriWithOrg, withBasePath } from '@services/config/config'
 import { cn } from '@/lib/utils'
@@ -28,10 +28,10 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
     unsplash_photographer_url = '',
     unsplash_photo_url = '',
   } = authBranding
-  const UNSPLASH_UTM = '?utm_source=LearnHouse&utm_medium=referral'
+  const UNSPLASH_UTM = '?utm_source=BBBAcademia&utm_medium=referral'
   const withUtm = (url: string) => (url ? `${url}${UNSPLASH_UTM}` : '')
 
-  // Check if org has enterprise plan - hide LearnHouse branding for enterprise users
+  // Check if org has enterprise plan - hide the BBB Academia branding mark for enterprise users
   // In OSS mode, always show branding regardless of plan
   const plan = usePlan()
   const isEnterprise = plan === 'enterprise'
@@ -75,7 +75,7 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
 
   const displayMessage = welcome_message || welcomeText || ''
   // No-org platform copy (defaults mirror the platform login illustration).
-  const noOrgTitle = title || 'Welcome back to LearnHouse.'
+  const noOrgTitle = title || 'Welcome back to BBB Academia.'
   const noOrgSubtitle =
     subtitle || 'Pick up where you left off — your courses, students, and tools are waiting.'
   // Treat the no-org illustration like a photo background: dark scrim, no
@@ -141,19 +141,19 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
 
         {/* Content */}
         <div className="relative z-10 flex flex-col h-full p-10">
-          {/* Top bar with LearnHouse lrn.svg logo - hidden for enterprise users
+          {/* Top bar with BBB Academia logo - hidden for enterprise users
               and for the no-org apex panel (platform shows no logo on the image). */}
           {!isEnterprise && !noOrg && (
             <div className="login-topbar">
-              <Link prefetch href="https://learnhouse.app" target="_blank">
+              <Link prefetch href="https://bbbacademia.com" target="_blank">
                 <img
-                  src={withBasePath('/lrn.svg')}
-                  alt="LearnHouse"
+                  src={withBasePath('/bbb_academia_logo.webp')}
+                  alt="BBB Academia"
                   width={30}
                   height={30}
                   className={cn(
                     "transition-opacity hover:opacity-100",
-                    text_color === 'light' ? "opacity-60 invert" : "opacity-40"
+                    text_color === 'light' ? "opacity-60" : "opacity-40"
                   )}
                 />
               </Link>
@@ -193,9 +193,9 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
                           quality={100}
                           width={96}
                           height={96}
-                          src={learnhouseIcon}
-                          alt="LearnHouse"
-                          className="object-contain"
+                          src={bbbAcademiaIcon}
+                          alt="BBB Academia"
+                          className="object-contain p-3"
                         />
                       )}
                     </div>
@@ -203,7 +203,7 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
 
                   {/* Text content */}
                   <div className="space-y-1">
-                    <h1 className="font-black text-3xl tracking-tight">{org?.name || 'LearnHouse'}</h1>
+                    <h1 className="font-black text-3xl tracking-tight">{org?.name || 'BBB Academia'}</h1>
                     {displayMessage && (
                       <p className={cn(
                         "text-lg max-w-sm leading-relaxed",

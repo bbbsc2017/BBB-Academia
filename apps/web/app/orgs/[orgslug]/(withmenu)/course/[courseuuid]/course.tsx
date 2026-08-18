@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 import CourseCommunitySection from '@components/Objects/Communities/CourseCommunitySection'
 import CourseShare from '@components/Objects/Courses/CourseShare/CourseShare'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
+import PaymentWall from '@components/Payments/PaymentWall'
 
 const CourseClient = (props: any) => {
   const { t } = useTranslation()
@@ -162,6 +163,15 @@ const CourseClient = (props: any) => {
 
   // Determine the active error (server-side or client-side)
   const activeError = serverError || courseError
+
+  // Gated behind a paid offer — show what to buy rather than a bare denial.
+  if (!course && activeError?.status === 402 && activeError?.detail?.code === 'PAYMENT_REQUIRED') {
+    return (
+      <GeneralWrapperStyled>
+        <PaymentWall offer={activeError.detail} orgslug={orgslug} />
+      </GeneralWrapperStyled>
+    )
+  }
 
   // Show error if course fetch failed
   if (!course && activeError) {
@@ -367,14 +377,14 @@ const CourseClient = (props: any) => {
                             </div>
                           </div>
                         )}
-                        <div className="w-full h-full">
+                        <div className="w-full h-full bg-black rounded-lg overflow-hidden">
                           <video
                             src={getCourseThumbnailMediaDirectory(
                               org?.org_uuid,
                               course?.course_uuid,
                               course?.thumbnail_video
                             )}
-                            className="w-full h-full bg-black rounded-lg"
+                            className="w-full h-full object-contain"
                             controls
                             autoPlay
                             muted
@@ -386,23 +396,13 @@ const CourseClient = (props: any) => {
                     );
                   } else if (showImage && course.thumbnail_image) {
                     return (
-                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full h-[200px] md:h-[400px] bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url(${getCourseThumbnailMediaDirectory(
-                            org?.org_uuid,
-                            course?.course_uuid,
-                            course?.thumbnail_image
-                          )})`,
-                        }}
+                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full h-[200px] md:h-[400px] bg-black overflow-hidden"
                       >
-                        {/* Hidden img with fetchpriority="high" so the browser fetches this LCP image immediately */}
-                        { }
                         <img
                           src={getCourseThumbnailMediaDirectory(org?.org_uuid, course?.course_uuid, course?.thumbnail_image)}
-                          alt=""
-                          aria-hidden="true"
+                          alt={course.name}
                           fetchPriority="high"
-                          className="absolute w-0 h-0 opacity-0 pointer-events-none"
+                          className="w-full h-full object-contain"
                         />
                         {course.thumbnail_type === 'both' && (
                           <div className="absolute top-3 right-3 z-10">
@@ -564,7 +564,13 @@ const CourseClient = (props: any) => {
                               {idx + 1}
                             </span>
                             <h3 className="text-lg font-bold leading-tight truncate min-w-0 sm:text-base md:text-lg" style={{lineHeight: '1.2'}}>{chapter.name}</h3>
-                            {chapter.is_locked && (
+                            {chapter.is_locked && chapter.offer && (
+                              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
+                                <Lock size={10} />
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: chapter.offer.currency }).format(chapter.offer.amount)}
+                              </span>
+                            )}
+                            {chapter.is_locked && !chapter.offer && (
                               <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-semibold">
                                 <Lock size={10} />
                                 {t('course.locked', 'Locked')}
@@ -602,7 +608,13 @@ const CourseClient = (props: any) => {
                                 <div className="flex flex-col grow">
                                   <div className="flex items-center space-x-2 w-full">
                                     <p className={`font-semibold transition-colors ${locked ? 'text-neutral-400' : 'text-neutral-600 group-hover:text-neutral-800'}`}>{activity.name}</p>
-                                    {locked && (
+                                    {locked && activity.offer && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
+                                        <Lock size={10} />
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.offer.currency }).format(activity.offer.amount)}
+                                      </span>
+                                    )}
+                                    {locked && !activity.offer && (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-semibold">
                                         <Lock size={10} />
                                         {t('course.locked', 'Locked')}
@@ -635,6 +647,20 @@ const CourseClient = (props: any) => {
                                 </div>
                               </div>
                             )
+
+                            if (locked && activity.offer) {
+                              return (
+                                <Link
+                                  key={activity.activity_uuid}
+                                  href={getUriWithOrg(orgslug, `/store/offers/${activity.offer.offer_id}`)}
+                                  prefetch={false}
+                                  className="block group activity-container transition-all duration-200 px-4 py-4"
+                                  title={t('course.activity_locked_offer_hint', 'Purchase access to unlock this.')}
+                                >
+                                  {RowInner}
+                                </Link>
+                              )
+                            }
 
                             if (locked) {
                               return (

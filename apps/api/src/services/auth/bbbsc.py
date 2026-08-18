@@ -28,13 +28,18 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.organizations import Organization
 from src.db.user_organizations import UserOrganization
 from src.db.users import AnonymousUser, User, UserCreate
+from src.security.rbac.constants import ADMIN_ROLE_ID, MAINTAINER_ROLE_ID
 from src.services.users.users import create_user
 
 logger = logging.getLogger(__name__)
 
 # Global default role ids seeded by src/services/setup/setup.py — must stay
 # in sync with that seed order (Admin=1, Maintainer=2, Instructor=3, User=4).
-BBBSC_ADMIN_ROLE_ID = 1
+# ADMIN_ROLE_ID/MAINTAINER_ROLE_ID are the canonical constants (imported, not
+# redefined); INSTRUCTOR/LEARNER have no canonical constant elsewhere in the
+# codebase yet, so they stay local to this module.
+BBBSC_ADMIN_ROLE_ID = ADMIN_ROLE_ID
+BBBSC_MAINTAINER_ROLE_ID = MAINTAINER_ROLE_ID
 BBBSC_INSTRUCTOR_ROLE_ID = 3
 BBBSC_LEARNER_ROLE_ID = 4
 
@@ -123,11 +128,24 @@ async def provision_or_sync_bbbsc_user(
     request: Request,
     db_session: AsyncSession,
     bbbsc_user: dict,
+    *,
+    role_id: Optional[int] = None,
+    sync_role: bool = True,
 ) -> Optional[User]:
     """
-    Find-or-create the LearnHouse User matching a bbbsc account, and keep its
-    org membership role in sync with bbbsc's SUPER_ADMIN/INSTRUCTOR roles on
-    every call (a promotion/demotion in bbbsc takes effect on next login).
+    Find-or-create the LearnHouse User matching a bbbsc account.
+
+    role_id: the LearnHouse role id to apply, already resolved by the caller
+        (the push path — see ``/integrations/bbbsc/sync-role``). If omitted,
+        falls back to ``_role_id_for_bbbsc_roles(bbbsc_user["roles"])`` — the
+        pull-at-login path, kept for backward compatibility with a bbbsc
+        deployment that hasn't started sending a precomputed role id yet.
+    sync_role: if False, an EXISTING user's role is left untouched. Used by
+        the course-assign flow (``/integrations/bbbsc/assign``), which must
+        never demote an Admin/Instructor to Learner just because a course was
+        granted to them — only an explicit role sync (login, or
+        ``/integrations/bbbsc/sync-role``) should touch role_id. Does not
+        affect a brand-new user's initial role, which is always applied.
     """
     email = (bbbsc_user.get("email") or "").strip().lower()
     if not email:
@@ -137,7 +155,11 @@ async def provision_or_sync_bbbsc_user(
     if org_id is None:
         return None
 
-    role_id = _role_id_for_bbbsc_roles(bbbsc_user.get("roles") or [])
+    resolved_role_id = (
+        role_id
+        if role_id is not None
+        else _role_id_for_bbbsc_roles(bbbsc_user.get("roles") or [])
+    )
 
     user = (await db_session.execute(
         select(User).where(func.lower(User.email) == email)
@@ -173,13 +195,14 @@ async def provision_or_sync_bbbsc_user(
         )).scalars().first()
         if user is None:
             return None
-        if role_id != BBBSC_LEARNER_ROLE_ID:
-            # create_user always links with role_id=4; bump to Instructor if
-            # bbbsc already marked this account as INSTRUCTOR at signup time.
-            await _sync_membership_role(db_session, user.id, org_id, role_id)
+        if resolved_role_id != BBBSC_LEARNER_ROLE_ID:
+            # create_user always links with role_id=4; bump if bbbsc already
+            # marked this account with a higher role at signup/assign time.
+            await _sync_membership_role(db_session, user.id, org_id, resolved_role_id)
         return user
 
-    await _sync_membership_role(db_session, user.id, org_id, role_id)
+    if sync_role:
+        await _sync_membership_role(db_session, user.id, org_id, resolved_role_id)
 
     if not user.email_verified:
         user.email_verified = True

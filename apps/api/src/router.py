@@ -20,6 +20,7 @@ from src.routers.orgs import ai_credits
 from src.routers.orgs import custom_domains
 from src.routers.orgs import packs
 from src.routers.orgs import org_plan
+from src.routers.payments import payments as payments_router_module
 from src.routers.courses import chapters, courses, assignments, certifications
 from src.routers.folders import folders as folders_router_module
 from src.routers.media import media as media_router_module
@@ -366,6 +367,25 @@ v1_router.include_router(plans.router, prefix="/plans", tags=["plans"])
 
 # Register EE Routers if available
 register_ee_routers(v1_router)
+
+# Payments (Stripe/Bold/OpenPay) — first-class OSS module, not gated behind
+# register_ee_routers: the ee/ package this feature originally lived in isn't
+# part of this fork. public_router MUST be included before router — its
+# static paths (offers/public-listing, offers/by-resource) would otherwise be
+# shadowed by router's authenticated GET /{org_id}/offers/{offer_id}, since
+# FastAPI matches routes in registration order and both have the same
+# segment count.
+v1_router.include_router(
+    payments_router_module.public_router,
+    prefix="/payments",
+    tags=["payments"],
+)
+v1_router.include_router(
+    payments_router_module.router,
+    prefix="/payments",
+    tags=["payments"],
+    dependencies=[Depends(require_authenticated_user)],
+)
 
 v1_router.include_router(
     health.router,

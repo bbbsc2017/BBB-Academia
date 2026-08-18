@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { verifyStripeConnection } from '@services/payments/providers/stripe'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 import Image from 'next/image'
-import learnhouseIcon from 'public/learnhouse_bigicon_1.png'
+import bbbAcademiaIcon from 'public/bbb_academia_logo.webp'
 import { useTranslation } from 'react-i18next'
 
 function StripeConnectCallbackInner() {
@@ -73,8 +73,8 @@ function StripeConnectCallbackInner() {
             quality={100}
             width={50}
             height={50}
-            src={learnhouseIcon}
-            alt=""
+            src={bbbAcademiaIcon}
+            alt="BBB Academia"
           />
         </div>
 

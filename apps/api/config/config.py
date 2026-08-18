@@ -126,8 +126,27 @@ class InternalStripeConfig(BaseModel):
     stripe_client_id: str | None
 
 
+# Bold and OpenPay are platform-level (single-merchant) credentials — unlike
+# Stripe Connect, there's no per-org OAuth flow. An org's PaymentsConfig row
+# just enables/disables the provider; the actual secret material lives here.
+class InternalBoldConfig(BaseModel):
+    bold_api_key: str | None
+    bold_secret_key: str | None
+    bold_webhook_secret: str | None
+
+
+class InternalOpenPayConfig(BaseModel):
+    openpay_merchant_id: str | None
+    openpay_private_key: str | None
+    openpay_public_key: str | None
+    openpay_production: bool = False
+    openpay_webhook_secret: str | None
+
+
 class InternalPaymentsConfig(BaseModel):
     stripe: InternalStripeConfig
+    bold: InternalBoldConfig
+    openpay: InternalOpenPayConfig
 
 
 class LearnHouseConfig(BaseModel):
@@ -511,6 +530,49 @@ def get_learnhouse_config() -> LearnHouseConfig:
         "stripe", {}
     ).get("stripe_client_id")
 
+    env_bold_api_key = os.environ.get("LEARNHOUSE_BOLD_API_KEY")
+    env_bold_secret_key = os.environ.get("LEARNHOUSE_BOLD_SECRET_KEY")
+    env_bold_webhook_secret = os.environ.get("LEARNHOUSE_BOLD_WEBHOOK_SECRET")
+
+    bold_api_key = env_bold_api_key or yaml_config.get("payments_config", {}).get(
+        "bold", {}
+    ).get("bold_api_key")
+
+    bold_secret_key = env_bold_secret_key or yaml_config.get("payments_config", {}).get(
+        "bold", {}
+    ).get("bold_secret_key")
+
+    bold_webhook_secret = env_bold_webhook_secret or yaml_config.get("payments_config", {}).get(
+        "bold", {}
+    ).get("bold_webhook_secret")
+
+    env_openpay_merchant_id = os.environ.get("LEARNHOUSE_OPENPAY_MERCHANT_ID")
+    env_openpay_private_key = os.environ.get("LEARNHOUSE_OPENPAY_PRIVATE_KEY")
+    env_openpay_public_key = os.environ.get("LEARNHOUSE_OPENPAY_PUBLIC_KEY")
+    env_openpay_production = os.environ.get("LEARNHOUSE_OPENPAY_PRODUCTION")
+    env_openpay_webhook_secret = os.environ.get("LEARNHOUSE_OPENPAY_WEBHOOK_SECRET")
+
+    openpay_merchant_id = env_openpay_merchant_id or yaml_config.get("payments_config", {}).get(
+        "openpay", {}
+    ).get("openpay_merchant_id")
+
+    openpay_private_key = env_openpay_private_key or yaml_config.get("payments_config", {}).get(
+        "openpay", {}
+    ).get("openpay_private_key")
+
+    openpay_public_key = env_openpay_public_key or yaml_config.get("payments_config", {}).get(
+        "openpay", {}
+    ).get("openpay_public_key")
+
+    openpay_production_raw = env_openpay_production if env_openpay_production is not None else yaml_config.get(
+        "payments_config", {}
+    ).get("openpay", {}).get("openpay_production", False)
+    openpay_production = str(openpay_production_raw).strip().lower() in ("1", "true", "yes")
+
+    openpay_webhook_secret = env_openpay_webhook_secret or yaml_config.get("payments_config", {}).get(
+        "openpay", {}
+    ).get("openpay_webhook_secret")
+
     # Create HostingConfig and DatabaseConfig objects
     hosting_config = HostingConfig(
         tenancy=tenancy,
@@ -656,7 +718,19 @@ def get_learnhouse_config() -> LearnHouseConfig:
                 stripe_webhook_standard_secret=stripe_webhook_standard_secret,
                 stripe_webhook_connect_secret=stripe_webhook_connect_secret,
                 stripe_client_id=stripe_client_id
-            )
+            ),
+            bold=InternalBoldConfig(
+                bold_api_key=bold_api_key,
+                bold_secret_key=bold_secret_key,
+                bold_webhook_secret=bold_webhook_secret,
+            ),
+            openpay=InternalOpenPayConfig(
+                openpay_merchant_id=openpay_merchant_id,
+                openpay_private_key=openpay_private_key,
+                openpay_public_key=openpay_public_key,
+                openpay_production=openpay_production,
+                openpay_webhook_secret=openpay_webhook_secret,
+            ),
         ),
         tinybird_config=tinybird_config,
         judge0_config=judge0_config,

@@ -3,6 +3,7 @@
 // Provider-specific connection logic lives in services/payments/providers/<provider>.ts
 import { getAPIUrl } from '@services/config/config';
 import { RequestBodyWithAuthHeader, errorHandling, secureFetch } from '@services/utils/ts/requests';
+import { toApiProviderValue, type PaymentProviderId } from '@services/payments/providers';
 
 export async function getPaymentConfigs(orgId: number, access_token: string) {
   const result = await secureFetch(
@@ -16,11 +17,12 @@ export async function getPaymentConfigs(orgId: number, access_token: string) {
 export async function initializePaymentConfig(
   orgId: number,
   data: any,
-  provider: string,
+  provider: PaymentProviderId,
   access_token: string
 ) {
+  const apiProvider = toApiProviderValue(provider);
   const result = await secureFetch(
-    `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/config?provider=${encodeURIComponent(provider)}`,
+    `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/config?provider=${encodeURIComponent(apiProvider)}`,
     RequestBodyWithAuthHeader('POST', data, null, access_token)
   );
   const res = await errorHandling(result);

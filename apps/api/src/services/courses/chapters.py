@@ -420,6 +420,14 @@ async def _apply_locks_to_chapters(
     # Course-level usergroup membership unlocks everything below it.
     course_grants_access = course.course_uuid in accessible
 
+    # Batch-fetch offer metadata for every restricted uuid in one shot (rather
+    # than a per-locked-item query below) — resources not gated by a paid
+    # offer's usergroup are simply absent from the map.
+    offers_by_uuid: dict[str, dict] = {}
+    if not course_grants_access:
+        from src.security.rbac.rbac import batch_offers_for_resources
+        offers_by_uuid = await batch_offers_for_resources(check_uuids, db_session)
+
     for chapter in chapters:
         chapter_locked = False if course_grants_access else await is_locked_for_user(
             chapter.lock_type,
@@ -434,6 +442,7 @@ async def _apply_locks_to_chapters(
         if chapter_locked:
             chapter.description = ""
             chapter.thumbnail_image = ""
+            chapter.offer = offers_by_uuid.get(chapter.chapter_uuid)
 
         for activity in chapter.activities:
             if chapter_locked:
@@ -454,6 +463,10 @@ async def _apply_locks_to_chapters(
             if activity_locked:
                 activity.content = {}
                 activity.details = None
+                # A locked chapter takes precedence as the blocking resource;
+                # otherwise it's the activity's own restricted lock.
+                blocking_uuid = chapter.chapter_uuid if chapter_locked else activity.activity_uuid
+                activity.offer = offers_by_uuid.get(blocking_uuid)
 
 
 # Important Note : this is legacy code that has been used because

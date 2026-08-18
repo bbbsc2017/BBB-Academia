@@ -6,7 +6,7 @@ const STEPS = [
   {
     icon: CreditCard,
     title: 'Connect a payment provider',
-    description: 'Link Stripe or another provider to start accepting payments.',
+    description: 'Link Stripe, OpenPay, or Bold to start accepting payments.',
   },
   {
     icon: ShoppingBag,
@@ -34,7 +34,7 @@ function UnconfiguredPaymentsDisclaimer() {
           Payments not configured yet
         </h3>
         <p className="text-sm text-gray-500 max-w-xs mb-8">
-          Connect a payment provider to unlock offers, subscriptions, and customer management.
+          Connect a provider to unlock offers, subscriptions, and customer management.
         </p>
 
         {/* Steps */}

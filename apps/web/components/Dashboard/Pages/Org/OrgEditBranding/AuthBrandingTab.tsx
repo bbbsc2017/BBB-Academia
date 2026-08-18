@@ -36,7 +36,7 @@ export default function AuthBrandingTab() {
 
   const existingConfig = org?.config?.config?.customization?.auth_branding || org?.config?.config?.general?.auth_branding || {}
 
-  // Check if org has enterprise plan - hide LearnHouse branding for enterprise users
+  // Check if org has enterprise plan - hide the BBB Academia branding mark for enterprise users
   // In OSS mode, always show branding regardless of plan
   const plan = usePlan()
   const isEnterprise = plan === 'enterprise'
@@ -317,15 +317,15 @@ export default function AuthBrandingTab() {
                 <div className="absolute inset-0 bg-black/30" />
               )}
 
-              {/* Top lrn logo - hidden for enterprise users */}
+              {/* Top BBB Academia logo - hidden for enterprise users */}
               {!isEnterprise && (
                 <div className="relative z-10">
                   <div
                     className={cn(
                       "w-4 h-4 bg-contain bg-no-repeat",
-                      textColor === 'light' ? "opacity-60 invert" : "opacity-40"
+                      textColor === 'light' ? "opacity-60" : "opacity-40"
                     )}
-                    style={{ backgroundImage: `url(${withBasePath('/lrn.svg')})` }}
+                    style={{ backgroundImage: `url(${withBasePath('/bbb_academia_logo.webp')})` }}
                   />
                 </div>
               )}

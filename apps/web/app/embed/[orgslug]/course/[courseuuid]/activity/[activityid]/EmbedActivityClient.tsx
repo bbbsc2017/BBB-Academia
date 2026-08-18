@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { CourseContext, CourseDispatchContext } from '@components/Contexts/CourseContext'
 import { useActivity } from '@/hooks/queries/useActivity'
 import { useCourseMeta } from '@/hooks/queries/useCourses'
+import PaymentWall from '@components/Payments/PaymentWall'
 
 const Canva = lazy(() => import('@components/Objects/Activities/DynamicCanva/DynamicCanva'))
 const VideoActivity = lazy(() => import('@components/Objects/Activities/Video/Video'))
@@ -160,6 +161,16 @@ function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: Embed
     return null
   }
 
+  if (activity.is_locked) {
+    if (!activity.offer) return null
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <PaymentWall offer={activity.offer} resourceName={activity.name} orgslug={orgslug} openInNewTab />
+        {showLearnHouseLogo && <PoweredByBadge activityUrl={getActivityUrl()} />}
+      </div>
+    )
+  }
+
   const isEmbeddable = EMBEDDABLE_TYPES.includes(activity.activity_type)
 
   if (!isEmbeddable) {
@@ -168,11 +179,12 @@ function EmbedActivityClient({ activityId, courseuuid, orgslug, bgcolor }: Embed
         <div className="bg-white rounded-2xl nice-shadow p-8 max-w-md w-full text-center">
           <div className="mb-6">
             <Image
-              src={withBasePath('/learnhouse_bigicon.png')}
-              alt="LearnHouse"
+              src={withBasePath('/bbb_academia_logo.webp')}
+              alt="BBB Academia"
               width={64}
               height={64}
               className="mx-auto"
+              unoptimized
             />
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">
@@ -277,10 +289,11 @@ function PoweredByBadge({ activityUrl }: { activityUrl: string }) {
         className="bg-white/80 backdrop-blur-lg rounded-2xl p-2 light-shadow block cursor-pointer"
       >
         <Image
-          src={withBasePath('/lrn.svg')}
-          alt="LearnHouse"
+          src={withBasePath('/bbb_academia_logo.webp')}
+          alt="BBB Academia"
           width={20}
           height={20}
+          unoptimized
         />
       </button>
     </div>

@@ -226,15 +226,14 @@ const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
                 <Form.Label className={labelClass}>
                     {t('dashboard.assignments.modals.edit.form.due_date_label')}
                 </Form.Label>
-                <Form.Message match="valueMissing" className={errorClass}>
-                    {t('dashboard.assignments.modals.edit.form.due_date_required')}
-                </Form.Message>
+                <p className="text-[11px] text-gray-400">
+                    {t('dashboard.assignments.modals.edit.form.due_date_hint')}
+                </p>
                 <Form.Control asChild>
                     <input
                         type="date"
                         onChange={formik.handleChange}
                         value={formik.values.due_date}
-                        required
                         className={inputClass}
                     />
                 </Form.Control>

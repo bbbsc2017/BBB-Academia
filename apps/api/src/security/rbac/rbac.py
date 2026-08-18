@@ -27,22 +27,72 @@ async def _get_offer_for_usergroup(usergroup_id: int, db_session: AsyncSession) 
     Return offer metadata if a usergroup is the access-control group for a PaymentsOffer.
     Returns None if the usergroup is not tied to any offer.
     """
-    try:
-        from ee.db.payments.payments_offers import PaymentsOffer
-        stmt = select(PaymentsOffer).where(
-            PaymentsOffer.usergroup_id == usergroup_id,
-        )
-        offer = (await db_session.execute(stmt)).scalars().first()
-        if offer:
-            return {
-                "offer_id": offer.id,
-                "offer_name": offer.name,
-                "amount": offer.amount,
-                "currency": offer.currency,
-            }
-    except Exception:
-        pass
+    from src.db.payments.offers import PaymentsOffer
+    stmt = select(PaymentsOffer).where(
+        PaymentsOffer.usergroup_id == usergroup_id,
+    )
+    offer = (await db_session.execute(stmt)).scalars().first()
+    if offer:
+        return {
+            "offer_id": offer.id,
+            "offer_name": offer.name,
+            "amount": offer.amount,
+            "currency": offer.currency,
+        }
     return None
+
+
+async def get_offer_for_resource(resource_uuid: str, db_session: AsyncSession) -> dict | None:
+    """If resource_uuid is gated by a usergroup that's a PaymentsOffer's access
+    group, return that offer's metadata. Single-item convenience wrapper around
+    batch_offers_for_resources — used by call sites checking one resource at a
+    time (ResourceAccessChecker, playgrounds)."""
+    return (await batch_offers_for_resources([resource_uuid], db_session)).get(resource_uuid)
+
+
+async def batch_offers_for_resources(resource_uuids: list[str], db_session: AsyncSession) -> dict[str, dict]:
+    """Map each resource_uuid gated by a PaymentsOffer's usergroup to that
+    offer's metadata (offer_id/offer_name/amount/currency). A resource gated by
+    a plain, non-payment usergroup is simply absent from the result — this is
+    what lets a paid lock be told apart from a generic restricted one, so the
+    frontend can render a PaymentWall instead of a plain "no access" screen.
+    """
+    uuids = [u for u in resource_uuids if u]
+    if not uuids:
+        return {}
+
+    ugrs = (await db_session.execute(
+        select(UserGroupResource.resource_uuid, UserGroupResource.usergroup_id)
+        .where(UserGroupResource.resource_uuid.in_(uuids))
+    )).all()
+    if not ugrs:
+        return {}
+
+    from src.db.payments.offers import PaymentsOffer
+    ug_ids = list({row[1] for row in ugrs})
+    offers = (await db_session.execute(
+        select(PaymentsOffer).where(PaymentsOffer.usergroup_id.in_(ug_ids))
+    )).scalars().all()
+    offer_by_ugid = {
+        offer.usergroup_id: {
+            "offer_id": offer.id,
+            "offer_name": offer.name,
+            "amount": offer.amount,
+            "currency": offer.currency,
+        }
+        for offer in offers
+    }
+    if not offer_by_ugid:
+        return {}
+
+    result: dict[str, dict] = {}
+    for resource_uuid, ug_id in ugrs:
+        if resource_uuid in result:
+            continue
+        offer = offer_by_ugid.get(ug_id)
+        if offer:
+            result[resource_uuid] = offer
+    return result
 
 
 async def check_usergroup_access(
@@ -429,11 +479,8 @@ async def authorization_verify_based_on_roles_and_authorship(
     # regardless of UserGroup membership state (e.g. if an admin removes them from the group).
     hasPaidEnrollmentAccess = False
     if action == "read":
-        try:
-            from ee.services.payments.payments_access import check_enrollment_access
-            hasPaidEnrollmentAccess = await check_enrollment_access(element_uuid, user_id, db_session)
-        except Exception:
-            pass  # payments module not available (community edition) — skip silently
+        from src.services.payments.enrollments import check_enrollment_access
+        hasPaidEnrollmentAccess = await check_enrollment_access(element_uuid, user_id, db_session)
     logger.info("[RBAC] hasPaidEnrollmentAccess=%s", hasPaidEnrollmentAccess)
 
     if isAuthor or isRole or hasUserGroupAccess or hasPaidEnrollmentAccess:

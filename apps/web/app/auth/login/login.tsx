@@ -278,7 +278,7 @@ const LoginClient = (props: LoginClientProps) => {
     <AuthLayout
       org={props.org}
       welcomeText={t('auth.login_to')}
-      title={t('auth.image_title_login', { defaultValue: 'Welcome back to LearnHouse.' })}
+      title={t('auth.image_title_login', { defaultValue: 'Welcome back to BBB Academia.' })}
       subtitle={t('auth.image_subtitle_login', {
         defaultValue: 'Pick up where you left off — your courses, students, and tools are waiting.',
       })}

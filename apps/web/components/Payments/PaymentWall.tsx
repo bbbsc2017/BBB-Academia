@@ -19,6 +19,11 @@ interface PaymentWallProps {
   resourceName?: string;
   resourceThumbnail?: string;
   orgslug?: string;
+  providerName?: string;
+  /** Open the "Get Access" link in a new tab — for embed contexts, where
+   * navigating the embed's own iframe away from the activity would strand it
+   * on the store page instead of the host page the visitor is actually on. */
+  openInNewTab?: boolean;
 }
 
 /**
@@ -31,7 +36,7 @@ interface PaymentWallProps {
  *     return <PaymentWall offer={error.data} resourceName="My Course" />
  *   }
  */
-function PaymentWall({ offer, resourceName, resourceThumbnail, orgslug }: PaymentWallProps) {
+function PaymentWall({ offer, resourceName, resourceThumbnail, orgslug, providerName, openInNewTab }: PaymentWallProps) {
   const org = useOrg() as any;
   const slug = orgslug ?? org?.slug;
   const { track } = useLHAnalytics('learner');
@@ -51,6 +56,7 @@ function PaymentWall({ offer, resourceName, resourceThumbnail, orgslug }: Paymen
   const storeHref = slug
     ? getUriWithOrg(slug, `/store/offers/${offer.offer_id}`)
     : '#';
+  const providerLabel = providerName ?? 'your payment provider';
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center space-y-6">
@@ -78,7 +84,7 @@ function PaymentWall({ offer, resourceName, resourceThumbnail, orgslug }: Paymen
           <h2 className="text-xl font-bold text-gray-900">{resourceName}</h2>
         )}
         <p className="text-gray-500 text-sm">
-          This content is part of <strong>{offer.offer_name}</strong> and requires a purchase to access.
+          This content is part of <strong>{offer.offer_name}</strong> and requires a purchase through {providerLabel}.
         </p>
       </div>
 
@@ -90,6 +96,8 @@ function PaymentWall({ offer, resourceName, resourceThumbnail, orgslug }: Paymen
 
         <Link
           href={storeHref}
+          target={openInNewTab ? '_blank' : undefined}
+          rel={openInNewTab ? 'noopener noreferrer' : undefined}
           onClick={() => track(AnalyticsEvent.PaywallGetAccessClicked, { offer_id: offer.offer_id, amount: offer.amount })}
         >
           <Button className="w-full flex items-center space-x-2">

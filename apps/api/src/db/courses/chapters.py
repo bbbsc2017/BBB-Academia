@@ -60,6 +60,10 @@ class ChapterRead(ChapterBase):
     # content (and, by cascade, its activities). Metadata (name, thumbnail) is still
     # returned so TOC navigation still renders a lock placeholder.
     is_locked: bool = False
+    # Computed per-request: set when is_locked is True and the block is a paid
+    # PaymentsOffer's usergroup — lets the client render a PaymentWall instead
+    # of a generic "no access" screen.
+    offer: Optional[dict] = None
     pass
 
 

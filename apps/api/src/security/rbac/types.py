@@ -40,6 +40,10 @@ class AccessDecision(BaseModel):
     user_id: Optional[int] = None
     action: Optional[str] = None
     context: Optional[str] = None
+    # Set when access was denied specifically because the resource is gated by
+    # a PaymentsOffer's usergroup — lets the caller raise 402 with offer data
+    # (so the frontend can render a PaymentWall) instead of a plain 403.
+    offer: Optional[dict] = None
 
 
 class ResourceConfig(BaseModel):

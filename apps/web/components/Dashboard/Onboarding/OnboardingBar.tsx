@@ -663,19 +663,19 @@ export default function OnboardingBar() {
                                       </div>
                                     )}
 
-                                  {/* Teach the world — LearnHouse University link */}
+                                  {/* Teach the world — wraps up the onboarding flow */}
                                   {step.id === 'teach_the_world' &&
                                     !step.completed && (
                                       <div className="relative px-3 pb-3 space-y-2">
                                         <a
-                                          href="https://university.learnhouse.io"
+                                          href="https://bbbacademia.com"
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
                                         >
                                           <img
-                                            src={withBasePath('/UNI_LOGO.png')}
-                                            alt="LearnHouse University"
+                                            src={withBasePath('/bbb_academia_logo.webp')}
+                                            alt="BBB Academia"
                                             className="h-9 w-auto shrink-0 rounded"
                                           />
                                           <div className="min-w-0">
@@ -684,27 +684,6 @@ export default function OnboardingBar() {
                                             </p>
                                             <p className="text-[11px] text-gray-400">
                                               {t('onboarding.steps.teach_the_world.university_desc')}
-                                            </p>
-                                          </div>
-                                          <span className="text-gray-300 shrink-0 ml-auto">→</span>
-                                        </a>
-                                        <a
-                                          href="https://classroom.learnhouse.io"
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
-                                        >
-                                          <img
-                                            src={withBasePath('/theclassroom.png')}
-                                            alt="The Classroom"
-                                            className="h-9 w-auto shrink-0 rounded"
-                                          />
-                                          <div className="min-w-0">
-                                            <p className="text-xs font-semibold text-gray-700">
-                                              {t('onboarding.steps.teach_the_world.classroom')}
-                                            </p>
-                                            <p className="text-[11px] text-gray-400">
-                                              {t('onboarding.steps.teach_the_world.classroom_desc')}
                                             </p>
                                           </div>
                                           <span className="text-gray-300 shrink-0 ml-auto">→</span>

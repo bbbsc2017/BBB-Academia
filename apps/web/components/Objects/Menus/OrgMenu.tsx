@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next'
 import useAdminStatus from '@components/Hooks/useAdminStatus'
 import {
   Question,
-  Book,
   Globe,
   ChatCircleDots,
   ChatCircle,
@@ -26,7 +25,6 @@ import {
   ChalkboardSimple,
   Signpost,
 } from '@phosphor-icons/react'
-import { DiscordIcon } from '@components/Objects/Icons/DiscordIcon'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -159,12 +157,12 @@ export const OrgMenu = (props: any) => {
                   {org?.logo_image ? (
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
-                      alt="Learnhouse"
+                      alt={org?.name || 'BBB Academia'}
                       style={{ width: 'auto', height: '100%' }}
                       className="rounded-md"
                     />
                   ) : (
-                    <LearnHouseLogo logoFilter={colors.logoFilter} />
+                    <BBBAcademiaLogo />
                   )}
                 </div>
               </Link>
@@ -315,35 +313,13 @@ export const OrgMenu = (props: any) => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <a
-                        href="https://docs.learnhouse.app"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2"
-                      >
-                        <Book size={16} weight="fill" />
-                        <span>{t('common.help_menu.documentation')}</span>
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="https://learnhouse.app"
+                        href="https://bbbacademia.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
                       >
                         <Globe size={16} weight="fill" />
                         <span>{t('common.help_menu.website')}</span>
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="https://discord.gg/learnhouse"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2"
-                      >
-                        <DiscordIcon size={16} />
-                        <span>{t('common.help_menu.discord')}</span>
                       </a>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -557,14 +533,15 @@ const CopilotMenuButton = ({
   )
 }
 
-const LearnHouseLogo = ({ logoFilter }: { logoFilter: string }) => {
+const BBBAcademiaLogo = () => {
   return (
     <Image
-      src={withBasePath('/lrn-text.svg')}
-      alt="LearnHouse logo"
-      width={133}
+      src={withBasePath('/bbb_academia_logo.webp')}
+      alt="BBB Academia"
+      width={40}
       height={40}
-      style={{ height: 'auto', filter: logoFilter }}
+      style={{ height: '100%', width: 'auto' }}
+      unoptimized
     />
   )
 }

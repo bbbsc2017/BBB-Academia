@@ -94,11 +94,11 @@ export default function BoardToolbar({
       <Link href="/dash/boards">
         <div className="bg-black rounded-md w-[25px] h-[25px] flex items-center justify-center hover:opacity-80 transition-opacity">
           <Image
-            src={withBasePath('/lrn.svg')}
-            alt="LearnHouse"
+            src={withBasePath('/bbb_academia_logo.webp')}
+            alt="BBB Academia"
             width={14}
             height={14}
-            className="invert"
+            className="brightness-0 invert"
           />
         </div>
       </Link>

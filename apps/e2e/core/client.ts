@@ -20,8 +20,9 @@ export async function req<T = any>(
   token: string | null,
   body?: unknown,
   asForm = false,
+  extraHeaders?: Record<string, string>,
 ): Promise<T> {
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = { ...extraHeaders }
   if (token) headers.Authorization = `Bearer ${token}`
   let payload: BodyInit | undefined
   if (asForm) {

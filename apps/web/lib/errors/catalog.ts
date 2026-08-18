@@ -17,7 +17,7 @@ export const ERROR_CATALOG: ErrorCategory[] = [
     kind: 'version_mismatch',
     title: 'The app just updated',
     description:
-      'A new version of LearnHouse was released while this page was open, so it briefly fell out of sync. Reloading will pick up the latest version.',
+      'A new version of BBB Academia was released while this page was open, so it briefly fell out of sync. Reloading will pick up the latest version.',
     matchers: {
       statuses: [],
       messageIncludes: [
@@ -74,6 +74,18 @@ export const ERROR_CATALOG: ErrorCategory[] = [
       names: [],
     },
     resolutions: ['login', 'signout', 'report'],
+  },
+  {
+    kind: 'payment_required',
+    title: 'This requires a purchase',
+    description:
+      "This content is behind a paid offer and your account doesn't have access to it yet. Buying the offer unlocks it immediately.",
+    matchers: {
+      statuses: [402],
+      messageIncludes: ['payment_required'],
+      names: [],
+    },
+    resolutions: ['home', 'report'],
   },
   {
     kind: 'plan_limit',

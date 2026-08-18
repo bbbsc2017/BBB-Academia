@@ -29,6 +29,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# WordPress/MySQL DB export dumps (may contain live credentials + customer PII) — never commit
+sql_temp_*
+*.sql
+
 # turbo
 .turbo
 

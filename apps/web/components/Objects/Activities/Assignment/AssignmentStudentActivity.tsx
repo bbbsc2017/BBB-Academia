@@ -67,8 +67,14 @@ function AssignmentStudentActivity() {
             <div className='flex gap-2 items-center'>
               <div className='flex gap-1 md:space-x-2 text-xs items-center text-slate-400'>
                 <Calendar size={14} />
-                <p className='font-semibold'>{t('assignments.due_date')}</p>
-                <p className='font-semibold'>{assignments?.assignment_object?.due_date}</p>
+                {assignments?.assignment_object?.due_date ? (
+                  <>
+                    <p className='font-semibold'>{t('assignments.due_date')}</p>
+                    <p className='font-semibold'>{assignments?.assignment_object?.due_date}</p>
+                  </>
+                ) : (
+                  <p className='font-semibold'>{t('assignments.no_due_date')}</p>
+                )}
               </div>
             </div>
             {showAttemptBadge && (

@@ -182,14 +182,13 @@ function NewAssignment({ submitActivity: _submitActivity, chapterId, course, clo
           <Form.Label className="text-sm font-medium text-gray-700">
             {t('dashboard.assignments.modals.create.form.due_date_label')}
           </Form.Label>
-          <Form.Message match="valueMissing" className="text-xs text-red-500">
-            {t('dashboard.assignments.modals.create.form.due_date_required')}
-          </Form.Message>
+          <p className="text-[11px] text-gray-400">
+            {t('dashboard.assignments.modals.create.form.due_date_hint')}
+          </p>
           <Form.Control asChild>
             <input
               onChange={(e) => setDueDate(e.target.value)}
               type="date"
-              required
               className={inputClass}
             />
           </Form.Control>

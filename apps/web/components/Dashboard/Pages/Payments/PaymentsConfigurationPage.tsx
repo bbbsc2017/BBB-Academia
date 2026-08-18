@@ -7,7 +7,6 @@ import {
   initializePaymentConfig,
   deletePaymentConfig,
 } from '@services/payments/payments';
-import { getStripeOnboardingLink } from '@services/payments/providers/stripe';
 import {
   CheckCircle2,
   ExternalLink,
@@ -25,35 +24,12 @@ import ConfirmationModal from '@components/Objects/StyledElements/ConfirmationMo
 import { Button } from '@components/ui/button';
 import { getMainDomainUri } from '@services/config/config';
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics';
-import { SiStripe } from '@icons-pack/react-simple-icons';
-
-// ---------------------------------------------------------------------------
-// Provider registry
-// ---------------------------------------------------------------------------
-interface PaymentProviderDef {
-  id: string;
-  name: string;
-  Icon: React.ComponentType<{ size?: number; className?: string }>;
-  tagline: string;
-  docsUrl: string;
-  callbackPath: string;
-  getConnectUrl: (_orgId: number, _accessToken: string, _redirectUri: string) => Promise<string>;
-}
-
-const PAYMENT_PROVIDERS: PaymentProviderDef[] = [
-  {
-    id: 'stripe',
-    name: 'Stripe',
-    Icon: SiStripe,
-    tagline: 'Accept one-time payments and subscriptions via Stripe Connect.',
-    docsUrl: 'https://stripe.com/docs',
-    callbackPath: '/payments/stripe/connect/oauth',
-    async getConnectUrl(orgId, accessToken, redirectUri) {
-      const { connect_url } = await getStripeOnboardingLink(orgId, accessToken, redirectUri);
-      return connect_url;
-    },
-  },
-];
+import {
+  PAYMENT_PROVIDERS,
+  fromApiProviderValue,
+  toApiProviderValue,
+  type PaymentProviderDefinition,
+} from '@services/payments/providers';
 
 // ---------------------------------------------------------------------------
 // Page
@@ -115,7 +91,7 @@ const PaymentsConfigurationPage: React.FC = () => {
 
       <div className="space-y-3">
         {PAYMENT_PROVIDERS.map((provider) => {
-          const config = configs.find((c: any) => c.provider === provider.id);
+          const config = configs.find((c: any) => fromApiProviderValue(c.provider) === provider.id);
           return (
             <ProviderCard
               key={provider.id}
@@ -135,7 +111,7 @@ const PaymentsConfigurationPage: React.FC = () => {
 // ProviderCard
 // ---------------------------------------------------------------------------
 interface ProviderCardProps {
-  provider: PaymentProviderDef;
+  provider: PaymentProviderDefinition;
   config: any | undefined;
   orgId: number;
   accessToken: string;
@@ -156,12 +132,21 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
       });
       setIsConnecting(true);
       if (!config) {
-        await initializePaymentConfig(orgId, { provider: provider.id, enabled: true }, provider.id, accessToken);
+        await initializePaymentConfig(
+          orgId,
+          { provider: toApiProviderValue(provider.id), enabled: true },
+          provider.id,
+          accessToken,
+        );
         queryClient.invalidateQueries({ queryKey: queryKeys.payments.configs(orgId) });
       }
-      const redirectUri = getMainDomainUri(provider.callbackPath);
-      const url = await provider.getConnectUrl(orgId, accessToken, redirectUri);
-      window.open(url, '_blank');
+      if (provider.getConnectUrl && provider.callbackPath) {
+        const redirectUri = getMainDomainUri(provider.callbackPath);
+        const url = await provider.getConnectUrl(orgId, accessToken, redirectUri);
+        window.open(url, '_blank');
+      } else {
+        toast.success(`${provider.name} is ready to use.`);
+      }
     } catch {
       toast.error(`Failed to connect ${provider.name}`);
     } finally {
@@ -249,10 +234,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
               >
                 {isConnecting ? (
                   <Loader2 size={12} className="animate-spin mr-1" />
-                ) : (
+                ) : provider.getConnectUrl ? (
                   <UnplugIcon size={12} className="mr-1" />
+                ) : (
+                  <CheckCircle2 size={12} className="mr-1" />
                 )}
-                Reconnect
+                {provider.getConnectUrl ? (isConnected ? 'Reconnect' : provider.connectButtonLabel) : provider.connectButtonLabel}
               </Button>
               <ConfirmationModal
                 confirmationButtonText="Remove"
@@ -277,10 +264,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
             >
               {isConnecting ? (
                 <Loader2 size={12} className="animate-spin mr-1" />
-              ) : (
+              ) : provider.getConnectUrl ? (
                 <UnplugIcon size={12} className="mr-1" />
+              ) : (
+                <CheckCircle2 size={12} className="mr-1" />
               )}
-              {config ? 'Complete Setup' : 'Connect'}
+              {provider.getConnectUrl ? (config ? 'Complete Setup' : provider.connectButtonLabel) : provider.connectButtonLabel}
             </Button>
           )}
         </div>
@@ -293,7 +282,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
             <AlertTriangle size={16} className="shrink-0 mt-0.5" />
             <p>
               You have <strong>{disconnectError.count} active subscriber{disconnectError.count !== 1 ? 's' : ''}</strong>.
-              Cancel all subscriptions first via your Stripe dashboard before removing.
+              Cancel all subscriptions first in your payment provider dashboard before removing.
             </p>
           </div>
         </div>

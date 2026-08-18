@@ -363,13 +363,21 @@ class ResourceAccessChecker:
                         action="read",
                     )
 
-        # All checks failed
+        # All checks failed. If a paid offer's usergroup is what's blocking
+        # this resource, surface it so check_resource_access() can raise 402
+        # (paywall) instead of a plain 403.
+        offer = None
+        if config.supports_usergroups:
+            from src.security.rbac.rbac import get_offer_for_resource
+            offer = await get_offer_for_resource(resource_uuid, self.db_session)
+
         return AccessDecision(
             allowed=False,
             reason="User does not have access to this resource",
             resource_uuid=resource_uuid,
             user_id=user_id,
             action="read",
+            offer=offer,
         )
 
     async def _check_write_access(
@@ -956,6 +964,11 @@ async def check_resource_access(
     decision = await checker.check_access(resource_uuid, action, context, require_ownership)
 
     if not decision.allowed and raise_on_deny:
+        if decision.offer:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail={"code": "PAYMENT_REQUIRED", **decision.offer},
+            )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=decision.reason,

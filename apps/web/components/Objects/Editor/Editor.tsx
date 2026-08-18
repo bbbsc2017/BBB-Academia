@@ -694,11 +694,11 @@ const EditorLearnHouseLogo = () => {
         transition={animation.transition}
       >
         <Image
-          src={withBasePath('/lrn.svg')}
-          alt="LearnHouse"
+          src={withBasePath('/bbb_academia_logo.webp')}
+          alt="BBB Academia"
           width={14}
           height={14}
-          className="invert"
+          className="brightness-0 invert"
         />
       </motion.div>
     </div>

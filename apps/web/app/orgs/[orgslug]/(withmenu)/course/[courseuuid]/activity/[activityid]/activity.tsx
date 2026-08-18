@@ -24,6 +24,7 @@ import { useActivity } from '@/hooks/queries/useActivity'
 import ConfirmationModal from '@components/Objects/StyledElements/ConfirmationModal/ConfirmationModal'
 import Modal from '@components/Objects/StyledElements/Modal/Modal'
 import { useMediaQuery, useWindowSize } from 'usehooks-ts'
+import PaymentWall from '@components/Payments/PaymentWall'
 import PaidCourseActivityDisclaimer from '@components/Objects/Courses/CourseActions/PaidCourseActivityDisclaimer'
 import { useContributorStatus } from '../../../../../../../../hooks/useContributorStatus'
 import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
@@ -479,6 +480,22 @@ function ActivityClient(props: ActivityClientProps) {
   const displayActivityType = allActivities[currentIndex]?.activity_type
 
   if (activity?.is_locked) {
+    if (activity.offer) {
+      return (
+        <GeneralWrapperStyled>
+          <PaymentWall
+            offer={activity.offer}
+            resourceName={displayName || course.name}
+            resourceThumbnail={
+              course.thumbnail_image
+                ? getCourseThumbnailMediaDirectory(org?.org_uuid, course.course_uuid, course.thumbnail_image)
+                : undefined
+            }
+            orgslug={orgslug}
+          />
+        </GeneralWrapperStyled>
+      )
+    }
     const isAuthenticated = session?.status === 'authenticated'
     return (
       <GeneralWrapperStyled>

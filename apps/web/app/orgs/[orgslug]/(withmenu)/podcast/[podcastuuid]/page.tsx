@@ -7,6 +7,7 @@ import { getServerSession } from '@/lib/auth/server'
 import { getOrgSeoConfig, buildPageTitle, buildBreadcrumbJsonLd } from '@/lib/seo/utils'
 import { getServerCanonicalUrl } from '@/lib/seo/utils.server'
 import { JsonLd } from '@components/SEO/JsonLd'
+import PaymentWall from '@components/Payments/PaymentWall'
 import PodcastClient from './podcast'
 
 type PageParams = Promise<{
@@ -108,7 +109,7 @@ export default async function PodcastPage({ params }: { params: PageParams }) {
   })
 
   let podcastMeta: PodcastMeta | null = null
-  let fetchError: { status?: number } | null = null
+  let fetchError: { status?: number; detail?: any } | null = null
   try {
     podcastMeta = await getPodcastMeta(
       `podcast_${podcastuuid}`,
@@ -116,8 +117,18 @@ export default async function PodcastPage({ params }: { params: PageParams }) {
       access_token
     )
   } catch (error: any) {
-    fetchError = { status: error?.status }
+    fetchError = { status: error?.status, detail: error?.detail }
     console.error('Error fetching podcast:', error)
+  }
+
+  // Gated behind a paid offer — show what to buy rather than a bare denial,
+  // regardless of auth state (price is worth showing even to a visitor).
+  if (fetchError?.status === 402 && fetchError.detail?.code === 'PAYMENT_REQUIRED') {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <PaymentWall offer={fetchError.detail} orgslug={orgslug} />
+      </div>
+    )
   }
 
   // Missing, or denied-to-anon: 404 so non-public podcasts aren't enumerable.

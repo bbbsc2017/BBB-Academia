@@ -51,9 +51,10 @@ redis_config:
   redis_connection_string: redis://localhost:6379/learnhouse
 
 payments_config:
-  # See ee/services/payments/README.md for full setup instructions.
-  # To add a new payment provider, add its credentials block here and register
-  # it in ee/db/payments/payments.py (PaymentProviderEnum) and config/config.py.
+  # Platform-level provider credentials. Bold and OpenPay are single-merchant
+  # (no per-org OAuth like Stripe Connect) — one set of keys serves the whole
+  # instance; src/db/payments/config.py's PaymentsConfig row per org is just
+  # an on/off switch + provider selector, never a place secrets live.
   stripe:
     # Platform API keys — Stripe Dashboard → Developers → API keys
     stripe_secret_key: ""        # sk_live_... (or sk_test_... for development)
@@ -65,6 +66,18 @@ payments_config:
     stripe_webhook_standard_secret: ""   # whsec_...
     # Connect endpoint:   POST /payments/stripe/webhook/connect
     stripe_webhook_connect_secret: ""    # whsec_...
+  bold:
+    # Bold merchant dashboard → API keys
+    bold_api_key: ""
+    bold_secret_key: ""      # used to sign/verify the checkout integrity hash
+    bold_webhook_secret: ""  # POST /payments/webhooks/bold
+  openpay:
+    # OpenPay dashboard → API keys
+    openpay_merchant_id: ""
+    openpay_private_key: ""
+    openpay_public_key: ""
+    openpay_production: false  # false = sandbox.openpay.co, true = live
+    openpay_webhook_secret: "" # POST /payments/webhooks/openpay
 
 ai_config:
   is_ai_enabled: false

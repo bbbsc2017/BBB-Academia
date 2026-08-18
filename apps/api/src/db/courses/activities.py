@@ -107,3 +107,8 @@ class ActivityRead(ActivityBase):
     last_modified_by_username: Optional[str] = None
     # Computed per-request: true if current user cannot access this activity.
     is_locked: bool = False
+    # Computed per-request: set when is_locked is True and the block is a paid
+    # PaymentsOffer's usergroup (as opposed to a plain, non-payment restricted
+    # usergroup) — lets the client render a PaymentWall instead of a generic
+    # "no access" screen.
+    offer: Optional[dict] = None

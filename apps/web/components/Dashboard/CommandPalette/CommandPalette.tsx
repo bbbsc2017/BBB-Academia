@@ -252,7 +252,7 @@ export default function CommandPalette() {
                 />
               </div>
               <img
-                src={withBasePath('/lrn-dash.svg')}
+                src={withBasePath('/bbb_academia_logo.webp')}
                 alt=""
                 aria-hidden="true"
                 draggable={false}

@@ -119,25 +119,39 @@ async def _check_read_access(
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> None:
-    """Raise 403 if current_user cannot read this playground."""
+    """Raise 403 (or 402 for a paid-offer-gated playground) if current_user
+    cannot read this playground."""
     if playground.access_type == PlaygroundAccessType.PUBLIC:
         return
 
-    if isinstance(current_user, AnonymousUser):
-        raise HTTPException(status_code=401, detail="Authentication required")
+    is_anon = isinstance(current_user, AnonymousUser)
 
     if playground.access_type == PlaygroundAccessType.AUTHENTICATED:
+        if is_anon:
+            raise HTTPException(status_code=401, detail="Authentication required")
         return
 
-    # RESTRICTED
-    acting_user_id = resolve_acting_user_id(current_user)
-    if await _is_org_admin(acting_user_id, playground.org_id, db_session):
-        return
-    if playground.created_by == acting_user_id:
-        return
-    if await _user_in_playground_usergroup(acting_user_id, playground.playground_uuid, db_session):
-        return
+    # RESTRICTED — checked even for an anonymous user, since a paid-offer-gated
+    # playground should show its price (402) rather than a bare "log in" wall.
+    if not is_anon:
+        acting_user_id = resolve_acting_user_id(current_user)
+        if await _is_org_admin(acting_user_id, playground.org_id, db_session):
+            return
+        if playground.created_by == acting_user_id:
+            return
+        if await _user_in_playground_usergroup(acting_user_id, playground.playground_uuid, db_session):
+            return
 
+    from src.security.rbac.rbac import get_offer_for_resource
+    offer = await get_offer_for_resource(playground.playground_uuid, db_session)
+    if offer:
+        raise HTTPException(
+            status_code=402,
+            detail={"code": "PAYMENT_REQUIRED", **offer},
+        )
+
+    if is_anon:
+        raise HTTPException(status_code=401, detail="Authentication required")
     raise HTTPException(status_code=403, detail="Access denied to this playground")
 
 

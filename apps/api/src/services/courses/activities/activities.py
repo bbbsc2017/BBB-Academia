@@ -328,6 +328,17 @@ async def _apply_activity_lock(
         activity_read.details = None
         activity_read.is_locked = True
 
+        # A locked chapter takes precedence as the blocking resource; otherwise
+        # it's the activity's own restricted lock. Look up whether that
+        # specific resource is gated by a paid offer (vs. a plain usergroup).
+        blocking_uuid = (
+            parent_chapter_row.chapter_uuid
+            if chapter_locked and parent_chapter_row
+            else activity.activity_uuid
+        )
+        from src.security.rbac.rbac import get_offer_for_resource
+        activity_read.offer = await get_offer_for_resource(blocking_uuid, db_session)
+
 async def get_activityby_id(
     request: Request,
     activity_id: int,

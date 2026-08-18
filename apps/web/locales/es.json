@@ -46,11 +46,11 @@
     "help": "Ayuda",
     "help_menu": {
       "documentation": "Documentación",
-      "website": "Sitio web de LearnHouse",
+      "website": "Sitio web de BBB Academia",
       "discord": "Discord",
       "report_feedback": "Reportar problema o comentario",
       "feedback_title": "Enviar comentarios",
-      "feedback_description": "Ayúdanos a mejorar LearnHouse compartiendo tus opiniones, reportando errores o sugiriendo nuevas funciones.",
+      "feedback_description": "Ayúdanos a mejorar BBB Academia compartiendo tus opiniones, reportando errores o sugiriendo nuevas funciones.",
       "feedback_placeholder": "Cuéntanos qué piensas...",
       "feedback_success": "¡Gracias por tu comentario!",
       "send_feedback": "Enviar comentarios",
@@ -215,7 +215,7 @@
     "organizations": "Organizaciones",
     "billing": "Facturación",
     "create_organization": "Crear organización",
-    "copyright": "© {{year}} LearnHouse, Inc.",
+    "copyright": "© {{year}} BBB Academia",
     "delete_organization_error": "No se pudo eliminar esta organización. Inténtalo de nuevo.",
     "org_actions": "Acciones de la organización",
     "manage_upgrade": "Gestionar / Mejorar",
@@ -353,11 +353,11 @@
     "privacy_policy": "Política de privacidad",
     "image_title_forgot": "Restablece tu contraseña.",
     "image_subtitle_forgot": "Te ayudaremos a recuperar el acceso a tu cuenta en un instante.",
-    "image_title_login": "Bienvenido de nuevo a LearnHouse.",
+    "image_title_login": "Bienvenido de nuevo a BBB Academia.",
     "image_subtitle_login": "Retoma donde lo dejaste — tus cursos, estudiantes y herramientas te esperan.",
     "image_title_reset": "Casi listo.",
     "image_subtitle_reset": "Crea una contraseña segura para mantener tu cuenta protegida.",
-    "image_title_signup": "Empieza a enseñar con LearnHouse.",
+    "image_title_signup": "Empieza a enseñar con BBB Academia.",
     "image_subtitle_signup": "Crea tu cuenta y lanza tu primer curso en minutos.",
     "image_title_verify": "Verifica tu correo electrónico.",
     "image_subtitle_verify": "Un paso rápido para proteger tu cuenta y empezar.",
@@ -549,14 +549,14 @@
     "import": {
       "scorm_package": "Paquete SCORM",
       "scorm_description": "Importar paquetes SCORM 1.2 o SCORM 2004",
-      "learnhouse_courses": "Cursos de LearnHouse",
-      "learnhouse_description": "Importar cursos exportados desde LearnHouse",
+      "learnhouse_courses": "Cursos de BBB Academia",
+      "learnhouse_description": "Importar cursos exportados desde BBB Academia",
       "upload_package": "Subir paquete",
       "configure": "Configurar",
       "complete": "Completado",
       "click_to_upload": "Haz clic para subir o arrastra y suelta",
-      "learnhouse_format": "Exportación de curso LearnHouse (.zip)",
-      "learnhouse_info": "Sube un paquete de exportación de cursos LearnHouse (.zip). Podrás seleccionar qué cursos importar y configurar las opciones de importación.",
+      "learnhouse_format": "Exportación de curso BBB Academia (.zip)",
+      "learnhouse_info": "Sube un paquete de exportación de cursos BBB Academia (.zip). Podrás seleccionar qué cursos importar y configurar las opciones de importación.",
       "analyze_package": "Analizar paquete",
       "ready_to_analyze": "Listo para analizar",
       "invalid_file_format": "Por favor sube un archivo .zip",
@@ -985,6 +985,7 @@
     "grade": "Nota",
     "run_autograde": "Ejecutar autoevaluación",
     "due_date": "Fecha límite",
+    "no_due_date": "Tiempo ilimitado",
     "task_breakdown": "Desglose por tarea",
     "no_grade_details": "Aún no hay detalles de la calificación.",
     "task_passed": "Aprobado",
@@ -1400,7 +1401,7 @@
           "description": "Configurar sus ajustes personales, contraseñas y correo electrónico"
         }
       },
-      "learnhouse_university": "Universidad LearnHouse",
+      "learnhouse_university": "Universidad BBB Academia",
       "welcome_back": "Bienvenido de nuevo",
       "plan": "plan",
       "create_course": "Crear curso",
@@ -1457,8 +1458,8 @@
       "import_course": "Importar curso",
       "import_scorm": "Importar paquete SCORM",
       "import_scorm_description": "Importar un paquete SCORM para crear un nuevo curso",
-      "import_learnhouse": "Importar cursos de LearnHouse",
-      "import_learnhouse_description": "Importar cursos desde un paquete de exportación de LearnHouse",
+      "import_learnhouse": "Importar cursos de BBB Academia",
+      "import_learnhouse_description": "Importar cursos desde un paquete de exportación de BBB Academia",
       "import_select_type": "Selecciona el tipo de paquete que deseas importar",
       "no_courses": "Aún no hay cursos",
       "create_course_placeholder": "Crea un curso para añadir contenido",
@@ -2305,9 +2306,9 @@
         "footer_text_desc": "Texto personalizado que se muestra en la parte inferior de las páginas de tu organización",
         "default_language": "Idioma predeterminado",
         "default_language_desc": "El idioma que ven los nuevos visitantes por defecto y el que se utiliza para los correos enviados en nombre de esta organización. Los miembros pueden cambiar su propio idioma de la interfaz.",
-        "watermark_desc": "Mostrar la marca de agua de LearnHouse en las páginas de tu organización",
+        "watermark_desc": "Mostrar la marca de agua de BBB Academia en las páginas de tu organización",
         "watermark_free_plan": "La marca de agua siempre se muestra en el plan gratuito",
-        "watermark_label": "Marca de agua \"Hecho con LearnHouse\"",
+        "watermark_label": "Marca de agua \"Hecho con BBB Academia\"",
         "watermark_ee": "Oculto por tu licencia Enterprise Edition"
       },
       "images": {
@@ -3729,8 +3730,8 @@
             "title_required": "Por favor, proporciona un nombre para la tarea",
             "description_label": "Descripción de la tarea",
             "description_required": "Por favor, proporciona una descripción para la tarea",
-            "due_date_label": "Fecha límite",
-            "due_date_required": "Por favor, proporciona una fecha límite",
+            "due_date_label": "Fecha límite (opcional)",
+            "due_date_hint": "Déjalo vacío para tiempo ilimitado: el curso no tiene una fecha de finalización fija.",
             "grading_type_label": "Tipo de calificación",
             "grading_type_required": "Por favor, proporciona un tipo de calificación",
             "grading_types": {
@@ -3779,8 +3780,8 @@
             "title_required": "Por favor, proporciona un nombre para la tarea",
             "description_label": "Descripción de la tarea",
             "description_required": "Por favor, proporciona una descripción para la tarea",
-            "due_date_label": "Fecha límite",
-            "due_date_required": "Por favor, proporciona una fecha límite",
+            "due_date_label": "Fecha límite (opcional)",
+            "due_date_hint": "Déjalo vacío para tiempo ilimitado: el curso no tiene una fecha de finalización fija.",
             "grading_type_label": "Tipo de calificación",
             "grading_type_required": "Por favor, proporciona un tipo de calificación",
             "grading_types": {
@@ -4266,7 +4267,7 @@
   "embed": {
     "not_supported_description": "Este tipo de actividad requiere autenticación y no puede ser incrustada.",
     "not_supported_title": "Esta actividad no es compatible",
-    "powered_by": "Desarrollado por LearnHouse",
+    "powered_by": "Desarrollado por BBB Academia",
     "visit_activity": "Visitar página de actividad"
   },
   "analytics": {
@@ -4970,10 +4971,10 @@
       },
       "teach_the_world": {
         "title": "Aprende y crece",
-        "description": "Recursos para ayudarte a sacar el máximo provecho de LearnHouse.",
+        "description": "Recursos para ayudarte a sacar el máximo provecho de BBB Academia.",
         "classroom": "El aula",
         "classroom_desc": "Aprende a hacer crecer y gestionar tus cursos",
-        "university": "Universidad LearnHouse",
+        "university": "Universidad BBB Academia",
         "university_desc": "Guías, consejos y mejores prácticas"
       },
       "add_content": {
@@ -5003,7 +5004,7 @@
       }
     },
     "welcome": {
-      "title": "Bienvenido a LearnHouse",
+      "title": "Bienvenido a BBB Academia",
       "subtitle": "Crea cursos, invita estudiantes y comparte conocimiento con el mundo.",
       "get_started": "Comenzar",
       "features_title": "Todo lo que necesitas",
@@ -5536,7 +5537,7 @@
         "title": "¿Quieres probarlo?",
         "body": "Ve a la",
         "link": "página de Desarrolladores",
-        "suffix": "para probar LearnHouse en su lugar."
+        "suffix": "para probar BBB Academia en su lugar."
       },
       "validation": {
         "required": "Obligatorio",
