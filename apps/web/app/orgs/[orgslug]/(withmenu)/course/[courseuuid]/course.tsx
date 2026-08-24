@@ -348,7 +348,7 @@ const CourseClient = (props: any) => {
 
                   if (showVideo && course.thumbnail_video) {
                     return (
-                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full h-[200px] md:h-[400px]">
+                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full aspect-video">
                         {course.thumbnail_type === 'both' && (
                           <div className="absolute top-3 right-3 z-10">
                             <div className="bg-black/20 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
@@ -384,7 +384,7 @@ const CourseClient = (props: any) => {
                               course?.course_uuid,
                               course?.thumbnail_video
                             )}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-cover"
                             controls
                             autoPlay
                             muted
@@ -396,13 +396,13 @@ const CourseClient = (props: any) => {
                     );
                   } else if (showImage && course.thumbnail_image) {
                     return (
-                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full h-[200px] md:h-[400px] bg-black overflow-hidden"
+                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full aspect-video bg-black overflow-hidden"
                       >
                         <img
                           src={getCourseThumbnailMediaDirectory(org?.org_uuid, course?.course_uuid, course?.thumbnail_image)}
                           alt={course.name}
                           fetchPriority="high"
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-cover"
                         />
                         {course.thumbnail_type === 'both' && (
                           <div className="absolute top-3 right-3 z-10">
@@ -437,10 +437,9 @@ const CourseClient = (props: any) => {
                   } else {
                     return (
                       <div
-                        className="inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl relative w-full h-[400px] bg-cover bg-center"
+                        className="inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl relative w-full aspect-video bg-cover bg-center"
                         style={{
                           backgroundImage: `url('/empty_thumbnail.png')`,
-                          backgroundSize: 'auto',
                         }}
                       ></div>
                     );
