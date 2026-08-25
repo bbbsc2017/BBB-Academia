@@ -48,7 +48,6 @@ const hexToRgba = (hex: string, alpha: number): string => {
 
 function OrgFooter() {
   const org = useOrg() as any
-  const footerText = org?.config?.config?.customization?.general?.footer_text || org?.config?.config?.general?.footer_text || ''
   const primaryColor = org?.config?.config?.customization?.general?.color || org?.config?.config?.general?.color || '#00A9BF'
   const organizationName = org?.name || 'BBB Academia'
   const currentYear = new Date().getFullYear()
@@ -91,8 +90,6 @@ function OrgFooter() {
           <p className="mt-4 text-sm leading-6 font-semibold text-slate-700">
             ¿Listo para aprender sin miedo y avanzar a tu ritmo? ¡Nosotros te acompañamos en cada paso del camino!
           </p>
-          {footerText && <p className="mt-4 text-sm leading-6 text-slate-500">{footerText}</p>}
-
           <div className="mt-6 flex items-center gap-2">
             {SOCIAL_LINKS.map(({ name, href, Icon }) => (
               <a
