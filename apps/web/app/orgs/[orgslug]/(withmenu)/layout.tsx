@@ -68,17 +68,22 @@ function OrgFooter() {
       <div className="relative mx-auto grid w-full max-w-(--breakpoint-2xl) gap-10 px-6 py-12 sm:px-8 lg:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.8fr))] lg:px-10">
         <div className="max-w-md">
           <Link href="https://bbbacademia.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-85">
-            <span className="flex size-11 items-center justify-center rounded-xl shadow-sm ring-1 ring-black/5" style={{ backgroundColor: primaryColor }}>
-              {org?.logo_image ? (
+            {org?.logo_image ? (
+              <span
+                className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-black/5 shadow-sm"
+                style={{ backgroundColor: primaryColor }}
+              >
                 <img
                   src={getOrgLogoMediaDirectory(org.org_uuid, org.logo_image)}
                   alt={organizationName}
-                  className="size-10 rounded-md object-contain"
+                  className="size-8 rounded-md object-cover"
                 />
-              ) : (
+              </span>
+            ) : (
+              <span className="flex size-11 shrink-0 items-center justify-center">
                 <Image src={withBasePath('/bbb_academia_logo.webp')} alt={organizationName} width={40} height={40} className="size-10 object-contain" />
-              )}
-            </span>
+              </span>
+            )}
             <span>
               <span className="block text-base font-bold tracking-tight text-slate-900">BBB Academia</span>
               <span className="block text-xs text-slate-500">Aprendizaje que abre oportunidades</span>
