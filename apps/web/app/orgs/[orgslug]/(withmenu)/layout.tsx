@@ -73,10 +73,10 @@ function OrgFooter() {
                 <img
                   src={getOrgLogoMediaDirectory(org.org_uuid, org.logo_image)}
                   alt={organizationName}
-                  className="size-8 rounded-md object-contain"
+                  className="size-10 rounded-md object-contain"
                 />
               ) : (
-                <Image src={withBasePath('/bbb_academia_logo.webp')} alt={organizationName} width={32} height={32} className="size-8 object-contain" />
+                <Image src={withBasePath('/bbb_academia_logo.webp')} alt={organizationName} width={40} height={40} className="size-10 object-contain" />
               )}
             </span>
             <span>

@@ -181,7 +181,7 @@ export const OrgMenu = (props: any) => {
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
                       alt={org?.name || 'BBB Academia'}
-                      className="size-7 rounded-md object-contain"
+                      className="size-9 rounded-md object-contain"
                     />
                   </div>
                 ) : (
@@ -360,7 +360,7 @@ export const OrgMenu = (props: any) => {
             )}
 
             <div className="hidden md:flex">
-              <HeaderProfileBox primaryColor={primaryColor} />
+              <HeaderProfileBox />
             </div>
             <button
               className={`md:hidden focus:outline-hidden ${colors.text}`}
