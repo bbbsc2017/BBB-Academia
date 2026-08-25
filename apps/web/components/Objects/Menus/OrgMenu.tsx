@@ -175,13 +175,13 @@ export const OrgMenu = (props: any) => {
               <Link href={getUriWithOrg(orgslug, '/')} className="flex items-center gap-2.5">
                 {org?.logo_image ? (
                   <div
-                    className="flex size-12 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 ring-black/5"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
                     style={{ backgroundColor: primaryColor || '#00A9BF' }}
                   >
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
                       alt={org?.name || 'BBB Learning'}
-                      className="size-11 rounded-md object-contain"
+                      className="size-9 rounded-md object-cover"
                     />
                   </div>
                 ) : (
@@ -189,7 +189,7 @@ export const OrgMenu = (props: any) => {
                     <BBBAcademiaLogo />
                   </div>
                 )}
-                <span className="hidden sm:block text-lg font-extrabold tracking-tight text-[#1c1c1c]">BBB Learning</span>
+                <span className="hidden sm:block text-lg font-extrabold tracking-tight text-[#00A9BF]">BBB Learning</span>
               </Link>
             </div>
             <div className="hidden md:flex">
@@ -461,13 +461,13 @@ const CopilotMenuButton = ({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <button
-                className="relative p-2 rounded-lg transition-colors hover:bg-violet-500/10"
+                className="relative p-2 rounded-lg transition-colors hover:bg-[#00A9BF]/10"
                 aria-label="Copilot"
               >
-                <ChatCircle size={20} weight="fill" className="text-violet-500" />
+                <ChatCircle size={20} weight="fill" className="text-[#00A9BF]" />
                 {/* Active indicator dot */}
                 {isBubbleMode && bubbleOpen && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-white dark:ring-neutral-900" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00A9BF] ring-2 ring-white dark:ring-neutral-900" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -480,7 +480,7 @@ const CopilotMenuButton = ({
 
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex items-center gap-2">
-          <ChatCircle size={16} weight="fill" className="text-violet-500" />
+          <ChatCircle size={16} weight="fill" className="text-[#00A9BF]" />
           <span>Copilot</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -520,13 +520,13 @@ const CopilotMenuButton = ({
             onSelect={() => onOpenBubble()}
             className="flex items-center gap-2 font-medium cursor-pointer"
           >
-            <ChatCircle size={14} weight="fill" className="text-violet-500" />
+            <ChatCircle size={14} weight="fill" className="text-[#00A9BF]" />
             <span>{recentSessions.length > 0 ? 'New conversation' : 'Start a conversation'}</span>
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem asChild>
             <Link href={getUriWithOrg(orgslug, '/copilot')} className="flex items-center gap-2 font-medium">
-              <ChatCircle size={14} weight="fill" className="text-violet-500" />
+              <ChatCircle size={14} weight="fill" className="text-[#00A9BF]" />
               <span>{recentSessions.length > 0 ? 'View all conversations' : 'Start a conversation'}</span>
             </Link>
           </DropdownMenuItem>
@@ -544,7 +544,7 @@ const CopilotMenuButton = ({
           </span>
           <span
             className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors flex-shrink-0 ${
-              isBubbleMode ? 'bg-violet-500' : 'bg-neutral-200 dark:bg-neutral-600'
+              isBubbleMode ? 'bg-[#00A9BF]' : 'bg-neutral-200 dark:bg-neutral-600'
             }`}
           >
             <span
