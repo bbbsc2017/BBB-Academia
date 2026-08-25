@@ -181,7 +181,7 @@ export const OrgMenu = (props: any) => {
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
                       alt={org?.name || 'BBB Learning'}
-                      className="size-10 rounded-md object-contain"
+                      className="size-11 rounded-md object-contain"
                     />
                   </div>
                 ) : (
