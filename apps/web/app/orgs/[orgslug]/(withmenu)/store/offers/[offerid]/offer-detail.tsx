@@ -192,18 +192,17 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
   }, [token])
 
   return (
-    <div className="relative w-full overflow-hidden bg-white">
-      {/* BBBSC-inspired ambient grid and glass layers, adapted to BBB Academia's turquoise palette. */}
+    <div className="relative w-full bg-transparent">
+      {/* One continuous transparent grid layer; it is fixed to the viewport so
+          it never restarts at a section boundary or creates visible seams. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 opacity-70"
+        className="fixed inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'linear-gradient(rgba(0,169,191,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(0,169,191,0.055) 1px, transparent 1px)',
+          backgroundImage: 'linear-gradient(rgba(0,169,191,0.11) 1px, transparent 1px), linear-gradient(90deg, rgba(0,169,191,0.11) 1px, transparent 1px)',
           backgroundSize: '32px 32px',
         }}
       />
-      <div aria-hidden="true" className="absolute -top-40 -left-32 h-[32rem] w-[32rem] rounded-full bg-[#00a9bf]/10 blur-3xl" />
-      <div aria-hidden="true" className="absolute top-72 -right-48 h-[34rem] w-[34rem] rounded-full bg-[#00a9bf]/10 blur-3xl" />
       <GeneralWrapperStyled>
         <div className="relative z-10">
         <Link
