@@ -272,7 +272,7 @@ const EditOfferForm = ({
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: { setSubmitting: (b: boolean) => void }
+    { setSubmitting }: { setSubmitting: (_b: boolean) => void }
   ) => {
     try {
       await updateOffer(org.id, offer.id, values, session.data?.tokens?.access_token);

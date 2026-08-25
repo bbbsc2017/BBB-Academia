@@ -3,6 +3,18 @@ import React from 'react'
 import { useAnalyticsPipe } from './useAnalyticsDashboard'
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ZAxis } from 'recharts'
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null
+  const d = payload[0].payload
+  return (
+    <div style={{ borderRadius: 12, border: '1px solid #f3f4f6', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', background: '#fff', padding: 12 }}>
+      <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>Activities: {d.activity_count}</p>
+      <p style={{ fontSize: 13, fontWeight: 'bold', color: '#111827', margin: 0 }}>Completion: {d.completion_rate}%</p>
+      <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>Enrollments: {d.enrollments}</p>
+    </div>
+  )
+}
+
 export default function CourseEffectivenessMatrix({ days = '90' }: { days?: string }) {
   const { data, isLoading } = useAnalyticsPipe('course_rating_by_completion', { days })
   const rows = (data?.data ?? []).map((r: any) => ({
@@ -12,18 +24,6 @@ export default function CourseEffectivenessMatrix({ days = '90' }: { days?: stri
     enrollments: Number(r.enrollments),
     z: Math.max(40, Math.min(400, r.enrollments * 4)),
   }))
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (!active || !payload?.length) return null
-    const d = payload[0].payload
-    return (
-      <div style={{ borderRadius: 12, border: '1px solid #f3f4f6', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', background: '#fff', padding: 12 }}>
-        <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>Activities: {d.activity_count}</p>
-        <p style={{ fontSize: 13, fontWeight: 'bold', color: '#111827', margin: 0 }}>Completion: {d.completion_rate}%</p>
-        <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>Enrollments: {d.enrollments}</p>
-      </div>
-    )
-  }
 
   return (
     <div className="bg-white rounded-xl nice-shadow p-5 min-h-[300px] overflow-hidden min-w-0">

@@ -22,7 +22,7 @@ function HeatmapGrid({
   maxCount: number
   compact?: boolean
   dayLabels: string[]
-  eventsTooltip: (day: string, hour: string, count: number) => string
+  eventsTooltip: (_day: string, _hour: string, _count: number) => string
   lessLabel: string
   moreLabel: string
 }) {

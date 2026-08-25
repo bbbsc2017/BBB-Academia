@@ -174,7 +174,7 @@ const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
                 } else {
                     toast.error(t('dashboard.assignments.modals.edit.toasts.error'));
                 }
-            } catch (error) {
+            } catch (_error) {
                 toast.error(t('dashboard.assignments.modals.edit.toasts.error_detail'));
             } finally {
                 toast.dismiss(toast_loading);
@@ -401,7 +401,7 @@ function ToggleRow({
     description: string;
     checked: boolean;
     disabled?: boolean;
-    onChange: (next: boolean) => void;
+    onChange: (_next: boolean) => void;
     warning?: boolean;
 }) {
     return (
@@ -458,8 +458,8 @@ function RetryRow({
 }: {
     allowRetries: boolean;
     maxRetries: number;
-    onAllowChange: (next: boolean) => void;
-    onMaxChange: (next: number) => void;
+    onAllowChange: (_next: boolean) => void;
+    onMaxChange: (_next: number) => void;
     labelAllow: string;
     descriptionAllow: string;
     labelMax: string;
