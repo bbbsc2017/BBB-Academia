@@ -172,23 +172,24 @@ export const OrgMenu = (props: any) => {
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-5 md:w-auto w-full">
             <div className="logo flex md:w-auto w-full justify-center">
-              <Link href={getUriWithOrg(orgslug, '/')}>
+              <Link href={getUriWithOrg(orgslug, '/')} className="flex items-center gap-2.5">
                 {org?.logo_image ? (
                   <div
-                    className="flex size-10 items-center justify-center rounded-xl shadow-sm ring-1 ring-black/5"
+                    className="flex size-12 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 ring-black/5"
                     style={{ backgroundColor: primaryColor || '#00A9BF' }}
                   >
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
-                      alt={org?.name || 'BBB Academia'}
-                      className="size-9 rounded-md object-contain"
+                      alt={org?.name || 'BBB Learning'}
+                      className="size-10 rounded-md object-contain"
                     />
                   </div>
                 ) : (
-                  <div className="flex w-auto h-9 items-center justify-center">
+                  <div className="flex size-12 shrink-0 items-center justify-center">
                     <BBBAcademiaLogo />
                   </div>
                 )}
+                <span className="hidden sm:block text-lg font-extrabold tracking-tight text-[#1c1c1c]">BBB Learning</span>
               </Link>
             </div>
             <div className="hidden md:flex">
@@ -198,7 +199,7 @@ export const OrgMenu = (props: any) => {
 
           {/* Search Section */}
           <div className="hidden md:flex flex-1 justify-center max-w-lg px-4">
-            <SearchBar orgslug={orgslug} className="w-full" primaryColor={primaryColor} />
+            <SearchBar orgslug={orgslug} className="w-full" />
           </div>
 
           <div className="flex items-center space-x-2">
