@@ -9,7 +9,8 @@ import { getOfferCheckoutSession } from '@services/payments/offers'
 import { fromApiProviderValue, getPaymentProvider } from '@services/payments/providers'
 import {
   ArrowLeft, RefreshCcw, SquareCheck, Sparkles, BookOpen,
-  Mic, Puzzle, AlertCircle, Loader2, ShoppingBag
+  Mic, Puzzle, AlertCircle, Loader2, CheckCircle2,
+  ShieldCheck, LockKeyhole, CreditCard, CircleCheckBig
 } from 'lucide-react'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useLHAnalytics, useTrackView, AnalyticsEvent } from '@services/analytics'
@@ -36,9 +37,9 @@ interface OfferDetailClientProps {
 
 function resourceIcon(type: string, size = 14) {
   switch (type) {
-    case 'course': return <BookOpen size={size} className="text-indigo-500" />
-    case 'podcast': return <Mic size={size} className="text-pink-400" />
-    default: return <Puzzle size={size} className="text-gray-400" />
+    case 'course': return <BookOpen size={size} className="text-[#00a9bf]" />
+    case 'podcast': return <Mic size={size} className="text-[#00a9bf]" />
+    default: return <Puzzle size={size} className="text-[#00a9bf]" />
   }
 }
 
@@ -63,10 +64,10 @@ function ResourceCard({ resource, orgslug }: { resource: Resource; orgslug: stri
 
   const url = getResourceUrl(orgslug, resource)
   const card = (
-    <div className={`bg-white rounded-xl nice-shadow overflow-hidden flex flex-col ${url ? 'cursor-pointer hover:scale-[1.01] transition-transform duration-150' : ''}`}>
+    <div className={`bg-white/65 backdrop-blur-md border border-white/80 rounded-2xl overflow-hidden flex flex-col shadow-[0_12px_35px_rgba(28,28,28,0.07)] ${url ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#00a9bf]/35 hover:shadow-[0_18px_40px_rgba(0,169,191,0.12)] transition-all duration-300' : ''}`}>
       {/* Thumbnail */}
       <div
-        className="w-full aspect-video overflow-hidden bg-gray-100"
+        className="w-full aspect-video overflow-hidden bg-[#f4fbfc]"
         style={{
           backgroundImage: src ? `url(${src})` : undefined,
           backgroundSize: 'cover',
@@ -74,22 +75,22 @@ function ResourceCard({ resource, orgslug }: { resource: Resource; orgslug: stri
         }}
       >
         {!src && (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100">
+          <div className="w-full h-full flex items-center justify-center bg-[#e6f8fa]">
             {resourceIcon(resource.resource_type, 28)}
           </div>
         )}
         <div className="p-2">
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5 capitalize">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-[#1c1c1c]/75 backdrop-blur-sm rounded-full px-2 py-0.5 capitalize">
             {resourceIcon(resource.resource_type, 10)}
             {resource.resource_type}
           </span>
         </div>
       </div>
       {/* Details */}
-      <div className="p-3 flex flex-col gap-1">
-        <p className="font-semibold text-sm text-gray-900 leading-snug">{resource.name}</p>
+      <div className="p-4 flex flex-col gap-1">
+        <p className="font-bold text-sm text-[#1c1c1c] leading-snug">{resource.name}</p>
         {resource.description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{resource.description}</p>
+          <p className="text-xs text-[#1c1c1c]/60 leading-relaxed line-clamp-2">{resource.description}</p>
         )}
       </div>
     </div>
@@ -127,7 +128,7 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <AlertCircle size={32} className="text-gray-300 mb-3" />
           <h2 className="font-bold text-gray-600 text-lg">Offer not found</h2>
-          <Link href={getUriWithOrg(orgslug, '/store')} className="mt-4 text-sm text-indigo-600 hover:underline">
+          <Link href={getUriWithOrg(orgslug, '/store')} className="mt-4 text-sm text-[#00a9bf] hover:underline">
             ← Back to store
           </Link>
         </div>
@@ -191,40 +192,60 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
   }, [token])
 
   return (
-    <div className="w-full">
+    <div className="relative w-full overflow-hidden bg-white">
+      {/* BBBSC-inspired ambient grid and glass layers, adapted to BBB Academia's turquoise palette. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-70"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(0,169,191,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(0,169,191,0.055) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+      />
+      <div aria-hidden="true" className="absolute -top-40 -left-32 h-[32rem] w-[32rem] rounded-full bg-[#00a9bf]/10 blur-3xl" />
+      <div aria-hidden="true" className="absolute top-72 -right-48 h-[34rem] w-[34rem] rounded-full bg-[#00a9bf]/10 blur-3xl" />
       <GeneralWrapperStyled>
+        <div className="relative z-10">
         <Link
           href={getUriWithOrg(orgslug, '/store')}
-          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-7"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1c1c1c]/55 hover:text-[#00a9bf] transition-colors mb-6"
         >
-          <ArrowLeft size={14} /> Back to store
+          <ArrowLeft size={15} /> Volver a la tienda
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_390px] gap-7 xl:gap-12 pb-10">
           {/* Left col */}
-          <div className="lg:col-span-2 space-y-7">
+          <div className="space-y-7 min-w-0">
             {/* Offer header */}
-            <div>
-              <div className="flex items-center gap-2 mb-2.5">
+            <div className="rounded-3xl border border-white/85 bg-white/70 backdrop-blur-xl p-6 sm:p-8 shadow-[0_18px_50px_rgba(28,28,28,0.08)] overflow-hidden relative">
+              <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#00a9bf]/20 blur-2xl" />
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#00a9bf]/45 to-transparent" />
+              <div className="relative">
+              <div className="flex items-center gap-2 mb-4">
                 {isSubscription ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full px-3 py-1">
-                    <RefreshCcw size={11} /> Subscription
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#007b8d] bg-[#00a9bf]/10 rounded-full px-3 py-1.5">
+                    <RefreshCcw size={12} /> Suscripción
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full px-3 py-1">
-                    <SquareCheck size={11} /> One-time payment
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#007b8d] bg-[#00a9bf]/10 rounded-full px-3 py-1.5">
+                    <SquareCheck size={12} /> Pago único
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{offer.name}</h1>
-              <p className="mt-3 text-gray-600 leading-relaxed text-base">{offer.description}</p>
+              <h1 className="max-w-3xl text-3xl sm:text-4xl font-black text-[#1c1c1c] tracking-tight leading-[1.08]">{offer.name}</h1>
+              <p className="max-w-3xl mt-4 text-[#1c1c1c]/70 leading-relaxed text-base sm:text-lg">{offer.description}</p>
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#1c1c1c]/70">
+                <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={16} className="text-[#00a9bf]" /> Acceso inmediato tras el pago</span>
+                <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} className="text-[#00a9bf]" /> Pago seguro</span>
+              </div>
+              </div>
             </div>
 
             {/* Included courses/resources */}
             {resources.length > 0 && (
               <div>
-                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">
-                  What&apos;s included · {resources.length} {resources.length === 1 ? 'resource' : 'resources'}
+                <h2 className="text-sm font-black text-[#1c1c1c] uppercase tracking-wide mb-4">
+                  Incluye · {resources.length} {resources.length === 1 ? 'recurso' : 'recursos'}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {resources.map((r) => (
@@ -236,12 +257,12 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
 
             {/* Benefits */}
             {benefits.length > 0 && (
-              <div className="bg-white rounded-xl nice-shadow p-5">
-                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Benefits</h2>
+              <div className="bg-white/65 backdrop-blur-xl rounded-2xl border border-white/85 p-5 sm:p-6 shadow-[0_12px_35px_rgba(28,28,28,0.07)]">
+                <h2 className="text-sm font-black text-[#1c1c1c] uppercase tracking-wide mb-4">Lo que obtienes</h2>
                 <ul className="space-y-2.5">
                   {benefits.map((b, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
-                      <Sparkles size={14} className="text-indigo-400 mt-0.5 shrink-0" />
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-[#1c1c1c]/75">
+                      <Sparkles size={15} className="text-[#00a9bf] mt-0.5 shrink-0" />
                       <span>{b}</span>
                     </li>
                   ))}
@@ -251,24 +272,35 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
           </div>
 
           {/* Right col — sticky pricing card */}
-          <div className="lg:col-span-1">
-            <div className="rounded-2xl nice-shadow bg-white p-6 sticky top-24">
+          <div>
+            <div className="rounded-3xl border border-white/90 bg-white/75 backdrop-blur-xl p-5 sm:p-6 shadow-[0_22px_55px_rgba(0,169,191,0.18)] xl:sticky xl:top-24 overflow-hidden relative">
+              <div aria-hidden="true" className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-[#00a9bf]/15 blur-2xl" />
+              <div className="relative">
+              <div className="flex items-start justify-between gap-3 pb-5 border-b border-[#1c1c1c]/10">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#00a9bf]">Inscripción</p>
+                  <h2 className="mt-1 text-xl font-black text-[#1c1c1c]">Finaliza tu compra</h2>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-[#00a9bf]/10 flex items-center justify-center shrink-0">
+                  <CreditCard size={20} className="text-[#00a9bf]" />
+                </div>
+              </div>
               {/* Price */}
-              <div className="mb-5">
-                <p className="text-xs text-gray-400 font-medium mb-1">
-                  {offer.price_type === 'customer_choice' ? 'Pay what you want (min.)' : isSubscription ? 'Subscription price' : 'One-time price'}
+              <div className="py-5">
+                <p className="text-xs text-[#1c1c1c]/55 font-semibold mb-1">
+                  {offer.price_type === 'customer_choice' ? 'Paga lo que quieras (mínimo)' : isSubscription ? 'Precio de suscripción' : 'Precio total'}
                 </p>
-                <div className={`text-4xl font-black ${isSubscription ? 'text-indigo-700' : 'text-gray-900'}`}>
+                <div className="text-4xl font-black text-[#1c1c1c] tracking-tight">
                   {new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: offer.currency,
                   }).format(offer.amount)}
                 </div>
                 {isSubscription && (
-                  <p className="text-sm text-indigo-400 font-medium mt-0.5">recurring</p>
+                  <p className="text-sm text-[#00a9bf] font-bold mt-0.5">Cobro recurrente</p>
                 )}
                 {providerDef && (
-                  <p className="text-xs text-gray-500 mt-1">{providerDef.checkoutCopy}</p>
+                  <p className="text-xs text-[#1c1c1c]/55 mt-2">{providerDef.checkoutCopy}</p>
                 )}
               </div>
 
@@ -277,16 +309,12 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
                 <button
                   onClick={handleCheckout}
                   disabled={loading}
-                  className={`w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                    isSubscription
-                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                      : 'bg-gray-900 hover:bg-gray-800 text-white'
-                  }`}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl font-black text-sm bg-[#00a9bf] hover:bg-[#008da0] text-white shadow-[0_8px_18px_rgba(0,169,191,0.25)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <><Loader2 size={15} className="animate-spin" /> Processing…</>
+                    <><Loader2 size={16} className="animate-spin" /> Preparando pago…</>
                   ) : (
-                    <>{isSubscription ? 'Subscribe now' : 'Get access'}</>
+                    <>{isSubscription ? 'Suscribirme ahora' : 'Inscribirme y pagar'}</>
                   )}
                 </button>
               ) : (
@@ -300,8 +328,8 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
 
               {/* Resource summary */}
               {resources.length > 0 && (
-                <div className="mt-5 pt-4 border-t border-gray-100">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Included</p>
+                <div className="mt-5 pt-4 border-t border-[#1c1c1c]/10">
+                  <p className="text-xs font-bold text-[#1c1c1c]/55 uppercase tracking-wide mb-3">Tu inscripción incluye</p>
                   <div className="space-y-2">
                     {resources.map((r) => {
                       const src = r.thumbnail_image && r.resource_type === 'course'
@@ -310,7 +338,7 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
                       return (
                         <div key={r.resource_uuid} className="flex items-center gap-2.5">
                           <div
-                            className="w-8 h-8 rounded-md overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center nice-shadow"
+                            className="w-9 h-9 rounded-lg overflow-hidden bg-[#e6f8fa] shrink-0 flex items-center justify-center"
                             style={{
                               backgroundImage: src ? `url(${src})` : undefined,
                               backgroundSize: 'cover',
@@ -319,7 +347,7 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
                           >
                             {!src && resourceIcon(r.resource_type, 13)}
                           </div>
-                          <p className="text-xs font-medium text-gray-700 truncate">{r.name}</p>
+                          <p className="text-xs font-semibold text-[#1c1c1c]/80 truncate">{r.name}</p>
                         </div>
                       )
                     })}
@@ -328,13 +356,15 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
               )}
 
               {/* Trust signals */}
-              <div className="mt-5 pt-4 border-t border-gray-100 space-y-1.5">
-                <p className="text-xs text-gray-400 flex items-center gap-1.5"><ShoppingBag size={11} /> Secure checkout via your payment provider</p>
-                {isSubscription && <p className="text-xs text-gray-400">✓ Cancel anytime</p>}
-                <p className="text-xs text-gray-400">✓ Instant access after payment</p>
+              <div className="mt-5 pt-4 border-t border-[#1c1c1c]/10 space-y-2">
+                <p className="text-xs text-[#1c1c1c]/55 flex items-center gap-2"><LockKeyhole size={13} className="text-[#00a9bf]" /> Checkout seguro procesado por {providerDef?.name ?? 'tu proveedor de pago'}</p>
+                {isSubscription && <p className="text-xs text-[#1c1c1c]/55 flex items-center gap-2"><CircleCheckBig size={13} className="text-[#00a9bf]" /> Cancela cuando quieras</p>}
+                <p className="text-xs text-[#1c1c1c]/55 flex items-center gap-2"><CircleCheckBig size={13} className="text-[#00a9bf]" /> Acceso inmediato después del pago</p>
+              </div>
               </div>
             </div>
           </div>
+        </div>
         </div>
       </GeneralWrapperStyled>
     </div>

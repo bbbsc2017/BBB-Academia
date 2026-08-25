@@ -1,7 +1,7 @@
 'use client'
 import React, { useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { AlertTriangle, Loader2, LockKeyhole } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@components/Contexts/AuthContext'
 import { getUriWithOrg } from '@services/config/config'
@@ -156,32 +156,33 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
   }
 
   return (
-    <div className="mt-2">
-      <div className="flex rounded-lg bg-gray-100 p-1 mb-4 text-sm font-semibold">
+    <div className="mt-1">
+      <p className="mb-3 text-sm font-semibold text-[#1c1c1c]">Crea tu cuenta para continuar</p>
+      <div className="flex rounded-xl bg-[#1c1c1c]/5 p-1 mb-4 text-sm font-bold">
         <button
           type="button"
           onClick={() => switchMode('signup')}
-          className={`flex-1 py-1.5 rounded-md transition-colors ${mode === 'signup' ? 'bg-white text-gray-900 nice-shadow' : 'text-gray-500'}`}
+          className={`flex-1 py-2 rounded-lg transition-colors ${mode === 'signup' ? 'bg-white text-[#1c1c1c] shadow-sm' : 'text-[#1c1c1c]/50'}`}
         >
           {t('payments.guest_checkout.create_tab_label')}
         </button>
         <button
           type="button"
           onClick={() => switchMode('login')}
-          className={`flex-1 py-1.5 rounded-md transition-colors ${mode === 'login' ? 'bg-white text-gray-900 nice-shadow' : 'text-gray-500'}`}
+          className={`flex-1 py-2 rounded-lg transition-colors ${mode === 'login' ? 'bg-white text-[#1c1c1c] shadow-sm' : 'text-[#1c1c1c]/50'}`}
         >
           {t('payments.guest_checkout.login_tab_label')}
         </button>
       </div>
 
       {accountJustCreated && (
-        <p className="text-xs text-center text-gray-400 mb-3">
+        <p className="text-xs text-center text-[#007b8d] mb-3">
           {t('payments.guest_checkout.account_created_continue')}
         </p>
       )}
 
       {error && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg text-red-600 p-3 mb-3 text-xs">
+        <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl text-red-600 p-3 mb-3 text-xs">
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -195,7 +196,7 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
           placeholder={t('auth.email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-gray-50 text-gray-900 rounded-lg px-3.5 border border-gray-200 h-[42px] text-sm outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-400 transition-all"
+          className="w-full bg-[#fbfeff] text-[#1c1c1c] rounded-xl px-3.5 border border-[#1c1c1c]/15 h-[46px] text-sm outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all"
         />
         <div>
           <input
@@ -205,7 +206,7 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
             placeholder={t('auth.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 rounded-lg px-3.5 border border-gray-200 h-[42px] text-sm outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-400 transition-all"
+            className="w-full bg-[#fbfeff] text-[#1c1c1c] rounded-xl px-3.5 border border-[#1c1c1c]/15 h-[46px] text-sm outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all"
           />
           {mode === 'signup' && <PasswordStrengthIndicator password={password} showRequirements={false} />}
         </div>
@@ -215,7 +216,7 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm bg-gray-900 hover:bg-gray-800 text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl font-black text-sm bg-[#00a9bf] hover:bg-[#008da0] text-white shadow-[0_8px_18px_rgba(0,169,191,0.25)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <Loader2 size={15} className="animate-spin" />
@@ -227,11 +228,12 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
         </button>
       </form>
 
-      <p className="text-xs text-center text-gray-400 mt-3">
+      <p className="text-xs text-center text-[#1c1c1c]/50 mt-3">
+        <LockKeyhole size={11} className="inline mr-1 text-[#00a9bf]" />
         {t('payments.guest_checkout.stuck_fallback_message')}{' '}
         <Link
           href={getUriWithOrg(orgslug, `/login?redirect=/store/offers/${offerUuid}`)}
-          className="underline hover:text-gray-600"
+          className="underline text-[#007b8d] hover:text-[#00a9bf]"
           onClick={() => track(AnalyticsEvent.GuestCheckoutStuckFallbackShown, { offer_uuid: offerUuid })}
         >
           {t('payments.guest_checkout.stuck_fallback_link')}
