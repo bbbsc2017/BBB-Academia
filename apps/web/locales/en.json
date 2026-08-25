@@ -1544,7 +1544,21 @@
     "subscription": "Subscription",
     "benefits": "Benefits:",
     "min_price": "Minimum Price:",
-    "choose_price": "Choose your price"
+    "choose_price": "Choose your price",
+    "guest_checkout": {
+      "create_tab_label": "Create account",
+      "login_tab_label": "Log in",
+      "title_create": "Create your account to continue",
+      "title_login": "Log in to continue",
+      "subtitle": "You'll pay right after — no separate step.",
+      "cta_create_and_pay": "Create account & pay",
+      "cta_login_and_pay": "Log in & pay",
+      "maybe_registered_message": "You may already have an account with that email — log in instead.",
+      "account_created_continue": "Your account was created — continuing to checkout…",
+      "retry_login": "Try again",
+      "stuck_fallback_message": "Having trouble? You can also log in on a separate page.",
+      "stuck_fallback_link": "Go to login"
+    }
   },
   "account": {
     "title": "Account settings",

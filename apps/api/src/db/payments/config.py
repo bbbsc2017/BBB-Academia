@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional, Dict, Any
+from pydantic import model_validator
 from sqlalchemy import JSON, Column, ForeignKey, Integer, Boolean
 from sqlmodel import Field, SQLModel
 
@@ -53,8 +54,33 @@ class PaymentsConfigCreate(SQLModel):
     enabled: bool = True
 
 
+class BoldCredentialsUpdate(SQLModel):
+    """Write-only — never echoed back. A blank/omitted field leaves the
+    previously stored (encrypted) value untouched, so an admin can rotate one
+    key without re-entering the other. Only bold_api_key (the "Identity key",
+    used as the `x-api-key` header) and bold_webhook_secret (HMAC-verifies
+    `x-bold-signature`) are collected — BoldProvider only implements Bold's
+    server-to-server Payment Links API, not the client-side embedded Payment
+    Button flow that would need the separate integrity-signature secret key."""
+    bold_api_key: Optional[str] = None
+    bold_webhook_secret: Optional[str] = None
+
+
 class PaymentsConfigRead(PaymentsConfigBase):
     id: int
     org_id: int
     creation_date: str
     update_date: str
+    # Inherited from PaymentsConfigBase so model_validate(orm_obj) can still
+    # populate it internally, but excluded from serialization — provider_config
+    # holds Fernet-encrypted provider credentials (see
+    # services/payments/config.py::update_provider_credentials) and must never
+    # reach the client, even as ciphertext. credentials_configured is the
+    # client-safe substitute.
+    provider_config: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    credentials_configured: bool = False
+
+    @model_validator(mode="after")
+    def _compute_credentials_configured(self) -> "PaymentsConfigRead":
+        self.credentials_configured = bool(self.provider_config)
+        return self

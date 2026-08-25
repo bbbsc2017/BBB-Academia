@@ -18,6 +18,10 @@ export interface PaymentProviderDefinition {
   connectedLabel: string;
   checkoutCopy: string;
   getConnectUrl?: (orgId: number, accessToken: string, redirectUri: string) => Promise<string>;
+  /** True for providers with no OAuth "Connect" step (Bold has no such flow —
+   * see developers.bold.co) that instead need their API keys entered directly.
+   * Drives whether PaymentsConfigurationPage renders the inline credentials form. */
+  hasCredentialsForm?: boolean;
 }
 
 export const PAYMENT_PROVIDERS: PaymentProviderDefinition[] = [
@@ -51,10 +55,11 @@ export const PAYMENT_PROVIDERS: PaymentProviderDefinition[] = [
     name: 'Bold',
     Icon: Building2,
     tagline: 'Single-merchant checkout for fast local payment flows.',
-    docsUrl: 'https://www.bold.co/',
-    connectButtonLabel: 'Use Bold',
+    docsUrl: 'https://developers.bold.co/pagos-en-linea/llaves-de-integracion',
+    connectButtonLabel: 'Configure keys',
     connectedLabel: 'Ready',
     checkoutCopy: 'Secure checkout powered by Bold.',
+    hasCredentialsForm: true,
   },
 ];
 
