@@ -385,7 +385,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onFocus={() => setShowResults(true)}
           aria-label={t('search.search_placeholder')}
           placeholder={t('search.search_placeholder')}
-          className={`w-full h-9 pl-11 pr-4 rounded-xl
+          className={`w-full h-9 pl-11 pr-4 rounded-full
                      focus:outline-none focus:ring-1 transition-all text-sm
                      ${colors.searchBg}`}
         />
@@ -395,7 +395,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       </div>
 
       <div 
-        className={`absolute z-dropdown w-full mt-2 bg-white rounded-xl nice-shadow 
+        className={`absolute z-dropdown w-full mt-2 bg-white rounded-2xl nice-shadow
                    overflow-hidden divide-y divide-black/5
                    transition-all duration-200 ease-in-out transform
                    ${showResults ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}

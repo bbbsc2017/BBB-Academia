@@ -47,6 +47,15 @@ import {
 } from '@components/ui/tooltip'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
+const hexToRgba = (hex: string, alpha: number): string => {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return 'rgba(0, 169, 191, 0.12)'
+  const numeric = parseInt(hex.slice(1), 16)
+  const red = (numeric >> 16) & 255
+  const green = (numeric >> 8) & 255
+  const blue = numeric & 255
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`
+}
+
 export const OrgMenu = (props: any) => {
   const orgslug = props.orgslug
   const session = useLHSession() as any;
@@ -85,7 +94,13 @@ export const OrgMenu = (props: any) => {
   // Get primary color from org config (v2: customization.general.color, v1: general.color)
   const config = org?.config?.config
   const primaryColor = config?.customization?.general?.color || config?.general?.color || ''
-  const colors = getMenuColorClasses(primaryColor)
+  // The navigation always sits on a light glass surface. Keep its controls
+  // readable even when the organization color is a saturated dark tone.
+  const colors = getMenuColorClasses('')
+  const navIconClass = 'rounded-full border border-slate-200/70 bg-white/70 text-slate-600 shadow-[0_2px_10px_-4px_rgba(15,23,42,0.25)] transition-all hover:-translate-y-px hover:border-[#00A9BF]/40 hover:bg-[#00A9BF]/10 hover:text-[#00A9BF] hover:shadow-[0_6px_16px_-6px_rgba(0,169,191,0.45)]'
+  const navBackground = primaryColor
+    ? `linear-gradient(112deg, rgba(255,255,255,0.96) 0%, ${hexToRgba(primaryColor, 0.14)} 52%, rgba(255,255,255,0.94) 100%)`
+    : 'rgba(255,255,255,0.94)'
 
   // Filter dashboard menu items by resolved_features from API
   const rf = config?.resolved_features
@@ -139,17 +154,22 @@ export const OrgMenu = (props: any) => {
 
   return (
     <>
-      <div className="backdrop-blur-lg h-[60px] blur-3xl" style={{ zIndex: 'var(--z-behind)', marginTop: topOffset }}></div>
+      <div aria-hidden="true" className="h-[80px]" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-8 h-24 rounded-full blur-3xl"
+        style={{ zIndex: 'var(--z-behind)', top: topOffset - 8, backgroundColor: hexToRgba(primaryColor, 0.16) }}
+      />
       <nav
         aria-label="Top navigation"
-        className={`backdrop-blur-lg fixed left-0 right-0 h-[60px] ${!primaryColor ? 'bg-white/90 nice-shadow' : ''}`}
+        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] sm:w-[calc(100%-40px)] max-w-(--breakpoint-2xl) h-[64px] rounded-3xl border border-white/80 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl"
         style={{
           zIndex: 'var(--z-nav)',
-          backgroundColor: primaryColor || undefined,
-          top: topOffset
+          background: navBackground,
+          top: topOffset + 8
         }}
       >
-        <div className="flex items-center justify-between w-full max-w-(--breakpoint-2xl) mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-5 md:w-auto w-full">
             <div className="logo flex md:w-auto w-full justify-center">
               <Link href={getUriWithOrg(orgslug, '/')}>
@@ -168,7 +188,7 @@ export const OrgMenu = (props: any) => {
               </Link>
             </div>
             <div className="hidden md:flex">
-              <MenuLinks orgslug={orgslug} primaryColor={primaryColor} />
+              <MenuLinks orgslug={orgslug} compact />
             </div>
           </div>
 
@@ -186,7 +206,7 @@ export const OrgMenu = (props: any) => {
                     <TooltipTrigger asChild>
                       <Link
                         href={getUriWithOrg(orgslug, '/trail')}
-                        className={`p-2 rounded-lg transition-colors ${colors.iconBtn}`}
+                        className={`p-2 ${navIconClass}`}
                         aria-label={t('courses.progress')}
                       >
                         <Signpost size={20} weight="fill" />
@@ -208,7 +228,7 @@ export const OrgMenu = (props: any) => {
                       <TooltipTrigger asChild>
                         <Link
                           href={getUriWithOrg(orgslug, '/boards')}
-                          className={`p-2 rounded-lg transition-colors ${colors.iconBtn}`}
+                          className={`p-2 ${navIconClass}`}
                           aria-label="Boards"
                         >
                           <ChalkboardSimple size={20} weight="fill" />
@@ -246,7 +266,7 @@ export const OrgMenu = (props: any) => {
                       <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className={`p-2 rounded-lg transition-colors ${colors.iconBtn}`}
+                            className={`p-2 ${navIconClass}`}
                             aria-label={t('common.dashboard')}
                           >
                             <SquaresFour size={20} weight="fill" />
@@ -293,7 +313,7 @@ export const OrgMenu = (props: any) => {
                       <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className={`p-2 rounded-lg transition-colors ${colors.iconBtn}`}
+                            className={`p-2 ${navIconClass}`}
                             aria-label={t('common.help')}
                           >
                             <Question size={20} weight="fill" />
@@ -356,12 +376,13 @@ export const OrgMenu = (props: any) => {
         </div>
       </nav>
       <div
-        className={`fixed inset-x-0 bg-white/80 backdrop-blur-lg md:hidden shadow-lg transition-all duration-300 ease-in-out ${
+        className={`fixed inset-x-3 rounded-3xl border border-white/80 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.4)] backdrop-blur-xl md:hidden transition-all duration-300 ease-in-out ${
           isMenuOpen ? 'opacity-100' : '-top-full opacity-0'
         }`}
         style={{
           zIndex: 'var(--z-nav-menu)',
-          top: isMenuOpen ? topOffset + 60 : undefined
+          top: isMenuOpen ? topOffset + 80 : undefined,
+          background: navBackground,
         }}
       >
         <div className="flex flex-col px-4 py-3 space-y-4 justify-center items-center">

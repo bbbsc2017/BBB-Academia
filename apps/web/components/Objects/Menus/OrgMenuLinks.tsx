@@ -21,7 +21,7 @@ const BUILTIN: Record<string, Builtin> = {
 // Default order when an org has no custom menu config.
 const DEFAULT_ORDER = ['courses', 'library', 'podcasts', 'communities', 'playgrounds', 'store']
 
-function MenuLinks(props: { orgslug: string; primaryColor?: string }) {
+function MenuLinks(props: { orgslug: string; primaryColor?: string; compact?: boolean }) {
   const { t } = useTranslation()
   const org = useOrg() as any
   const colors = getMenuColorClasses(props.primaryColor || '')
@@ -67,17 +67,17 @@ function MenuLinks(props: { orgslug: string; primaryColor?: string }) {
 
   return (
     <div className="pl-1">
-      <ul className="flex space-x-5">
+      <ul className="flex items-center gap-1.5">
         {rendered.map((it) => {
           const content = (
-            <li className={`flex space-x-2 items-center ${colors.text} font-semibold`}>
-              <it.Icon size={20} weight="fill" /> <span>{it.label}</span>
+            <li className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-sm ${colors.text} font-semibold transition-all hover:-translate-y-px hover:bg-[#00A9BF]/10 hover:text-[#00A9BF]`}>
+              <it.Icon size={18} weight="fill" /> <span className={props.compact ? 'hidden xl:inline' : ''}>{it.label}</span>
             </li>
           )
           return it.external ? (
-            <a key={it.key} href={it.href} target="_blank" rel="noopener noreferrer">{content}</a>
+            <a key={it.key} href={it.href} target="_blank" rel="noopener noreferrer" aria-label={it.label}>{content}</a>
           ) : (
-            <Link key={it.key} href={it.href}>{content}</Link>
+            <Link key={it.key} href={it.href} aria-label={it.label}>{content}</Link>
           )
         })}
       </ul>
