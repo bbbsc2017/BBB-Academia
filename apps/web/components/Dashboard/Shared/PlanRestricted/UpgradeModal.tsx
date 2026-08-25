@@ -43,13 +43,13 @@ const STANDARD_HIGHLIGHTS = [
   { icon: ChatsCircle, labelKey: 'upgrade_modal.plans.standard.highlights.communities', descKey: 'upgrade_modal.plans.standard.highlights.communities_desc', iconColor: 'text-teal-500' },
   { icon: Microphone, labelKey: 'upgrade_modal.plans.standard.highlights.podcasts', descKey: 'upgrade_modal.plans.standard.highlights.podcasts_desc', iconColor: 'text-purple-500' },
   { icon: Lightning, labelKey: 'upgrade_modal.plans.standard.highlights.playgrounds', descKey: 'upgrade_modal.plans.standard.highlights.playgrounds_desc', iconColor: 'text-amber-500' },
-  { icon: Robot, labelKey: 'upgrade_modal.plans.standard.highlights.ai', descKey: 'upgrade_modal.plans.standard.highlights.ai_desc', iconColor: 'text-violet-500' },
+  { icon: Robot, labelKey: 'upgrade_modal.plans.standard.highlights.ai', descKey: 'upgrade_modal.plans.standard.highlights.ai_desc', iconColor: 'text-[#00A9BF]' },
   { icon: ChartBar, labelKey: 'upgrade_modal.plans.standard.highlights.analytics', descKey: 'upgrade_modal.plans.standard.highlights.analytics_desc', iconColor: 'text-amber-500' },
 ]
 
 const PRO_HIGHLIGHTS = [
   { icon: UsersThree, labelKey: 'upgrade_modal.plans.pro.highlights.members', descKey: 'upgrade_modal.plans.pro.highlights.members_desc', iconColor: 'text-indigo-500' },
-  { icon: Robot, labelKey: 'upgrade_modal.plans.pro.highlights.ai', descKey: 'upgrade_modal.plans.pro.highlights.ai_desc', iconColor: 'text-violet-500' },
+  { icon: Robot, labelKey: 'upgrade_modal.plans.pro.highlights.ai', descKey: 'upgrade_modal.plans.pro.highlights.ai_desc', iconColor: 'text-[#00A9BF]' },
   { icon: Certificate, labelKey: 'upgrade_modal.plans.pro.highlights.certifications', descKey: 'upgrade_modal.plans.pro.highlights.certifications_desc', iconColor: 'text-sky-500' },
   { icon: Globe, labelKey: 'upgrade_modal.plans.pro.highlights.custom_domain', descKey: 'upgrade_modal.plans.pro.highlights.custom_domain_desc', iconColor: 'text-cyan-500' },
   { icon: ShieldCheck, labelKey: 'upgrade_modal.plans.pro.highlights.roles', descKey: 'upgrade_modal.plans.pro.highlights.roles_desc', iconColor: 'text-rose-500' },

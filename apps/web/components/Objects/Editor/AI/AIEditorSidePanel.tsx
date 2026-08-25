@@ -1324,22 +1324,22 @@ function AIEditorSidePanel(props: AIEditorSidePanelProps) {
                 transition={{ duration: 0.2 }}
                 className="mb-3"
               >
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-500/10 border border-violet-500/20">
-                  <Box size={14} className="text-violet-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#00A9BF]/10 border border-[#00A9BF]/20">
+                  <Box size={14} className="text-cyan-400 flex-shrink-0" />
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-xs font-medium text-violet-300">
+                    <span className="text-xs font-medium text-cyan-300">
                       {aiEditorState.activeBlockContext.label}
                     </span>
-                    <span className="text-xs text-violet-300/60">
+                    <span className="text-xs text-cyan-300/60">
                       {t('editor.ai_panel.block_selected')}
                     </span>
                   </div>
                   <button
                     onClick={clearSelectionHighlight}
-                    className="ml-auto p-1 rounded hover:bg-violet-500/20 transition-colors"
+                    className="ml-auto p-1 rounded hover:bg-[#00A9BF]/20 transition-colors"
                     title={t('editor.ai_panel.clear_selection')}
                   >
-                    <X size={12} className="text-violet-400/60 hover:text-violet-400" />
+                    <X size={12} className="text-cyan-400/60 hover:text-cyan-400" />
                   </button>
                 </div>
               </motion.div>

@@ -316,19 +316,19 @@ function AICreditsDetail({ credits }: { credits: AICreditsSummary }) {
       : 0
 
   const barColor = isUnlimited
-    ? 'bg-violet-500'
+    ? 'bg-[#00A9BF]'
     : percent > 90
       ? 'bg-red-500'
       : percent > 70
         ? 'bg-amber-500'
-        : 'bg-violet-500'
+        : 'bg-[#00A9BF]'
 
   return (
     <div className="space-y-4">
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2.5">
-            <Lightning size={16} weight="duotone" className="text-violet-400" />
+            <Lightning size={16} weight="duotone" className="text-cyan-400" />
             <span className="text-sm font-medium text-gray-700">
               {t('dashboard.organization.usage.credit_usage')}
             </span>

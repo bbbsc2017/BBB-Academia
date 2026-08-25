@@ -404,10 +404,10 @@ export default function PlanUsage({
               <div className="flex-1 min-w-[200px] px-6 py-6">
                 <UsageBar
                   label={t('billing.members', { defaultValue: 'Members' })}
-                  icon={<Users size={14} className="text-violet-600" />}
+                  icon={<Users size={14} className="text-[#00879a]" />}
                   usage={features.members.usage}
                   limit={features.members.limit}
-                  color="bg-violet-50"
+                  color="bg-cyan-50"
                 />
                 {features.members.purchased > 0 && (
                   <p className="text-[10px] text-black/25 font-medium mt-1">
@@ -435,10 +435,10 @@ export default function PlanUsage({
                   <div className="flex-1 min-w-[200px] px-6 py-6">
                     <UsageBar
                       label={t('billing.ai_credits', { defaultValue: 'AI Credits' })}
-                      icon={<Sparkles size={14} className="text-violet-600" />}
+                      icon={<Sparkles size={14} className="text-[#00879a]" />}
                       usage={aiCredits.used_credits}
                       limit={aiCredits.total_credits === 'unlimited' ? 'unlimited' : aiCredits.total_credits}
-                      color="bg-violet-50"
+                      color="bg-cyan-50"
                     />
                     {aiCredits.purchased_credits > 0 && (
                       <p className="text-[10px] text-black/25 font-medium mt-1">
@@ -507,9 +507,9 @@ export default function PlanUsage({
                           <div key={packId} className="rounded-2xl bg-white nice-shadow overflow-hidden">
                             <div className="px-4 py-4 space-y-3">
                               <div className="flex items-center gap-3">
-                                <div className={`p-1.5 rounded-lg ${isAI ? 'bg-violet-50' : 'bg-emerald-50'}`}>
+                                <div className={`p-1.5 rounded-lg ${isAI ? 'bg-cyan-50' : 'bg-emerald-50'}`}>
                                   {isAI ? (
-                                    <Zap size={14} className="text-violet-600" />
+                                    <Zap size={14} className="text-[#00879a]" />
                                   ) : (
                                     <Users size={14} className="text-emerald-600" />
                                   )}
@@ -558,9 +558,9 @@ export default function PlanUsage({
                     className="flex items-center justify-between rounded-2xl bg-white nice-shadow px-4 py-3 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`p-1.5 rounded-lg ${pack.type === 'ai_credits' ? 'bg-violet-50' : 'bg-emerald-50'}`}>
+                      <div className={`p-1.5 rounded-lg ${pack.type === 'ai_credits' ? 'bg-cyan-50' : 'bg-emerald-50'}`}>
                         {pack.type === 'ai_credits' ? (
-                          <Zap size={14} className="text-violet-600" />
+                          <Zap size={14} className="text-[#00879a]" />
                         ) : (
                           <Users size={14} className="text-emerald-600" />
                         )}
@@ -601,9 +601,9 @@ export default function PlanUsage({
               <div className="px-6 py-5 space-y-4">
                 <DialogTitle asChild>
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${disclaimerPack.type === 'ai_credits' ? 'bg-violet-50' : 'bg-emerald-50'}`}>
+                    <div className={`p-2 rounded-xl ${disclaimerPack.type === 'ai_credits' ? 'bg-cyan-50' : 'bg-emerald-50'}`}>
                       {disclaimerPack.type === 'ai_credits' ? (
-                        <Zap size={18} className="text-violet-600" />
+                        <Zap size={18} className="text-[#00879a]" />
                       ) : (
                         <Users size={18} className="text-emerald-600" />
                       )}

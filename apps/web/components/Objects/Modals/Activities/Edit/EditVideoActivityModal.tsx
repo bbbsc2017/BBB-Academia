@@ -182,7 +182,7 @@ function EditVideoActivityModal({ activity, onClose }: EditVideoActivityModalPro
         }}
       >
         <span className="flex items-center gap-2 bg-white nice-shadow rounded-full px-4 py-1.5 text-sm font-medium text-gray-600">
-          <PlayCircle size={18} weight="duotone" className="text-violet-400" />
+          <PlayCircle size={18} weight="duotone" className="text-cyan-400" />
           {isYouTube ? 'YouTube Video' : 'Hosted Video'}
         </span>
       </div>
@@ -343,7 +343,7 @@ function EditVideoActivityModal({ activity, onClose }: EditVideoActivityModalPro
               type="button"
               onClick={saveCaptions}
               disabled={isSavingCaptions}
-              className="inline-flex items-center gap-1.5 h-8 px-4 text-xs font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 h-8 px-4 text-xs font-medium text-white bg-[#00879a] rounded-lg hover:bg-cyan-700 transition-colors disabled:opacity-50"
             >
               {isSavingCaptions ? (
                 <BarLoader cssOverride={{ borderRadius: 60 }} width={40} color="#ffffff" />

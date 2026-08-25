@@ -75,9 +75,9 @@ const GRADING_TYPES: {
         labelKey: 'dashboard.assignments.modals.edit.form.grading_types.alphabet',
         descriptionKey: 'dashboard.assignments.modals.edit.form.grading_type_descriptions.alphabet',
         icon: <ALargeSmall size={20} />,
-        color: 'text-violet-600',
-        selectedBorder: 'border-violet-400',
-        selectedBg: 'bg-violet-50',
+        color: 'text-[#00879a]',
+        selectedBorder: 'border-cyan-400',
+        selectedBg: 'bg-cyan-50',
         illustration: 'A  B  C',
     },
     {
