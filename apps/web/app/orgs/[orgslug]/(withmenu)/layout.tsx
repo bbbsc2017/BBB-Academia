@@ -237,6 +237,11 @@ function LayoutContent({ children, orgslug }: { children: ReactNode; orgslug: st
         ...(customFont ? { fontFamily: `'${customFont}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif` } : {}),
       }}
     >
+      <div
+        aria-hidden="true"
+        className="site-grid-bg fixed inset-0 pointer-events-none"
+        style={{ zIndex: 'var(--z-behind)' }}
+      />
       <PageViewTracker />
       {!chromeless && <OrgJoinBanner />}
       {!chromeless && <OrgMenu orgslug={orgslug} />}

@@ -13,6 +13,19 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Site-wide drifting graph-paper grid background */
+@keyframes site-grid-pan {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 32px 32px, 32px 32px; }
+}
+.site-grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 169, 191, 0.11) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 169, 191, 0.11) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: site-grid-pan 6s linear infinite;
+}
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }

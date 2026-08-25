@@ -122,25 +122,11 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
     'learner',
   )
 
-  if (!offer) {
-    return (
-      <GeneralWrapperStyled>
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <AlertCircle size={32} className="text-gray-300 mb-3" />
-          <h2 className="font-bold text-gray-600 text-lg">Offer not found</h2>
-          <Link href={getUriWithOrg(orgslug, '/store')} className="mt-4 text-sm text-[#00a9bf] hover:underline">
-            ← Back to store
-          </Link>
-        </div>
-      </GeneralWrapperStyled>
-    )
-  }
-
-  const isSubscription = offer.offer_type === 'subscription'
-  const benefits: string[] = offer.benefits
+  const isSubscription = offer?.offer_type === 'subscription'
+  const benefits: string[] = offer?.benefits
     ? offer.benefits.split(',').map((b: string) => b.trim()).filter(Boolean)
     : []
-  const resources: Resource[] = offer.included_resources ?? []
+  const resources: Resource[] = offer?.included_resources ?? []
   const providerId = fromApiProviderValue(offer?.provider)
   const providerDef = providerId ? getPaymentProvider(providerId) : null
 
@@ -191,18 +177,23 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
+  if (!offer) {
+    return (
+      <GeneralWrapperStyled>
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <AlertCircle size={32} className="text-gray-300 mb-3" />
+          <h2 className="font-bold text-gray-600 text-lg">Offer not found</h2>
+          <Link href={getUriWithOrg(orgslug, '/store')} className="mt-4 text-sm text-[#00a9bf] hover:underline">
+            ← Back to store
+          </Link>
+        </div>
+      </GeneralWrapperStyled>
+    )
+  }
+
   return (
     <div className="relative w-full bg-transparent">
-      {/* One continuous transparent grid layer; it is fixed to the viewport so
-          it never restarts at a section boundary or creates visible seams. */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(0,169,191,0.11) 1px, transparent 1px), linear-gradient(90deg, rgba(0,169,191,0.11) 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-        }}
-      />
+      {/* Grid background is rendered once, site-wide, by the org layout. */}
       <GeneralWrapperStyled>
         <div className="relative z-10">
         <Link
