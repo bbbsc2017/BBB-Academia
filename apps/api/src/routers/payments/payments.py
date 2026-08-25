@@ -6,7 +6,7 @@ from src.core.events.database import get_db_session
 from src.security.auth import get_current_user
 from src.security.superadmin import is_user_superadmin
 from src.db.users import AnonymousUser, PublicUser
-from src.db.payments.config import PaymentProviderEnum, PaymentsConfigRead
+from src.db.payments.config import BoldCredentialsUpdate, PaymentProviderEnum, PaymentsConfigRead
 from src.db.payments.enrollments import PaymentsEnrollment, PaymentsEnrollmentRead
 from src.db.payments.groups import PaymentsGroupCreate, PaymentsGroupRead, PaymentsGroupUpdate
 from src.db.payments.offers import PaymentsOfferCreate, PaymentsOfferRead, PaymentsOfferUpdate
@@ -34,7 +34,7 @@ async def _process_provider_webhook(
     headers = {k: v for k, v in request.headers.items()}
 
     try:
-        event = await provider.verify_and_parse_webhook(raw_body, headers)
+        event = await provider.verify_and_parse_webhook(raw_body, headers, db_session)
     except WebhookVerificationError as exc:
         raise HTTPException(status_code=401, detail=str(exc))
 
@@ -95,6 +95,18 @@ async def api_delete_payment_config(
 ):
     await config_service.delete_payment_config(request, org_id, id, current_user, db_session)
     return {"detail": "Payment configuration deleted"}
+
+
+@router.put("/{org_id}/config/{id}/credentials", response_model=PaymentsConfigRead, tags=["payments"])
+async def api_update_payment_config_credentials(
+    *, request: Request, org_id: int, id: int, credentials: BoldCredentialsUpdate,
+    db_session: AsyncSession = Depends(get_db_session),
+    current_user: PublicUser = Depends(get_current_user),
+):
+    """Store payment-gateway API keys entered from the dashboard (Bold's
+    Identity/Secret/Webhook keys today), encrypted at rest. Write-only —
+    the response never contains the values, only `credentials_configured`."""
+    return await config_service.update_provider_credentials(request, org_id, id, credentials, current_user, db_session)
 
 
 # --- Offers ---------------------------------------------------------------
@@ -199,7 +211,7 @@ async def api_create_checkout(
     except PaymentProviderError as e:
         raise HTTPException(status_code=501, detail=str(e))
 
-    checkout_url = await provider.create_checkout(offer, enrollment, redirect_uri, current_user)
+    checkout_url = await provider.create_checkout(offer, enrollment, redirect_uri, current_user, db_session)
     return {"checkout_url": checkout_url}
 
 

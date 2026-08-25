@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import GeneralWrapperStyled from '@components/Objects/StyledElements/Wrappers/GeneralWrapper'
@@ -15,6 +15,7 @@ import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useLHAnalytics, useTrackView, AnalyticsEvent } from '@services/analytics'
 import { meaningfulMessage } from '@lib/errors/classify'
 import toast from 'react-hot-toast'
+import GuestCheckoutPanel from '@components/Payments/GuestCheckoutPanel'
 
 interface Resource {
   resource_uuid: string
@@ -103,6 +104,11 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { track } = useLHAnalytics('learner')
+  // Set by GuestCheckoutPanel right after signup/login succeeds. `token` is
+  // still the stale (null) value captured in that render, so checkout can't
+  // be triggered synchronously — this flag lets the effect below fire it as
+  // soon as the next render picks up the freshly authenticated session.
+  const autoCheckoutRef = useRef(false)
 
   useTrackView(
     AnalyticsEvent.OfferViewed,
@@ -139,6 +145,9 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
 
   const handleCheckout = async () => {
     if (!token) {
+      // Should be unreachable now that anonymous visitors get
+      // GuestCheckoutPanel instead of this button — kept as a defensive
+      // fallback rather than assuming the panel always renders first.
       track(AnalyticsEvent.CheckoutLoginRedirected, { redirect_target: `/store/offers/${offerUuid}` })
       router.push(getUriWithOrg(orgslug, `/login?redirect=/store/offers/${offerUuid}`))
       return
@@ -168,6 +177,18 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
       setLoading(false)
     }
   }
+
+  // Fires once GuestCheckoutPanel authenticates a previously anonymous
+  // visitor: `token` flips from falsy to truthy on the next render, at
+  // which point handleCheckout() (re-created with the fresh token in its
+  // closure) is safe to call.
+  useEffect(() => {
+    if (token && autoCheckoutRef.current) {
+      autoCheckoutRef.current = false
+      handleCheckout()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   return (
     <div className="w-full">
@@ -252,26 +273,29 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
               </div>
 
               {/* Checkout */}
-              <button
-                onClick={handleCheckout}
-                disabled={loading}
-                className={`w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                  isSubscription
-                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    : 'bg-gray-900 hover:bg-gray-800 text-white'
-                }`}
-              >
-                {loading ? (
-                  <><Loader2 size={15} className="animate-spin" /> Processing…</>
-                ) : (
-                  <>{isSubscription ? 'Subscribe now' : 'Get access'}</>
-                )}
-              </button>
-
-              {!token && (
-                <p className="text-xs text-center text-gray-400 mt-3">
-                  You&apos;ll be asked to sign in before checkout.
-                </p>
+              {token ? (
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading}
+                  className={`w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                    isSubscription
+                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      : 'bg-gray-900 hover:bg-gray-800 text-white'
+                  }`}
+                >
+                  {loading ? (
+                    <><Loader2 size={15} className="animate-spin" /> Processing…</>
+                  ) : (
+                    <>{isSubscription ? 'Subscribe now' : 'Get access'}</>
+                  )}
+                </button>
+              ) : (
+                <GuestCheckoutPanel
+                  orgslug={orgslug}
+                  orgId={orgId}
+                  offerUuid={offerUuid}
+                  onAuthenticated={() => { autoCheckoutRef.current = true }}
+                />
               )}
 
               {/* Resource summary */}

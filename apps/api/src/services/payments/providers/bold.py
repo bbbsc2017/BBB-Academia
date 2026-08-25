@@ -16,14 +16,17 @@ import hashlib
 import hmac
 import json
 import os
-from typing import Any
+from typing import Any, Optional, TYPE_CHECKING
 
 import httpx
+from sqlmodel import select
 
 from config.config import get_learnhouse_config
+from src.db.payments.config import PaymentProviderEnum, PaymentsConfig
 from src.db.payments.enrollments import PaymentsEnrollment
 from src.db.payments.offers import PaymentsOffer
 from src.db.users import PublicUser
+from src.services.webhooks.crypto import decrypt_secret
 from src.services.payments.providers.base import (
     PaymentProvider,
     PaymentProviderError,
@@ -31,6 +34,9 @@ from src.services.payments.providers.base import (
     WebhookOutcome,
     WebhookVerificationError,
 )
+
+if TYPE_CHECKING:
+    from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 def _normalize_headers(headers: dict[str, str]) -> dict[str, str]:
@@ -63,12 +69,44 @@ class BoldProvider(PaymentProvider):
         cfg = get_learnhouse_config().payments_config.bold
         # Bold's dashboard calls this the "Identity key" — it's what
         # `Authorization: x-api-key` takes for Payment Links API calls.
-        self._api_key = cfg.bold_api_key
-        self._webhook_secret = cfg.bold_webhook_secret
+        # These are the LEARNHOUSE_BOLD_* env/config.yaml fallback, used when
+        # no dashboard-entered override exists — see _resolve_credentials.
+        self._env_api_key = cfg.bold_api_key
+        self._env_webhook_secret = cfg.bold_webhook_secret
         api_base = os.environ.get(
             "LEARNHOUSE_BOLD_API_BASE_URL", "https://integrations.api.bold.co"
         ).rstrip("/")
         self._client = httpx.AsyncClient(base_url=api_base, timeout=15.0)
+
+    async def _resolve_credentials(
+        self, db_session: "Optional[AsyncSession]"
+    ) -> tuple[Optional[str], Optional[str]]:
+        """(api_key, webhook_secret), preferring credentials entered through
+        the dashboard (encrypted in PaymentsConfig.provider_config — see
+        services/payments/config.py::update_provider_credentials) over the
+        LEARNHOUSE_BOLD_* env/config.yaml values captured at __init__. This
+        deployment is single-tenant, so there is at most one BOLD
+        PaymentsConfig row with provider_config set — no org_id needed to
+        disambiguate."""
+        api_key, webhook_secret = self._env_api_key, self._env_webhook_secret
+        if db_session is None:
+            return api_key, webhook_secret
+
+        config = (await db_session.execute(
+            select(PaymentsConfig).where(
+                PaymentsConfig.provider == PaymentProviderEnum.BOLD,
+                PaymentsConfig.provider_config.isnot(None),
+            )
+        )).scalars().first()
+        stored = config.provider_config if config else None
+        if not stored:
+            return api_key, webhook_secret
+
+        if stored.get("bold_api_key"):
+            api_key = decrypt_secret(stored["bold_api_key"])
+        if stored.get("bold_webhook_secret"):
+            webhook_secret = decrypt_secret(stored["bold_webhook_secret"])
+        return api_key, webhook_secret
 
     async def create_checkout(
         self,
@@ -76,8 +114,10 @@ class BoldProvider(PaymentProvider):
         enrollment: PaymentsEnrollment,
         redirect_uri: str,
         buyer: PublicUser,
+        db_session: "Optional[AsyncSession]" = None,
     ) -> str:
-        if not self._api_key:
+        api_key, _ = await self._resolve_credentials(db_session)
+        if not api_key:
             raise PaymentProviderError("Bold is not configured: missing api_key")
 
         body = {
@@ -98,7 +138,7 @@ class BoldProvider(PaymentProvider):
             response = await self._client.post(
                 "/online/link/v1",
                 json=body,
-                headers={"Authorization": f"x-api-key {self._api_key}"},
+                headers={"Authorization": f"x-api-key {api_key}"},
             )
         except httpx.HTTPError as exc:
             raise PaymentProviderError(f"Bold checkout request failed: {exc}") from exc
@@ -117,18 +157,22 @@ class BoldProvider(PaymentProvider):
             raise PaymentProviderError("Bold checkout response missing payload.url")
         return url
 
-    async def verify_and_parse_webhook(self, raw_body: bytes, headers: dict[str, str]) -> ProviderEvent:
+    async def verify_and_parse_webhook(
+        self, raw_body: bytes, headers: dict[str, str], db_session: "Optional[AsyncSession]" = None
+    ) -> ProviderEvent:
         normalized = _normalize_headers(headers)
         signature = normalized.get("x-bold-signature")
         if not signature:
             raise WebhookVerificationError("Missing Bold webhook signature")
-        if not self._webhook_secret:
+
+        _, webhook_secret = await self._resolve_credentials(db_session)
+        if not webhook_secret:
             raise WebhookVerificationError("Bold webhook secret is not configured")
 
         # Bold signs the base64-encoded body, not the raw bytes, and sends
         # the digest as hex.
         expected = hmac.new(
-            self._webhook_secret.encode(),
+            webhook_secret.encode(),
             base64.b64encode(raw_body),
             hashlib.sha256,
         ).hexdigest()

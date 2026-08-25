@@ -29,6 +29,23 @@ export async function initializePaymentConfig(
   return res;
 }
 
+// Write-only: the response never contains the values, only
+// `credentials_configured`. See apps/api/src/db/payments/config.py
+// BoldCredentialsUpdate for the accepted fields (currently Bold-only).
+export async function updatePaymentConfigCredentials(
+  orgId: number,
+  configId: number,
+  credentials: { bold_api_key?: string; bold_webhook_secret?: string },
+  access_token: string
+) {
+  const result = await secureFetch(
+    `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/config/${encodeURIComponent(String(configId))}/credentials`,
+    RequestBodyWithAuthHeader('PUT', credentials, null, access_token)
+  );
+  const res = await errorHandling(result);
+  return res;
+}
+
 export async function deletePaymentConfig(orgId: number, id: string, access_token: string) {
   const result = await secureFetch(
     `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/config?id=${encodeURIComponent(id)}`,

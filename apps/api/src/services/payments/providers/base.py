@@ -17,12 +17,15 @@ by acknowledging it with no enrollment to act on — hence Optional.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, TYPE_CHECKING
 
 from src.db.payments.config import PaymentProviderEnum
 from src.db.payments.enrollments import PaymentsEnrollment
 from src.db.payments.offers import PaymentsOffer
 from src.db.users import PublicUser
+
+if TYPE_CHECKING:
+    from sqlmodel.ext.asyncio.session import AsyncSession
 
 WebhookOutcome = Literal["activated", "cancelled", "failed", "refunded", "ignored"]
 
@@ -55,15 +58,21 @@ class PaymentProvider(ABC):
         enrollment: PaymentsEnrollment,
         redirect_uri: str,
         buyer: PublicUser,
+        db_session: "Optional[AsyncSession]" = None,
     ) -> str:
         """Create a checkout session/link with the provider and return the
         URL to redirect the buyer to. `enrollment.id` must be embedded as the
-        order/reference id so the webhook handler can look it back up."""
+        order/reference id so the webhook handler can look it back up.
+
+        db_session: optional, passed through so a provider that supports
+        dashboard-entered credentials (see BoldProvider) can look up its
+        PaymentsConfig.provider_config override. Providers that only use
+        env/config.yaml-level credentials (OpenPay) ignore it."""
         ...
 
     @abstractmethod
     async def verify_and_parse_webhook(
-        self, raw_body: bytes, headers: dict[str, str]
+        self, raw_body: bytes, headers: dict[str, str], db_session: "Optional[AsyncSession]" = None
     ) -> Optional[ProviderEvent]:
         """Authenticate the webhook (via signature verification, or — for a
         provider that doesn't sign payloads — by calling back to the
@@ -71,7 +80,9 @@ class PaymentProvider(ABC):
         return the normalized event. Returns None for a real-but-irrelevant
         notification (e.g. a webhook-registration handshake) that has no
         enrollment to act on; the caller should just 200 it. Raises
-        WebhookVerificationError when the webhook can't be authenticated."""
+        WebhookVerificationError when the webhook can't be authenticated.
+
+        db_session: see create_checkout — same dashboard-credentials lookup."""
         ...
 
 

@@ -172,6 +172,9 @@ export enum AnalyticsEvent {
   CheckoutReturned = 'checkout_returned',
   PaywallViewed = 'paywall_viewed',
   PaywallGetAccessClicked = 'paywall_get_access_clicked',
+  GuestCheckoutFormShown = 'guest_checkout_form_shown',
+  GuestCheckoutModeToggled = 'guest_checkout_mode_toggled',
+  GuestCheckoutStuckFallbackShown = 'guest_checkout_stuck_fallback_shown',
 
   // ── Course management (creator) ──────────────────────────────────────────
   CourseCreationTypeSelected = 'course_creation_type_selected',
@@ -271,7 +274,7 @@ const GROUP_PREFIXES: Array<[string, string[]]> = [
   ['copilot', ['copilot_', 'ai_assistant', 'ai_message']],
   ['certificate', ['certificate_', 'trail_']],
   ['account', ['account_']],
-  ['store', ['store_', 'offer_', 'checkout_', 'paywall_', 'payment_']],
+  ['store', ['store_', 'offer_', 'checkout_', 'paywall_', 'payment_', 'guest_checkout_']],
   ['editor', ['editor_', 'magic_block_', 'ai_editor_']],
   ['org_settings', ['invite_', 'members_', 'api_token_', 'custom_domain_', 'sso_config', 'org_general', 'webhook_', 'signup_mechanism']],
   ['billing', ['feature_gate_', 'upgrade_', 'payments_']],

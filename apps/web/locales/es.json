@@ -1101,7 +1101,21 @@
     "benefits": "Beneficios:",
     "min_price": "Precio mínimo:",
     "choose_price": "Elige tu precio",
-    "stripe_denied": "La conexión con Stripe fue cancelada."
+    "stripe_denied": "La conexión con Stripe fue cancelada.",
+    "guest_checkout": {
+      "create_tab_label": "Crear cuenta",
+      "login_tab_label": "Iniciar sesión",
+      "title_create": "Crea tu cuenta para continuar",
+      "title_login": "Inicia sesión para continuar",
+      "subtitle": "Pagarás justo después — sin pasos aparte.",
+      "cta_create_and_pay": "Crear cuenta y pagar",
+      "cta_login_and_pay": "Iniciar sesión y pagar",
+      "maybe_registered_message": "Puede que ya tengas una cuenta con ese correo — inicia sesión en su lugar.",
+      "account_created_continue": "Tu cuenta fue creada — continuando al pago…",
+      "retry_login": "Intentar de nuevo",
+      "stuck_fallback_message": "¿Problemas? También puedes iniciar sesión en una página aparte.",
+      "stuck_fallback_link": "Ir a iniciar sesión"
+    }
   },
   "account": {
     "title": "Cuenta",

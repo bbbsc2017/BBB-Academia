@@ -5,12 +5,14 @@ import { useLHSession } from '@components/Contexts/LHSessionContext';
 import {
   getPaymentConfigs,
   initializePaymentConfig,
+  updatePaymentConfigCredentials,
   deletePaymentConfig,
 } from '@services/payments/payments';
 import {
   CheckCircle2,
   ExternalLink,
   Info,
+  KeyRound,
   Loader2,
   Trash2,
   UnplugIcon,
@@ -122,6 +124,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
   const { track } = useLHAnalytics('dashboard');
   const [isConnecting, setIsConnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState<{ count: number } | null>(null);
+  const [credentialsFormOpen, setCredentialsFormOpen] = useState(false);
   const isConnected = !!(config?.provider_specific_id && config?.active);
 
   const handleConnect = async () => {
@@ -144,6 +147,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
         const redirectUri = getMainDomainUri(provider.callbackPath);
         const url = await provider.getConnectUrl(orgId, accessToken, redirectUri);
         window.open(url, '_blank');
+      } else if (provider.hasCredentialsForm) {
+        setCredentialsFormOpen((open) => !open);
       } else {
         toast.success(`${provider.name} is ready to use.`);
       }
@@ -236,10 +241,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
                   <Loader2 size={12} className="animate-spin mr-1" />
                 ) : provider.getConnectUrl ? (
                   <UnplugIcon size={12} className="mr-1" />
+                ) : provider.hasCredentialsForm ? (
+                  <KeyRound size={12} className="mr-1" />
                 ) : (
                   <CheckCircle2 size={12} className="mr-1" />
                 )}
-                {provider.getConnectUrl ? (isConnected ? 'Reconnect' : provider.connectButtonLabel) : provider.connectButtonLabel}
+                {provider.getConnectUrl ? 'Reconnect' : provider.hasCredentialsForm ? 'Edit keys' : provider.connectButtonLabel}
               </Button>
               <ConfirmationModal
                 confirmationButtonText="Remove"
@@ -266,6 +273,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
                 <Loader2 size={12} className="animate-spin mr-1" />
               ) : provider.getConnectUrl ? (
                 <UnplugIcon size={12} className="mr-1" />
+              ) : provider.hasCredentialsForm ? (
+                <KeyRound size={12} className="mr-1" />
               ) : (
                 <CheckCircle2 size={12} className="mr-1" />
               )}
@@ -288,8 +297,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
         </div>
       )}
 
-      {/* Warning strip when config exists but OAuth not completed */}
-      {config && !isConnected && !disconnectError && (
+      {/* Warning strip when config exists but OAuth not completed (N/A for credentials-form providers, which have no OAuth step) */}
+      {config && !isConnected && !disconnectError && !provider.hasCredentialsForm && (
         <div className="bg-amber-50 border-t border-amber-100 px-5 py-2 text-xs text-amber-700 flex items-center justify-between">
           <div className="flex items-center space-x-1.5">
             <Info size={12} className="shrink-0" />
@@ -312,6 +321,120 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, config, orgId, ac
           />
         </div>
       )}
+
+      {provider.hasCredentialsForm && config && !disconnectError && (
+        <BoldCredentialsForm
+          open={credentialsFormOpen}
+          config={config}
+          orgId={orgId}
+          accessToken={accessToken}
+          docsUrl={provider.docsUrl}
+          onSaved={() => {
+            setCredentialsFormOpen(false);
+            queryClient.invalidateQueries({ queryKey: queryKeys.payments.configs(orgId) });
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// BoldCredentialsForm — write-only key entry, shown collapsed/expanded via
+// the ProviderCard's "Configure keys" / "Edit keys" button. Fields are never
+// pre-filled from the backend (PaymentsConfigRead never returns them, only
+// `credentials_configured`) — saving with a field left blank keeps whatever
+// was stored for it previously (see BoldCredentialsUpdate in the API).
+// ---------------------------------------------------------------------------
+interface BoldCredentialsFormProps {
+  open: boolean;
+  config: any;
+  orgId: number;
+  accessToken: string;
+  docsUrl: string;
+  onSaved: () => void;
+}
+
+const BoldCredentialsForm: React.FC<BoldCredentialsFormProps> = ({ open, config, orgId, accessToken, docsUrl, onSaved }) => {
+  const [apiKey, setApiKey] = useState('');
+  const [webhookSecret, setWebhookSecret] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  if (!open) return null;
+
+  const handleSave = async () => {
+    if (!apiKey.trim() && !webhookSecret.trim()) {
+      toast.error('Enter at least one key to save.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await updatePaymentConfigCredentials(
+        orgId,
+        config.id,
+        {
+          ...(apiKey.trim() ? { bold_api_key: apiKey.trim() } : {}),
+          ...(webhookSecret.trim() ? { bold_webhook_secret: webhookSecret.trim() } : {}),
+        },
+        accessToken,
+      );
+      toast.success('Bold credentials saved.');
+      setApiKey('');
+      setWebhookSecret('');
+      onSaved();
+    } catch {
+      toast.error('Failed to save Bold credentials.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="border-t border-gray-100 bg-gray-50 px-5 py-4 space-y-3">
+      <p className="text-xs text-gray-500">
+        Get these from your Bold merchant panel (bold.co → Integrations).{' '}
+        <a href={docsUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+          View the guide
+        </a>
+        . Leave a field blank to keep its current value.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Identity key</label>
+          <input
+            type="password"
+            autoComplete="off"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder={config?.credentials_configured ? '••••••••••••' : 'LLAVE_DE_IDENTIDAD'}
+            className="w-full text-sm rounded-lg border border-gray-200 px-3 h-[38px] bg-white outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-400"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Webhook secret</label>
+          <input
+            type="password"
+            autoComplete="off"
+            value={webhookSecret}
+            onChange={(e) => setWebhookSecret(e.target.value)}
+            placeholder={config?.credentials_configured ? '••••••••••••' : 'webhook secret'}
+            className="w-full text-sm rounded-lg border border-gray-200 px-3 h-[38px] bg-white outline-none focus:ring-2 focus:ring-gray-900/5 focus:border-gray-400"
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        {config?.credentials_configured ? (
+          <span className="inline-flex items-center gap-1 text-xs text-green-700">
+            <CheckCircle2 size={12} /> Configured
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">Not configured yet</span>
+        )}
+        <Button onClick={handleSave} disabled={saving} size="sm" className="text-xs bg-gray-900 text-white hover:bg-gray-800">
+          {saving ? <Loader2 size={12} className="animate-spin mr-1" /> : null}
+          Save
+        </Button>
+      </div>
     </div>
   );
 };
