@@ -173,18 +173,22 @@ export const OrgMenu = (props: any) => {
           <div className="flex items-center space-x-5 md:w-auto w-full">
             <div className="logo flex md:w-auto w-full justify-center">
               <Link href={getUriWithOrg(orgslug, '/')}>
-                <div className="flex w-auto h-9 rounded-md items-center m-auto py-1 justify-center">
-                  {org?.logo_image ? (
+                {org?.logo_image ? (
+                  <div
+                    className="flex size-10 items-center justify-center rounded-xl shadow-sm ring-1 ring-black/5"
+                    style={{ backgroundColor: primaryColor || '#00A9BF' }}
+                  >
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
                       alt={org?.name || 'BBB Academia'}
-                      style={{ width: 'auto', height: '100%' }}
-                      className="rounded-md"
+                      className="size-7 rounded-md object-contain"
                     />
-                  ) : (
+                  </div>
+                ) : (
+                  <div className="flex w-auto h-9 items-center justify-center">
                     <BBBAcademiaLogo />
-                  )}
-                </div>
+                  </div>
+                )}
               </Link>
             </div>
             <div className="hidden md:flex">
