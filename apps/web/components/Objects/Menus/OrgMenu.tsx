@@ -96,11 +96,9 @@ export const OrgMenu = (props: any) => {
   const primaryColor = config?.customization?.general?.color || config?.general?.color || ''
   // The navigation always sits on a light glass surface. Keep its controls
   // readable even when the organization color is a saturated dark tone.
-  const colors = getMenuColorClasses('')
-  const navIconClass = 'rounded-full border border-slate-200/70 bg-white/70 text-slate-600 shadow-[0_2px_10px_-4px_rgba(15,23,42,0.25)] transition-all hover:-translate-y-px hover:border-[#00A9BF]/40 hover:bg-[#00A9BF]/10 hover:text-[#00A9BF] hover:shadow-[0_6px_16px_-6px_rgba(0,169,191,0.45)]'
-  const navBackground = primaryColor
-    ? `linear-gradient(112deg, rgba(255,255,255,0.96) 0%, ${hexToRgba(primaryColor, 0.14)} 52%, rgba(255,255,255,0.94) 100%)`
-    : 'rgba(255,255,255,0.94)'
+  const colors = getMenuColorClasses(primaryColor || '#00A9BF')
+  const navIconClass = 'rounded-full border border-white/25 bg-white/10 text-white shadow-sm transition-all hover:-translate-y-px hover:bg-white/20 hover:border-white/40'
+  const navBackground = primaryColor || '#00A9BF'
 
   // Filter dashboard menu items by resolved_features from API
   const rf = config?.resolved_features
@@ -162,7 +160,7 @@ export const OrgMenu = (props: any) => {
       />
       <nav
         aria-label="Top navigation"
-        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] sm:w-[calc(100%-40px)] max-w-(--breakpoint-2xl) h-[64px] rounded-3xl border border-white/80 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl"
+        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] sm:w-[calc(100%-40px)] max-w-(--breakpoint-2xl) h-[64px] rounded-3xl shadow-[0_20px_45px_-22px_rgba(0,100,115,0.55)]"
         style={{
           zIndex: 'var(--z-nav)',
           background: navBackground,
@@ -174,32 +172,29 @@ export const OrgMenu = (props: any) => {
             <div className="logo flex md:w-auto w-full justify-center">
               <Link href={getUriWithOrg(orgslug, '/')} className="flex items-center gap-2.5">
                 {org?.logo_image ? (
-                  <div
-                    className="flex size-10 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
-                    style={{ backgroundColor: primaryColor || '#00A9BF' }}
-                  >
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 shadow-sm">
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
                       alt={org?.name || 'BBB Learning'}
-                      className="size-9 rounded-md object-cover"
+                      className="size-8 rounded-md object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="flex size-12 shrink-0 items-center justify-center">
+                  <div className="flex size-11 shrink-0 items-center justify-center">
                     <BBBAcademiaLogo />
                   </div>
                 )}
-                <span className="hidden sm:block text-lg font-extrabold tracking-tight text-[#00A9BF]">BBB Learning</span>
+                <span className="text-base sm:text-lg font-extrabold tracking-tight text-white">BBB Learning</span>
               </Link>
             </div>
             <div className="hidden md:flex">
-              <MenuLinks orgslug={orgslug} compact />
+              <MenuLinks orgslug={orgslug} compact primaryColor={primaryColor || '#00A9BF'} />
             </div>
           </div>
 
           {/* Search Section */}
           <div className="hidden md:flex flex-1 justify-center max-w-lg px-4">
-            <SearchBar orgslug={orgslug} className="w-full" />
+            <SearchBar orgslug={orgslug} className="w-full" primaryColor={primaryColor || '#00A9BF'} />
           </div>
 
           <div className="flex items-center space-x-2">
@@ -361,7 +356,7 @@ export const OrgMenu = (props: any) => {
             )}
 
             <div className="hidden md:flex">
-              <HeaderProfileBox />
+              <HeaderProfileBox primaryColor={primaryColor || '#00A9BF'} />
             </div>
             <button
               className={`md:hidden focus:outline-hidden ${colors.text}`}
@@ -381,7 +376,7 @@ export const OrgMenu = (props: any) => {
         </div>
       </nav>
       <div
-        className={`fixed inset-x-3 rounded-3xl border border-white/80 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.4)] backdrop-blur-xl md:hidden transition-all duration-300 ease-in-out ${
+        className={`fixed inset-x-3 rounded-3xl shadow-[0_20px_45px_-22px_rgba(0,100,115,0.55)] md:hidden transition-all duration-300 ease-in-out ${
           isMenuOpen ? 'opacity-100' : '-top-full opacity-0'
         }`}
         style={{
@@ -393,13 +388,13 @@ export const OrgMenu = (props: any) => {
         <div className="flex flex-col px-4 py-3 space-y-4 justify-center items-center">
           {/* Mobile Search */}
           <div className="w-full px-2">
-            <SearchBar orgslug={orgslug} isMobile={true} />
+            <SearchBar orgslug={orgslug} isMobile={true} primaryColor={primaryColor || '#00A9BF'} />
           </div>
           <div className='py-4'>
-            <MenuLinks orgslug={orgslug} />
+            <MenuLinks orgslug={orgslug} primaryColor={primaryColor || '#00A9BF'} />
           </div>
-          <div className="border-t border-gray-200">
-            <HeaderProfileBox />
+          <div className="border-t border-white/20">
+            <HeaderProfileBox primaryColor={primaryColor || '#00A9BF'} />
           </div>
         </div>
       </div>
@@ -562,11 +557,11 @@ const CopilotMenuButton = ({
 const BBBAcademiaLogo = () => {
   return (
     <Image
-      src={withBasePath('/bbb_academia_logo.webp')}
+      src={withBasePath('/bbb_academia_logo_white.png')}
       alt="BBB Academia"
       width={40}
       height={40}
-      style={{ height: '100%', width: 'auto' }}
+      style={{ height: '80%', width: 'auto' }}
       unoptimized
     />
   )

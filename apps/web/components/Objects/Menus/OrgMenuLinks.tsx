@@ -70,7 +70,7 @@ function MenuLinks(props: { orgslug: string; primaryColor?: string; compact?: bo
       <ul className="flex items-center gap-1.5">
         {rendered.map((it) => {
           const content = (
-            <li className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-sm ${colors.text} font-semibold transition-all hover:-translate-y-px hover:bg-[#00A9BF]/10 hover:text-[#00A9BF]`}>
+            <li className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-sm ${colors.text} font-semibold transition-all hover:-translate-y-px hover:bg-white/15`}>
               <it.Icon size={18} weight="fill" /> <span className={props.compact ? 'hidden xl:inline' : ''}>{it.label}</span>
             </li>
           )
