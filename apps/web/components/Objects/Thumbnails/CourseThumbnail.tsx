@@ -154,7 +154,7 @@ function CourseThumbnail({ course, orgslug, customLink, isDashboard = false, isS
   const courseLink = customLink ? customLink : getUriWithOrg(orgslug, `/course/${removeCoursePrefix(course.course_uuid)}`)
 
   return (
-    <div onMouseEnter={handleMouseEnter} className={`group relative flex flex-col bg-white rounded-xl nice-shadow overflow-hidden w-full transition-all duration-300 hover:scale-[1.01] ${isSelected ? 'ring-2 ring-black ring-offset-2' : ''}`}>
+    <div onMouseEnter={handleMouseEnter} className={`group relative flex flex-col bg-white rounded-3xl border border-slate-100 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_20px_36px_-26px_rgba(15,23,42,0.22)] overflow-hidden w-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_28px_44px_-24px_rgba(15,23,42,0.28)] ${isSelected ? 'ring-2 ring-[#00A9BF] ring-offset-2' : ''}`}>
       {/* Selection checkbox - visible on hover or when selected (dashboard only) */}
       {isDashboard && onToggleSelect && (
         <button
@@ -182,10 +182,10 @@ function CourseThumbnail({ course, orgslug, customLink, isDashboard = false, isS
         isDashboard={isDashboard}
       />
 
-      <Link prefetch={false} href={courseLink} onClick={handleCardOpen} className="block relative aspect-video overflow-hidden bg-gray-50">
+      <Link prefetch={false} href={courseLink} onClick={handleCardOpen} className="block relative aspect-video overflow-hidden bg-slate-50">
         {/* Hidden img gives the browser a real resource hint so it can fetch the background-image early as an LCP candidate */}
         {isPriority && (
-           
+
           <img
             src={thumbnailImage}
             alt=""
@@ -198,7 +198,7 @@ function CourseThumbnail({ course, orgslug, customLink, isDashboard = false, isS
           className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
           style={{ backgroundImage: `url(${thumbnailImage})` }}
         />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-[#00A9BF]/0 group-hover:bg-[#00A9BF]/8 transition-colors duration-300" />
         {isDashboard && (
           <div className="absolute bottom-2 left-2">
             {course.published ? (
@@ -220,19 +220,19 @@ function CourseThumbnail({ course, orgslug, customLink, isDashboard = false, isS
             prefetch={false}
             href={courseLink}
             onClick={handleCardOpen}
-            className="text-base font-bold text-gray-900 leading-tight hover:text-black transition-colors line-clamp-1"
+            className="text-base font-bold text-slate-900 leading-tight hover:text-[#00A9BF] transition-colors line-clamp-1"
           >
             {course.name}
           </Link>
         </div>
-        
+
         {course.description && (
-          <p className="text-[11px] text-gray-500 line-clamp-2 min-h-[1.5rem]">
+          <p className="text-[11px] text-slate-500 line-clamp-2 min-h-[1.5rem]">
             {course.description}
           </p>
         )}
 
-        <div className="pt-1.5 flex items-center justify-between border-t border-gray-100">
+        <div className="pt-1.5 flex items-center justify-between border-t border-slate-100">
           <div className="flex items-center gap-2">
             {displayedAuthors.length > 0 && (
               <div className="flex -space-x-2 items-center">
@@ -255,26 +255,26 @@ function CourseThumbnail({ course, orgslug, customLink, isDashboard = false, isS
                 ))}
                 {hasMoreAuthors && (
                   <div className="relative z-0">
-                    <div className="flex items-center justify-center w-[20px] h-[20px] text-[8px] font-bold text-gray-600 bg-gray-100 border-2 border-white rounded-full">
+                    <div className="flex items-center justify-center w-[20px] h-[20px] text-[8px] font-bold text-slate-600 bg-slate-100 border-2 border-white rounded-full">
                       +{remainingAuthorsCount}
                     </div>
                   </div>
                 )}
               </div>
             )}
-            
+
             {course.update_date && (
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                 {new Date(course.update_date).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
           </div>
-          
+
           <Link
             prefetch={false}
             href={courseLink}
             onClick={handleCardOpen}
-            className="text-[10px] font-bold text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-wider"
+            className="inline-flex items-center rounded-full bg-[#00A9BF]/10 px-2.5 py-1 text-[10px] font-bold text-[#00A9BF] uppercase tracking-wider transition-colors hover:bg-[#00A9BF] hover:text-white"
           >
             {t('courses.start_learning')}
           </Link>
