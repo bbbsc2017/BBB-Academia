@@ -172,11 +172,11 @@ export const OrgMenu = (props: any) => {
             <div className="logo flex md:w-auto w-full justify-center">
               <Link href={getUriWithOrg(orgslug, '/')} className="flex items-center gap-2.5">
                 {org?.logo_image ? (
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 shadow-sm">
+                  <div className="flex size-11 shrink-0 items-center justify-center">
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
                       alt={org?.name || 'BBB Learning'}
-                      className="size-8 rounded-md object-cover"
+                      className="size-10 rounded-md object-contain"
                     />
                   </div>
                 ) : (
