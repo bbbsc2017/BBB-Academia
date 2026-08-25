@@ -52,8 +52,8 @@ const FEATURES = [
     icon: Files,
     labelKey: 'onboarding.welcome.features.assess',
     descKey: 'onboarding.welcome.features.assess_desc',
-    gradient: 'from-violet-50/40 to-violet-50/10',
-    iconColor: 'text-violet-500',
+    gradient: 'from-cyan-50/40 to-cyan-50/10',
+    iconColor: 'text-[#00A9BF]',
     pattern: `repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(139,92,246,0.06) 6px, rgba(139,92,246,0.06) 7px)`,
   },
   {

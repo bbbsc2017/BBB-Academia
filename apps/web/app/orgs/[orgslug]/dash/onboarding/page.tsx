@@ -48,8 +48,8 @@ export default function OnboardingPage() {
             {/* Left — eyebrow + title */}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <ListChecks size={15} weight="bold" className="text-violet-500" />
-                <span className="text-[11px] font-bold uppercase tracking-wider text-violet-500">
+                <ListChecks size={15} weight="bold" className="text-[#00A9BF]" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#00A9BF]">
                   {t('onboarding.box_title', { defaultValue: 'Onboarding' })}
                 </span>
               </div>
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
                   {Math.round(progress * 100)}%
                 </span>
               </div>
-              <div className="h-1.5 bg-violet-100/70 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-cyan-100/70 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{

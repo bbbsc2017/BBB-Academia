@@ -26,7 +26,7 @@ export const ease = [0.25, 0.1, 0.25, 1] as const
 
 const STEP_ICON: Record<string, { icon: React.ElementType; color: string }> = {
   create_course: { icon: BookOpen, color: 'text-blue-500' },
-  add_content: { icon: Browsers, color: 'text-violet-500' },
+  add_content: { icon: Browsers, color: 'text-[#00A9BF]' },
   brand_school: { icon: Palette, color: 'text-rose-500' },
   share_grow: { icon: ShareNetwork, color: 'text-emerald-500' },
   invite_learners: { icon: UserPlus, color: 'text-sky-500' },

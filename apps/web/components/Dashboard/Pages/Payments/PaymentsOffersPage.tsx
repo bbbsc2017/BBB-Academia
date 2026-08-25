@@ -186,7 +186,7 @@ function PaymentsOffersPage() {
                   </div>
 
                   {offer.payments_group_id && (
-                    <div className="mt-1.5 flex items-center gap-1.5 text-xs text-violet-600">
+                    <div className="mt-1.5 flex items-center gap-1.5 text-xs text-[#00879a]">
                       <Layers size={12} />
                       <span>Payment Group #{offer.payments_group_id}</span>
                     </div>
@@ -272,7 +272,7 @@ const EditOfferForm = ({
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: { setSubmitting: (b: boolean) => void }
+    { setSubmitting }: { setSubmitting: (_b: boolean) => void }
   ) => {
     try {
       await updateOffer(org.id, offer.id, values, session.data?.tokens?.access_token);
