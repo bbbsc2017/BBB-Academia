@@ -14,6 +14,7 @@ import { getGoogleFontUrl, DEFAULT_FONT } from '@/lib/fonts'
 import Image from 'next/image'
 import Link from 'next/link'
 import { withBasePath } from '@services/config/config'
+import { getOrgLogoMediaDirectory } from '@services/media/media'
 import {
   MapPin,
   Phone,
@@ -69,7 +70,15 @@ function OrgFooter() {
         <div className="max-w-md">
           <Link href="https://bbbacademia.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-85">
             <span className="flex size-11 items-center justify-center rounded-xl shadow-sm ring-1 ring-black/5" style={{ backgroundColor: primaryColor }}>
-              <Image src={withBasePath('/bbb_academia_logo.webp')} alt="BBB Academia" width={32} height={32} className="size-8 object-contain" />
+              {org?.logo_image ? (
+                <img
+                  src={getOrgLogoMediaDirectory(org.org_uuid, org.logo_image)}
+                  alt={organizationName}
+                  className="size-8 rounded-md object-contain"
+                />
+              ) : (
+                <Image src={withBasePath('/bbb_academia_logo.webp')} alt={organizationName} width={32} height={32} className="size-8 object-contain" />
+              )}
             </span>
             <span>
               <span className="block text-base font-bold tracking-tight text-slate-900">BBB Academia</span>
