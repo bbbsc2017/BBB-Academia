@@ -55,7 +55,9 @@ def _provider_is_platform_configured(provider: PaymentProviderEnum) -> bool:
     if provider == PaymentProviderEnum.STRIPE:
         return bool(payments_config.stripe.stripe_secret_key)
     if provider == PaymentProviderEnum.BOLD:
-        return bool(payments_config.bold.bold_api_key and payments_config.bold.bold_secret_key)
+        # Payment Links uses the Identity key and the webhook Secret key.
+        # `bold_secret_key` belongs to the separate Payment Button flow.
+        return bool(payments_config.bold.bold_api_key and payments_config.bold.bold_webhook_secret)
     if provider == PaymentProviderEnum.OPENPAY:
         return bool(payments_config.openpay.openpay_merchant_id and payments_config.openpay.openpay_private_key)
     return False

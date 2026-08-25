@@ -7,8 +7,9 @@ This uses Bold's server-to-server Payment Links API (POST /online/link/v1,
 `Authorization: x-api-key <identity key>`), NOT the client-side embedded
 Payment Button — that flow signs an `integrity_signature` with the secret
 key and is a different integration path we don't use here. Webhook events
-follow Bold's CloudEvents envelope: the merchant's own reference comes back
-at `data.metadata.reference`, and the event id for idempotency is the
+follow Bold's CloudEvents envelope. For Payment Links, Bold returns the
+generated `LNK_*` value at `data.metadata.reference`, so it is stored on the
+pending enrollment for webhook lookup. The event id for idempotency is the
 top-level `id`.
 """
 import base64
@@ -153,8 +154,19 @@ class BoldProvider(PaymentProvider):
             raise PaymentProviderError(f"Bold checkout failed: {errors or response.text}")
 
         url = _get_nested(data, ["payload", "url"])
-        if not url:
-            raise PaymentProviderError("Bold checkout response missing payload.url")
+        payment_link = _get_nested(data, ["payload", "payment_link"])
+        if not url or not payment_link:
+            raise PaymentProviderError("Bold checkout response missing payload.url or payload.payment_link")
+
+        # Payment Links webhooks identify API-created links by their LNK_* id,
+        # not by the `reference` supplied when creating the link.
+        if db_session is not None:
+            enrollment.provider_specific_data = {
+                **(enrollment.provider_specific_data or {}),
+                "bold_payment_link": str(payment_link),
+            }
+            db_session.add(enrollment)
+            await db_session.commit()
         return url
 
     async def verify_and_parse_webhook(
@@ -192,10 +204,28 @@ class BoldProvider(PaymentProvider):
         if not event_id:
             raise WebhookVerificationError("Bold webhook missing event id")
 
+        # Keep numeric references working for links created by earlier code,
+        # but resolve the LNK_* id used by Bold's Payment Links API.
         try:
             enrollment_id = int(enrollment_ref)
-        except ValueError as exc:
-            raise WebhookVerificationError("Bold enrollment reference must be numeric") from exc
+        except (TypeError, ValueError):
+            if db_session is None:
+                raise WebhookVerificationError("Bold webhook requires a database session to resolve payment link")
+            enrollments = (await db_session.execute(
+                select(PaymentsEnrollment).where(
+                    PaymentsEnrollment.provider == PaymentProviderEnum.BOLD,
+                )
+            )).scalars().all()
+            enrollment = next(
+                (
+                    item for item in enrollments
+                    if (item.provider_specific_data or {}).get("bold_payment_link") == str(enrollment_ref)
+                ),
+                None,
+            )
+            if not enrollment or enrollment.id is None:
+                raise WebhookVerificationError("Bold webhook references an unknown payment link")
+            enrollment_id = enrollment.id
 
         event_type = str(payload.get("type") or "").upper()
         outcome = _EVENT_OUTCOMES.get(event_type, "ignored")
@@ -206,6 +236,7 @@ class BoldProvider(PaymentProvider):
             provider_event_id=str(event_id),
             provider_specific_data={
                 "provider": "BOLD",
+                "bold_payment_link": str(enrollment_ref),
                 "raw_event": payload,
             },
         )
