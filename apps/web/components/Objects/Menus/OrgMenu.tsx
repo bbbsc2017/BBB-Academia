@@ -162,14 +162,14 @@ export const OrgMenu = (props: any) => {
       />
       <nav
         aria-label="Top navigation"
-        className="fixed left-3 right-3 h-[64px] rounded-3xl border border-white/80 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:left-5 sm:right-5"
+        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] sm:w-[calc(100%-40px)] max-w-(--breakpoint-2xl) h-[64px] rounded-3xl border border-white/80 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl"
         style={{
           zIndex: 'var(--z-nav)',
           background: navBackground,
           top: topOffset + 8
         }}
       >
-        <div className="flex items-center justify-between w-full max-w-(--breakpoint-2xl) mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-5 md:w-auto w-full">
             <div className="logo flex md:w-auto w-full justify-center">
               <Link href={getUriWithOrg(orgslug, '/')}>
