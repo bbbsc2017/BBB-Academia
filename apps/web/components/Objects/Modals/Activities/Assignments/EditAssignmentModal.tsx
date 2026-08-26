@@ -28,6 +28,7 @@ import {
     AlertTriangle,
     Eye,
     RotateCcw,
+    Calendar,
     Infinity as InfinityIcon,
 } from 'lucide-react';
 
@@ -141,6 +142,7 @@ const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
         initialValues: {
             title: assignment.title || '',
             description: assignment.description || '',
+            has_due_date: !!assignment.due_date,
             due_date: assignment.due_date || '',
             grading_type: assignment.grading_type || 'ALPHABET',
             auto_grading: assignment.auto_grading || false,
@@ -164,6 +166,12 @@ const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
             if (!payload.allow_retries) {
                 payload.max_retries = 0;
             }
+            // has_due_date is UI-only (toggles whether due_date is sent at all —
+            // the backend already treats an empty due_date as "no deadline").
+            if (!payload.has_due_date) {
+                payload.due_date = '';
+            }
+            delete payload.has_due_date;
             const toast_loading = toast.loading(t('dashboard.assignments.modals.edit.toasts.updating'));
             try {
                 const res = await updateAssignment(payload, assignment.assignment_uuid, accessToken);
@@ -222,22 +230,16 @@ const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
                 </Form.Control>
             </Form.Field>
 
-            <Form.Field name="due_date" className="space-y-1.5">
-                <Form.Label className={labelClass}>
-                    {t('dashboard.assignments.modals.edit.form.due_date_label')}
-                </Form.Label>
-                <p className="text-[11px] text-gray-400">
-                    {t('dashboard.assignments.modals.edit.form.due_date_hint')}
-                </p>
-                <Form.Control asChild>
-                    <input
-                        type="date"
-                        onChange={formik.handleChange}
-                        value={formik.values.due_date}
-                        className={inputClass}
-                    />
-                </Form.Control>
-            </Form.Field>
+            <DueDateRow
+                hasDueDate={formik.values.has_due_date}
+                dueDate={formik.values.due_date}
+                onHasDueDateChange={(v) => formik.setFieldValue('has_due_date', v, true)}
+                onDueDateChange={formik.handleChange}
+                label={t('dashboard.assignments.modals.edit.form.has_due_date_label')}
+                description={t('dashboard.assignments.modals.edit.form.has_due_date_description')}
+                dateLabel={t('dashboard.assignments.modals.edit.form.due_date_label')}
+                dateRequiredMessage={t('dashboard.assignments.modals.edit.form.due_date_required')}
+            />
 
             {/* Grading type */}
             <div className="space-y-2">
@@ -441,6 +443,75 @@ function ToggleRow({
                     }`}
                 />
             </button>
+        </div>
+    );
+}
+
+function DueDateRow({
+    hasDueDate,
+    dueDate,
+    onHasDueDateChange,
+    onDueDateChange,
+    label,
+    description,
+    dateLabel,
+    dateRequiredMessage,
+}: {
+    hasDueDate: boolean;
+    dueDate: string;
+    onHasDueDateChange: (_next: boolean) => void;
+    onDueDateChange: (_e: React.ChangeEvent<any>) => void;
+    label: string;
+    description: string;
+    dateLabel: string;
+    dateRequiredMessage: string;
+}) {
+    return (
+        <div className="rounded-xl border nice-shadow bg-white border-gray-100 overflow-hidden">
+            <div className="flex items-start justify-between gap-3 p-3">
+                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                    <div className="mt-0.5 flex-none">
+                        <Calendar size={16} className="text-blue-500" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                        <p className="text-xs font-bold text-gray-900">{label}</p>
+                        <p className="text-[10px] text-gray-500 leading-snug mt-0.5">{description}</p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => onHasDueDateChange(!hasDueDate)}
+                    aria-pressed={hasDueDate}
+                    className={`relative flex-none inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        hasDueDate ? 'bg-gray-900' : 'bg-gray-200 hover:bg-gray-300'
+                    }`}
+                >
+                    <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                            hasDueDate ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                    />
+                </button>
+            </div>
+            {hasDueDate && (
+                <Form.Field name="due_date" className="border-t border-gray-100 px-3 py-3 bg-gray-50/50 space-y-1.5">
+                    <Form.Label className="text-[11px] font-semibold text-gray-700">
+                        {dateLabel}
+                    </Form.Label>
+                    <Form.Message match="valueMissing" className={errorClass}>
+                        {dateRequiredMessage}
+                    </Form.Message>
+                    <Form.Control asChild>
+                        <input
+                            type="date"
+                            onChange={onDueDateChange}
+                            value={dueDate}
+                            required={hasDueDate}
+                            className={inputClass}
+                        />
+                    </Form.Control>
+                </Form.Field>
+            )}
         </div>
     );
 }

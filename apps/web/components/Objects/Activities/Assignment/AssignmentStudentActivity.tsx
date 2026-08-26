@@ -14,6 +14,7 @@ import { Backpack, Calendar, CheckCircle2, Download, EllipsisVertical, Info, Mes
 import Link from 'next/link';
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next';
+import { InlineAudioPlayer, isAudioFilename } from '@components/Objects/StyledElements/AudioPlayer/InlineAudioPlayer';
 
 function AssignmentStudentActivity() {
   const { t } = useTranslation()
@@ -133,7 +134,7 @@ function AssignmentStudentActivity() {
                   <Info size={13} />
                   <p className='text-xs font-semibold'>{t('assignments.hint')}</p>
                 </div>}
-                {task.reference_file && <Link
+                {task.reference_file && !isAudioFilename(task.reference_file) && <Link
                   href={getTaskRefFileDir(
                     org?.org_uuid,
                     assignments?.course_object.course_uuid,
@@ -157,6 +158,21 @@ function AssignmentStudentActivity() {
                 </Link>}
               </div>
             </div>
+            {task.reference_file && isAudioFilename(task.reference_file) && (
+              <div className='max-w-md'>
+                <InlineAudioPlayer
+                  src={getTaskRefFileDir(
+                    org?.org_uuid,
+                    assignments?.course_object.course_uuid,
+                    assignments?.activity_object.activity_uuid,
+                    assignments?.assignment_object.assignment_uuid,
+                    task.assignment_task_uuid,
+                    task.reference_file
+                  )}
+                  title={t('assignments.reference_document')}
+                />
+              </div>
+            )}
             {isGraded && taskSubmission && (
               <div className={`relative overflow-hidden rounded-xl nice-shadow border ${
                 taskPassed
