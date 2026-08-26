@@ -46,9 +46,16 @@
 }
 
 /* Fill the box edge-to-edge — no black pillar/letterbox bars behind the
-   video when its native aspect ratio doesn't exactly match the player. */
-.video-js .vjs-tech {
-  object-fit: cover;
+   video when its native aspect ratio doesn't exactly match the player.
+   !important because Video.js's own stylesheet (and, in fill mode, its
+   JS-set inline sizing) otherwise wins the cascade over a same-or-lower
+   specificity override like the plain one below. */
+.video-js.vjs-fill video.vjs-tech,
+.video-js .vjs-tech,
+.video-js video {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Loading/poster background: a soft near-black instead of pure #000, so
