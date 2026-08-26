@@ -27,3 +27,116 @@
   cursor: pointer;
   text-align: center;
 }
+
+/* ---------------------------------------------------------------------
+   Minimalist theme (replaces the stock Video.js skin below this line).
+   Goals: no visible letterbox bars around the video, a lighter/quieter
+   control surface instead of a solid black bar, the org's own brand
+   accent (#00a9bf) for progress/selection states, and the site's own
+   font (var(--font-default), Poppins — see app/layout.tsx) instead of
+   Video.js's default browser sans-serif.
+   ------------------------------------------------------------------- */
+
+.video-js,
+.video-js .vjs-menu-content,
+.video-js .vjs-control-text,
+.video-js .vjs-time-control {
+  font-family: var(--font-default, 'Poppins'), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+}
+
+/* Fill the box edge-to-edge — no black pillar/letterbox bars behind the
+   video when its native aspect ratio doesn't exactly match the player. */
+.video-js .vjs-tech {
+  object-fit: cover;
+}
+
+/* Loading/poster background: a soft near-black instead of pure #000, so
+   it blends rather than reading as a harsh frame while the video loads. */
+.video-js {
+  background-color: #0b0e11;
+}
+
+/* Big play button: small, round, high-contrast — no square skin box. */
+.video-js .vjs-big-play-button {
+  width: 3em;
+  height: 3em;
+  line-height: 2.9em;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #111;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background-color: #fff;
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+/* Control bar: fade-up gradient instead of a flat black band, so the
+   video reads as "just the video" until you're near the bottom edge. */
+.video-js .vjs-control-bar {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.32) 65%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  height: 4em;
+  padding: 0 0.5em;
+}
+
+/* Slim, pill-shaped progress bar with the brand accent. */
+.video-js .vjs-progress-control .vjs-progress-holder {
+  height: 0.3em;
+  border-radius: 999px;
+  margin: 0 0.6em;
+}
+.video-js .vjs-play-progress,
+.video-js .vjs-play-progress:before {
+  background-color: #00a9bf;
+}
+.video-js .vjs-play-progress:before {
+  color: #00a9bf;
+  font-size: 0.85em;
+  top: -0.28em;
+}
+.video-js .vjs-volume-level,
+.video-js .vjs-slider-bar {
+  background-color: #00a9bf;
+}
+
+/* Quieter, evenly-spaced control buttons. */
+.video-js .vjs-control-bar .vjs-button > .vjs-icon-placeholder:before {
+  font-size: 1.5em;
+  line-height: 1.7;
+}
+.video-js .vjs-time-control {
+  font-size: 0.85em;
+  line-height: 4em;
+  opacity: 0.85;
+}
+
+/* Menus (quality/speed/captions): dark glass, brand-accent selection —
+   consistent with the rest of the theme instead of the stock white menu. */
+.video-js .vjs-menu-button-popup .vjs-menu {
+  border-radius: 0.6em;
+  overflow: hidden;
+}
+.video-js .vjs-menu-content {
+  background-color: rgba(17, 17, 17, 0.92);
+  backdrop-filter: blur(6px);
+}
+.video-js .vjs-menu li.vjs-menu-item {
+  font-size: 0.85em;
+}
+.video-js .vjs-menu li.vjs-selected,
+.video-js .vjs-menu li.vjs-selected:focus,
+.video-js .vjs-menu li.vjs-selected:hover {
+  background-color: #00a9bf;
+  color: #fff;
+}
