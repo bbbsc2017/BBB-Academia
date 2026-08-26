@@ -18,6 +18,7 @@ import { deleteUserSubmission, getFinalGrade, markActivityAsDoneForUser, putFina
 import { useLHSession } from '@components/Contexts/LHSessionContext';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { InlineAudioPlayer, isAudioFilename } from '@components/Objects/StyledElements/AudioPlayer/InlineAudioPlayer';
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics';
 
 function EvaluateAssignment({ user_id }: any) {
@@ -199,7 +200,7 @@ function EvaluateAssignment({ user_id }: any) {
                                         <span>{t('dashboard.assignments.submissions.hint')}</span>
                                     </button>
                                 )}
-                                {task.reference_file && (
+                                {task.reference_file && !isAudioFilename(task.reference_file) && (
                                     <Link
                                         href={getTaskRefFileDir(
                                             org?.org_uuid,
@@ -219,6 +220,22 @@ function EvaluateAssignment({ user_id }: any) {
                                 )}
                             </div>
                         </div>
+
+                        {task.reference_file && isAudioFilename(task.reference_file) && (
+                            <div className='max-w-md mb-2'>
+                                <InlineAudioPlayer
+                                    src={getTaskRefFileDir(
+                                        org?.org_uuid,
+                                        assignments?.course_object.course_uuid,
+                                        assignments?.activity_object.activity_uuid,
+                                        assignments?.assignment_object.assignment_uuid,
+                                        task.assignment_task_uuid,
+                                        task.reference_file
+                                    )}
+                                    title={t('dashboard.assignments.submissions.reference_document')}
+                                />
+                            </div>
+                        )}
 
                         {/* Task content */}
                         <div className='rounded-xl overflow-hidden'>

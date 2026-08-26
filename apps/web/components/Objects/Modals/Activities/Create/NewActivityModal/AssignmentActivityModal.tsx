@@ -41,6 +41,7 @@ function NewAssignment({ submitActivity: _submitActivity, chapterId, course, clo
   const [activityName, setActivityName] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [activityDescription, setActivityDescription] = React.useState('')
+  const [hasDueDate, setHasDueDate] = React.useState(false)
   const [dueDate, setDueDate] = React.useState('')
   const [gradingType, setGradingType] = React.useState('ALPHABET')
   const [autoGrading, setAutoGrading] = React.useState(false)
@@ -71,7 +72,7 @@ function NewAssignment({ submitActivity: _submitActivity, chapterId, course, clo
       {
         title: activityName,
         description: activityDescription,
-        due_date: dueDate,
+        due_date: hasDueDate ? dueDate : '',
         grading_type: gradingType,
         auto_grading: autoGrading,
         anti_copy_paste: antiCopyPaste,
@@ -96,7 +97,7 @@ function NewAssignment({ submitActivity: _submitActivity, chapterId, course, clo
         grading_type: gradingType,
         auto_grading: autoGrading,
         allow_retries: allowRetries,
-        has_due_date: !!dueDate,
+        has_due_date: hasDueDate,
       })
     } else {
       toast.dismiss(toast_loading)
@@ -175,24 +176,54 @@ function NewAssignment({ submitActivity: _submitActivity, chapterId, course, clo
           </Form.Control>
         </Form.Field>
 
-        <Form.Field
-          name="assignment-activity-due-date"
-          className="space-y-1.5"
-        >
-          <Form.Label className="text-sm font-medium text-gray-700">
-            {t('dashboard.assignments.modals.create.form.due_date_label')}
-          </Form.Label>
-          <p className="text-[11px] text-gray-400">
-            {t('dashboard.assignments.modals.create.form.due_date_hint')}
-          </p>
-          <Form.Control asChild>
-            <input
-              onChange={(e) => setDueDate(e.target.value)}
-              type="date"
-              className={inputClass}
-            />
-          </Form.Control>
-        </Form.Field>
+        <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
+          <div className="flex items-start justify-between gap-3 p-3">
+            <div className="flex flex-col min-w-0">
+              <p className="text-xs font-bold text-gray-900">
+                {t('dashboard.assignments.modals.create.form.has_due_date_label')}
+              </p>
+              <p className="text-[10px] text-gray-500 leading-snug mt-0.5">
+                {t('dashboard.assignments.modals.create.form.has_due_date_description')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setHasDueDate(!hasDueDate)}
+              aria-pressed={hasDueDate}
+              className={`relative flex-none inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                hasDueDate ? 'bg-gray-900' : 'bg-gray-200 hover:bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                  hasDueDate ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          {hasDueDate && (
+            <Form.Field
+              name="assignment-activity-due-date"
+              className="space-y-1.5 border-t border-gray-100 px-3 py-3 bg-gray-50/50"
+            >
+              <Form.Label className="text-sm font-medium text-gray-700">
+                {t('dashboard.assignments.modals.create.form.due_date_label')}
+              </Form.Label>
+              <Form.Message match="valueMissing" className="text-xs text-red-500">
+                {t('dashboard.assignments.modals.create.form.due_date_required')}
+              </Form.Message>
+              <Form.Control asChild>
+                <input
+                  onChange={(e) => setDueDate(e.target.value)}
+                  value={dueDate}
+                  type="date"
+                  required={hasDueDate}
+                  className={inputClass}
+                />
+              </Form.Control>
+            </Form.Field>
+          )}
+        </div>
       </div>
 
       {/* Grading type */}

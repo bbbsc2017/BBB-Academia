@@ -16,6 +16,6 @@ async def upload_reference_file(
         directory=f"courses/{course_uuid}/activities/{activity_uuid}/assignments/{assignment_uuid}/tasks/{assignment_task_uuid}",
         type_of_dir="orgs",
         uuid=org_uuid,
-        allowed_types=["document", "image", "video", "office", "scorm"],
+        allowed_types=["document", "image", "video", "office", "scorm", "audio"],
         filename_prefix="reference",
     )

@@ -15,8 +15,9 @@ import React, { useEffect } from 'react'
 import toast from 'react-hot-toast';
 import { constructAcceptValue } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
+import { InlineAudioPlayer, isAudioFilename } from '@components/Objects/StyledElements/AudioPlayer/InlineAudioPlayer';
 
-const SUPPORTED_FILES = constructAcceptValue(['pdf', 'docx', 'mp4', 'jpg', 'png', 'pptx', 'zip'])
+const SUPPORTED_FILES = constructAcceptValue(['pdf', 'docx', 'mp4', 'jpg', 'png', 'pptx', 'zip', 'mp3', 'wav', 'ogg', 'm4a'])
 
 export function AssignmentTaskGeneralEdit() {
     const { t } = useTranslation()
@@ -209,6 +210,11 @@ function UpdateTaskRef() {
 
                     </div>
                     {assignmentTaskState.assignmentTask.reference_file && !isLoading && (
+                        isAudioFilename(assignmentTaskState.assignmentTask.reference_file) ? (
+                            <div className='w-full max-w-md'>
+                                <InlineAudioPlayer src={getTaskRefDirUI()} />
+                            </div>
+                        ) : (
                         <div className='flex flex-col rounded-lg bg-white text-gray-400 shadow-lg nice-shadow px-5 py-3 space-y-1 items-center relative'>
                             <div className='absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-green-500 rounded-full px-1.5 py-1.5 text-white flex justify-center items-center'>
                                 <Cloud size={15} />
@@ -227,6 +233,7 @@ function UpdateTaskRef() {
                                     className='bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold'>Delete</button> */}
                             </div>
                         </div>
+                        )
                     )}
 
                     {isLoading ? (
