@@ -7,25 +7,11 @@ import { getOffersByResource } from '@services/payments/offers'
 import { LogIn, LogOut, ShoppingCart, Lock, UserPlus } from 'lucide-react'
 import { removeCourse, startCourse } from '@services/courses/activity'
 import { revalidateTags } from '@services/utils/ts/requests'
-import UserAvatar from '../../UserAvatar'
-import { getUserAvatarMediaDirectory } from '@services/media/media'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
 import Link from 'next/link'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 import { useTranslation } from 'react-i18next'
-
-interface Author {
-  user: {
-    user_uuid: string
-    avatar_image: string
-    first_name: string
-    last_name: string
-    username: string
-  }
-  authorship: 'CREATOR' | 'CONTRIBUTOR' | 'MAINTAINER' | 'REPORTER'
-  authorship_status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
-}
 
 interface CourseRun {
   status: string
@@ -35,7 +21,6 @@ interface CourseRun {
 interface Course {
   id: string
   course_uuid: string
-  authors: Author[]
   trail?: {
     runs: CourseRun[]
   }
@@ -56,76 +41,6 @@ interface CourseActionsMobileProps {
     org_id: number
   }
   trailData?: any
-}
-
-// Component for displaying multiple authors
-const MultipleAuthors = ({ authors }: { authors: Author[] }) => {
-  if (!authors.length) return null
-  const displayedAvatars = authors.slice(0, 3)
-  const remainingCount = Math.max(0, authors.length - 3)
-  
-  // Avatar size for mobile
-  const avatarSize = 36
-  const borderSize = "border-2"
-
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex -space-x-3 relative">
-        {displayedAvatars.map((author, index) => (
-          <div
-            key={author.user.user_uuid}
-            className="relative"
-            style={{ zIndex: displayedAvatars.length - index }}
-          >
-            <UserAvatar
-              border={borderSize}
-              rounded='rounded-full'
-              avatar_url={author.user.avatar_image ? getUserAvatarMediaDirectory(author.user.user_uuid, author.user.avatar_image) : ''}
-              predefined_avatar={author.user.avatar_image ? undefined : 'empty'}
-              width={avatarSize}
-            />
-          </div>
-        ))}
-        {remainingCount > 0 && (
-          <div 
-            className="relative"
-            style={{ zIndex: 0 }}
-          >
-            <div 
-              className="flex items-center justify-center bg-neutral-100 text-neutral-600 font-medium rounded-full border-2 border-white shadow-sm"
-              style={{ 
-                width: `${avatarSize}px`, 
-                height: `${avatarSize}px`,
-                fontSize: '12px'
-              }}
-            >
-              +{remainingCount}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex flex-col">
-        <span className="text-xs text-neutral-400 font-medium">
-          {authors.length > 1 ? 'Authors' : 'Author'}
-        </span>
-        {authors.length === 1 ? (
-          <span className="text-sm font-semibold text-neutral-800">
-            {authors[0].user.first_name && authors[0].user.last_name 
-              ? `${authors[0].user.first_name} ${authors[0].user.last_name}` 
-              : `@${authors[0].user.username}`}
-          </span>
-        ) : (
-          <span className="text-sm font-semibold text-neutral-800">
-            {authors[0].user.first_name && authors[0].user.last_name
-              ? `${authors[0].user.first_name} ${authors[0].user.last_name}`
-              : `@${authors[0].user.username}`}
-            {authors.length > 1 && ` & ${authors.length - 1} more`}
-          </span>
-        )}
-      </div>
-    </div>
-  )
 }
 
 const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseActionsMobileProps) => {
@@ -251,27 +166,12 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
     )
   }
 
-  // Filter active authors and sort by role priority
-  const sortedAuthors = [...course.authors]
-    .filter(author => author.authorship_status === 'ACTIVE')
-    .sort((a, b) => {
-      const rolePriority: Record<string, number> = {
-        'CREATOR': 0,
-        'MAINTAINER': 1,
-        'CONTRIBUTOR': 2,
-        'REPORTER': 3
-      };
-      return rolePriority[a.authorship] - rolePriority[b.authorship];
-    });
-
   return (
     <div
       className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
     >
       <div className="flex flex-col space-y-4">
-        <MultipleAuthors authors={sortedAuthors} />
-        
         {linkedOffers.length > 0 ? (() => {
           const offer = linkedOffers[0];
           const formattedPrice = offer?.amount != null
@@ -307,14 +207,19 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
               ) : (
                 <>
                   <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-gray-600" />
-                      <div>
-                        <span className="text-gray-900 text-sm font-semibold">{offer.offer_name}</span>
-                        {formattedPrice && (
-                          <p className="text-gray-500 text-xs">{formattedPrice}{offer.offer_type === 'subscription' ? ' / month' : ' one-time'}</p>
-                        )}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Lock className="w-4 h-4 text-gray-600 shrink-0" />
+                        <span className="text-gray-900 text-sm font-semibold truncate">{offer.offer_name}</span>
                       </div>
+                      {formattedPrice && (
+                        <div className="text-right shrink-0 leading-none">
+                          <span className="text-2xl font-black text-gray-900">{formattedPrice}</span>
+                          {offer.offer_type === 'subscription' && (
+                            <span className="text-xs text-gray-400 ml-0.5">/mo</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <Link href={storeHref}>
@@ -328,7 +233,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
                       className="w-full py-2 px-4 rounded-lg bg-[#00a9bf] text-white font-semibold text-sm hover:bg-[#008da0] transition-colors flex items-center justify-center gap-2"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      {formattedPrice ? `Get Access — ${formattedPrice}` : 'Purchase Course'}
+                      {formattedPrice ? 'Get Access' : 'Purchase Course'}
                     </button>
                   </Link>
                 </>
