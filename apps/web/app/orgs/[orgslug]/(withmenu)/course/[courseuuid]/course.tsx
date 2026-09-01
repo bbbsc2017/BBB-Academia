@@ -12,11 +12,9 @@ import {
 } from '@services/media/media'
 import { ArrowRight, Backpack, Check, File, StickyNote, Video, Square, Image as ImageIcon, Layers, BookCopy, Lock } from 'lucide-react'
 import { useOrg } from '@components/Contexts/OrgContext'
-import { CourseProvider } from '@components/Contexts/CourseContext'
 import { useMediaQuery } from 'usehooks-ts'
 import CoursesActions from '@components/Objects/Courses/CourseActions/CoursesActions'
 import CourseActionsMobile from '@components/Objects/Courses/CourseActions/CourseActionsMobile'
-import CourseAuthors from '@components/Objects/Courses/CourseAuthors/CourseAuthors'
 import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -27,6 +25,7 @@ import CourseCommunitySection from '@components/Objects/Communities/CourseCommun
 import CourseShare from '@components/Objects/Courses/CourseShare/CourseShare'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 import PaymentWall from '@components/Payments/PaymentWall'
+import RelatedCoursesCarousel from '@components/Objects/Courses/RelatedCourses/RelatedCoursesCarousel'
 
 const CourseClient = (props: any) => {
   const { t } = useTranslation()
@@ -104,12 +103,10 @@ const CourseClient = (props: any) => {
             <div className="h-8 bg-gray-200 rounded-lg w-24" />
           </div>
 
-          {/* Main content: left 3/4 + right 1/4 sidebar */}
+          {/* Main content: left banner/description + right price sidebar */}
           <div className="flex flex-col md:flex-row gap-8 pt-2">
             {/* Left column */}
-            <div className="w-full md:w-3/4 space-y-4">
-              {/* Thumbnail */}
-              <div className="bg-gray-200 rounded-lg w-full h-[200px] md:h-[400px]" />
+            <div className="w-full md:w-[62%] space-y-4">
               {/* About text block */}
               <div className="space-y-2 py-2">
                 <div className="h-3 bg-gray-200 rounded w-full" />
@@ -121,11 +118,10 @@ const CourseClient = (props: any) => {
             </div>
 
             {/* Right sidebar */}
-            <div className="w-full md:w-1/4 space-y-4">
-              {/* Actions box */}
-              <div className="bg-gray-200 rounded-lg h-40" />
-              {/* Authors box */}
-              <div className="bg-gray-200 rounded-lg h-24" />
+            <div className="w-full md:w-[38%] space-y-4">
+              {/* Thumbnail + actions box */}
+              <div className="bg-gray-200 rounded-lg w-full aspect-video hidden md:block" />
+              <div className="bg-gray-200 rounded-lg h-40 hidden md:block" />
             </div>
           </div>
 
@@ -315,6 +311,160 @@ const CourseClient = (props: any) => {
 
   const jsonLd = generateJsonLd()
 
+  // Course cover (image/video) block — rendered inside the price sidebar on
+  // desktop only. Mobile gets CourseActionsMobile's fixed bottom bar instead,
+  // which intentionally omits the cover image so it doesn't cover the screen.
+  const renderCourseCover = () => {
+    const showVideo = course.thumbnail_type === 'video' || (course.thumbnail_type === 'both' && activeThumbnailType === 'video');
+    const showImage = course.thumbnail_type === 'image' || (course.thumbnail_type === 'both' && activeThumbnailType === 'image') || !course.thumbnail_type;
+
+    if (showVideo && course.thumbnail_video) {
+      return (
+        <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full aspect-video">
+          {course.thumbnail_type === 'both' && (
+            <div className="absolute top-3 right-3 z-10">
+              <div className="bg-black/20 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
+                <button
+                  onClick={() => setActiveThumbnailType('image')}
+                  className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                    activeThumbnailType === 'image'
+                      ? 'bg-white/90 text-gray-900 shadow-sm'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <ImageIcon size={12} className="mr-1" />
+                  {t('courses.image')}
+                </button>
+                <button
+                  onClick={() => setActiveThumbnailType('video')}
+                  className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                    activeThumbnailType === 'video'
+                      ? 'bg-white/90 text-gray-900 shadow-sm'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Video size={12} className="mr-1" />
+                  {t('activities.video')}
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="w-full h-full bg-black rounded-lg overflow-hidden">
+            <video
+              src={getCourseThumbnailMediaDirectory(
+                org?.org_uuid,
+                course?.course_uuid,
+                course?.thumbnail_video
+              )}
+              className="w-full h-full object-cover"
+              controls
+              autoPlay
+              muted
+              preload="metadata"
+              playsInline
+            />
+          </div>
+        </div>
+      );
+    } else if (showImage && course.thumbnail_image) {
+      return (
+        <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full aspect-video bg-black overflow-hidden"
+        >
+          <img
+            src={getCourseThumbnailMediaDirectory(org?.org_uuid, course?.course_uuid, course?.thumbnail_image)}
+            alt={course.name}
+            fetchPriority="high"
+            className="w-full h-full object-cover"
+          />
+          {course.thumbnail_type === 'both' && (
+            <div className="absolute top-3 right-3 z-10">
+              <div className="bg-black/20 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
+                <button
+                  onClick={() => setActiveThumbnailType('image')}
+                  className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                    activeThumbnailType === 'image'
+                      ? 'bg-white/90 text-gray-900 shadow-sm'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <ImageIcon size={12} className="mr-1" />
+                  {t('courses.image')}
+                </button>
+                <button
+                  onClick={() => setActiveThumbnailType('video')}
+                  className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                    activeThumbnailType === 'video'
+                      ? 'bg-white/90 text-gray-900 shadow-sm'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Video size={12} className="mr-1" />
+                  {t('activities.video')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div
+          className="inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl relative w-full aspect-video bg-cover bg-center"
+          style={{
+            backgroundImage: `url('/empty_thumbnail.png')`,
+          }}
+        ></div>
+      );
+    }
+  }
+
+  // "What you'll learn" block — rendered at the bottom of the price sidebar.
+  const renderLearnings = () => {
+    const displayLearnings = learnings.filter((l: any) => {
+      const text = typeof l === 'string' ? l : l?.text
+      return text && text.trim() !== '' && text !== 'null'
+    })
+    if (displayLearnings.length === 0) return null
+    return (
+      <div className="w-full">
+        <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.what_you_will_learn')}</h2>
+        <div className="bg-white shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden px-5 py-5 space-y-2">
+          {displayLearnings.map((learning: any) => {
+            const learningText = typeof learning === 'string' ? learning : learning.text
+            const learningEmoji = typeof learning === 'string' ? null : learning.emoji
+            const learningId = typeof learning === 'string' ? learning : learning.id || learning.text
+            return (
+              <div
+                key={learningId}
+                className="flex space-x-2 items-center font-semibold text-gray-500"
+              >
+                <div className="px-2 py-2 rounded-full">
+                  {learningEmoji ? (
+                    <span>{learningEmoji}</span>
+                  ) : (
+                    <Check className="text-gray-400" size={15} />
+                  )}
+                </div>
+                <p>{learningText}</p>
+                {learning.link && (
+                  <a
+                    href={learning.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline text-sm"
+                  >
+                    <span className="sr-only">Link to {learningText}</span>
+                    <ArrowRight size={14} />
+                  </a>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       {jsonLd && (
@@ -341,111 +491,8 @@ const CourseClient = (props: any) => {
             </div>
 
             <div className="flex flex-col md:flex-row gap-8 pt-2">
-              <div className="w-full md:w-3/4 space-y-4">
-                {(() => {
-                  const showVideo = course.thumbnail_type === 'video' || (course.thumbnail_type === 'both' && activeThumbnailType === 'video');
-                  const showImage = course.thumbnail_type === 'image' || (course.thumbnail_type === 'both' && activeThumbnailType === 'image') || !course.thumbnail_type;
-
-                  if (showVideo && course.thumbnail_video) {
-                    return (
-                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full aspect-video">
-                        {course.thumbnail_type === 'both' && (
-                          <div className="absolute top-3 right-3 z-10">
-                            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
-                              <button
-                                onClick={() => setActiveThumbnailType('image')}
-                                className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                                  activeThumbnailType === 'image'
-                                    ? 'bg-white/90 text-gray-900 shadow-sm'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                                }`}
-                              >
-                                <ImageIcon size={12} className="mr-1" />
-                                {t('courses.image')}
-                              </button>
-                              <button
-                                onClick={() => setActiveThumbnailType('video')}
-                                className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                                  activeThumbnailType === 'video'
-                                    ? 'bg-white/90 text-gray-900 shadow-sm'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                                }`}
-                              >
-                                <Video size={12} className="mr-1" />
-                                {t('activities.video')}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        <div className="w-full h-full bg-black rounded-lg overflow-hidden">
-                          <video
-                            src={getCourseThumbnailMediaDirectory(
-                              org?.org_uuid,
-                              course?.course_uuid,
-                              course?.thumbnail_video
-                            )}
-                            className="w-full h-full object-cover"
-                            controls
-                            autoPlay
-                            muted
-                            preload="metadata"
-                            playsInline
-                          />
-                        </div>
-                      </div>
-                    );
-                  } else if (showImage && course.thumbnail_image) {
-                    return (
-                      <div className="relative inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl w-full aspect-video bg-black overflow-hidden"
-                      >
-                        <img
-                          src={getCourseThumbnailMediaDirectory(org?.org_uuid, course?.course_uuid, course?.thumbnail_image)}
-                          alt={course.name}
-                          fetchPriority="high"
-                          className="w-full h-full object-cover"
-                        />
-                        {course.thumbnail_type === 'both' && (
-                          <div className="absolute top-3 right-3 z-10">
-                            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
-                              <button
-                                onClick={() => setActiveThumbnailType('image')}
-                                className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                                  activeThumbnailType === 'image'
-                                    ? 'bg-white/90 text-gray-900 shadow-sm'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                                }`}
-                              >
-                                <ImageIcon size={12} className="mr-1" />
-                                {t('courses.image')}
-                              </button>
-                              <button
-                                onClick={() => setActiveThumbnailType('video')}
-                                className={`flex items-center px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                                  activeThumbnailType === 'video'
-                                    ? 'bg-white/90 text-gray-900 shadow-sm'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                                }`}
-                              >
-                                <Video size={12} className="mr-1" />
-                                {t('activities.video')}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div
-                        className="inset-0 ring-1 ring-inset ring-black/10 rounded-lg shadow-xl relative w-full aspect-video bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url('/empty_thumbnail.png')`,
-                        }}
-                      ></div>
-                    );
-                  }
-                })()}
-
+              {/* Left column — banner/description + lessons */}
+              <div className="w-full md:w-[62%] space-y-4">
                 {(() => {
                   const cleanCourseUuid = course.course_uuid?.replace('course_', '');
                   const run = trailData?.runs?.find(
@@ -469,231 +516,186 @@ const CourseClient = (props: any) => {
                     <p className="py-5 whitespace-pre-line break-words w-full leading-relaxed tracking-normal text-pretty hyphens-auto">{course.about}</p>
                   </div>
                 </div>
-              </div>
 
-              <div className='course_metadata_right w-full md:w-1/4 space-y-4'>
-                {/* Actions Box */}
-                <CoursesActions courseuuid={courseuuid} orgslug={orgslug} course={course} trailData={trailData} />
-                
-                {/* Authors & Updates Box */}
-                <div className="bg-white shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden p-4">
-                  <CourseProvider courseuuid={course.course_uuid}>
-                    <CourseAuthors authors={course.authors} />
-                  </CourseProvider>
-                </div>
-              </div>
-            </div>
-
-            {(() => {
-              const displayLearnings = learnings.filter((l: any) => {
-                const text = typeof l === 'string' ? l : l?.text
-                return text && text.trim() !== '' && text !== 'null'
-              })
-              if (displayLearnings.length === 0) return null
-              return (
-                <div className="w-full">
-                  <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.what_you_will_learn')}</h2>
-                  <div className="bg-white shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden px-5 py-5 space-y-2">
-                    {displayLearnings.map((learning: any) => {
-                      const learningText = typeof learning === 'string' ? learning : learning.text
-                      const learningEmoji = typeof learning === 'string' ? null : learning.emoji
-                      const learningId = typeof learning === 'string' ? learning : learning.id || learning.text
+                {/* Course lessons */}
+                <div className="w-full my-5 mb-10">
+                  <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.course_lessons')}</h2>
+                  <div className="bg-white shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden">
+                    {(course.chapters ?? []).map((chapter: any, idx: number) => {
+                      const isExpanded = expandedChapters[chapter.chapter_uuid] ?? (idx === 0); // Default to expanded for first chapter
                       return (
-                        <div
-                          key={learningId}
-                          className="flex space-x-2 items-center font-semibold text-gray-500"
-                        >
-                          <div className="px-2 py-2 rounded-full">
-                            {learningEmoji ? (
-                              <span>{learningEmoji}</span>
-                            ) : (
-                              <Check className="text-gray-400" size={15} />
-                            )}
+                        <div key={chapter.chapter_uuid || `chapter-${chapter.name}`} className="">
+                          <div
+                            className="flex items-start py-4 px-4 outline outline-1 outline-neutral-200/40 font-bold bg-neutral-50 text-neutral-600 cursor-pointer hover:bg-neutral-100 transition-colors"
+                            onClick={() => setExpandedChapters(prev => ({
+                              ...prev,
+                              [chapter.chapter_uuid]: !isExpanded
+                            }))}
+                          >
+                            {/* Chevron on the far left, vertically centered with the title */}
+                            <div className="flex flex-col justify-center mr-3 pt-1">
+                              <svg
+                                className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                            {/* Title and badge column */}
+                            <div className="flex flex-col items-start w-full">
+                              <div className="flex items-center flex-wrap mb-1 w-full min-w-0">
+                                {/* Numbered badge */}
+                                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-neutral-200 text-neutral-600 text-xs font-semibold mr-2 border border-neutral-300 flex-shrink-0">
+                                  {idx + 1}
+                                </span>
+                                <h3 className="text-lg font-bold leading-tight truncate min-w-0 sm:text-base md:text-lg" style={{lineHeight: '1.2'}}>{chapter.name}</h3>
+                                {chapter.is_locked && chapter.offer && (
+                                  <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
+                                    <Lock size={10} />
+                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: chapter.offer.currency }).format(chapter.offer.amount)}
+                                  </span>
+                                )}
+                                {chapter.is_locked && !chapter.offer && (
+                                  <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-semibold">
+                                    <Lock size={10} />
+                                    {t('course.locked', 'Locked')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-1 text-sm text-neutral-400 font-normal">
+                                <Layers size={16} className="mr-1" />
+                                <span>{chapter.activities.length} {t('activities.activities')}</span>
+                              </div>
+                            </div>
                           </div>
-                          <p>{learningText}</p>
-                          {learning.link && (
-                            <a
-                              href={learning.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-500 hover:underline text-sm"
-                            >
-                              <span className="sr-only">Link to {learningText}</span>
-                              <ArrowRight size={14} />
-                            </a>
-                          )}
+                          <div className={`transition-all duration-200 ${isExpanded ? 'block' : 'hidden'}`}>
+                            <div className="">
+                              {chapter.activities.map((activity: any) => {
+                                const locked = !!activity.is_locked
+                                const RowInner = (
+                                  <div className="flex space-x-3 items-center">
+                                    <div className="flex items-center">
+                                      {locked ? (
+                                        <div className="text-rose-400">
+                                          <Lock size={14} className="stroke-[2]" />
+                                        </div>
+                                      ) : isActivityDone(activity) ? (
+                                        <div className="relative cursor-pointer">
+                                          <Square size={16} className="stroke-[2] text-teal-600" />
+                                          <Check size={16} className="stroke-[2.5] text-teal-600 absolute top-0 left-0" />
+                                        </div>
+                                      ) : (
+                                        <div className="text-neutral-300 cursor-pointer">
+                                          <Square size={16} className="stroke-[2]" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col grow">
+                                      <div className="flex items-center space-x-2 w-full">
+                                        <p className={`font-semibold transition-colors ${locked ? 'text-neutral-400' : 'text-neutral-600 group-hover:text-neutral-800'}`}>{activity.name}</p>
+                                        {locked && activity.offer && (
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
+                                            <Lock size={10} />
+                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.offer.currency }).format(activity.offer.amount)}
+                                          </span>
+                                        )}
+                                        {locked && !activity.offer && (
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-semibold">
+                                            <Lock size={10} />
+                                            {t('course.locked', 'Locked')}
+                                          </span>
+                                        )}
+                                        {!locked && isActivityCurrent(activity) && (
+                                          <div className="flex items-center space-x-1 text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-xs font-semibold animate-pulse">
+                                            <span>{t('activities.current')}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center space-x-1.5 mt-0.5 text-neutral-400">
+                                        {activity.activity_type === 'TYPE_DYNAMIC' && (
+                                          <StickyNote size={10} />
+                                        )}
+                                        {activity.activity_type === 'TYPE_VIDEO' && (
+                                          <Video size={10} />
+                                        )}
+                                        {activity.activity_type === 'TYPE_DOCUMENT' && (
+                                          <File size={10} />
+                                        )}
+                                        {activity.activity_type === 'TYPE_ASSIGNMENT' && (
+                                          <Backpack size={10} />
+                                        )}
+                                        <span className="text-xs font-medium">{getActivityTypeLabel(activity.activity_type)}</span>
+                                      </div>
+                                    </div>
+                                    <div className={`transition-colors ${locked ? 'text-neutral-200' : 'text-neutral-300 group-hover:text-neutral-400 cursor-pointer'}`}>
+                                      <ArrowRight size={14} />
+                                    </div>
+                                  </div>
+                                )
+
+                                if (locked && activity.offer) {
+                                  return (
+                                    <Link
+                                      key={activity.activity_uuid}
+                                      href={getUriWithOrg(orgslug, `/store/offers/${activity.offer.offer_id}`)}
+                                      prefetch={false}
+                                      className="block group activity-container transition-all duration-200 px-4 py-4"
+                                      title={t('course.activity_locked_offer_hint', 'Purchase access to unlock this.')}
+                                    >
+                                      {RowInner}
+                                    </Link>
+                                  )
+                                }
+
+                                if (locked) {
+                                  return (
+                                    <div
+                                      key={activity.activity_uuid}
+                                      className="block activity-container px-4 py-4 cursor-not-allowed select-none"
+                                      title={t('course.activity_locked_hint', 'Sign in or join the right user group to unlock this.')}
+                                    >
+                                      {RowInner}
+                                    </div>
+                                  )
+                                }
+
+                                return (
+                                  <Link
+                                    key={activity.activity_uuid}
+                                    href={
+                                      getUriWithOrg(orgslug, '') +
+                                      `/course/${courseuuid}/activity/${activity.activity_uuid.replace('activity_', '')}`
+                                    }
+                                    rel="noopener noreferrer"
+                                    prefetch={false}
+                                    className="block group activity-container transition-all duration-200 px-4 py-4"
+                                    onMouseEnter={() => handleActivityMouseEnter(activity)}
+                                  >
+                                    {RowInner}
+                                  </Link>
+                                )
+                              })}
+                            </div>
+                          </div>
                         </div>
                       )
                     })}
                   </div>
                 </div>
-              )
-            })()}
+              </div>
 
-            <div className="w-full my-5 mb-10">
-              <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.course_lessons')}</h2>
-              <div className="bg-white shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden">
-                {(course.chapters ?? []).map((chapter: any, idx: number) => {
-                  const isExpanded = expandedChapters[chapter.chapter_uuid] ?? (idx === 0); // Default to expanded for first chapter
-                  return (
-                    <div key={chapter.chapter_uuid || `chapter-${chapter.name}`} className="">
-                      <div 
-                        className="flex items-start py-4 px-4 outline outline-1 outline-neutral-200/40 font-bold bg-neutral-50 text-neutral-600 cursor-pointer hover:bg-neutral-100 transition-colors"
-                        onClick={() => setExpandedChapters(prev => ({
-                          ...prev,
-                          [chapter.chapter_uuid]: !isExpanded
-                        }))}
-                      >
-                        {/* Chevron on the far left, vertically centered with the title */}
-                        <div className="flex flex-col justify-center mr-3 pt-1">
-                          <svg 
-                            className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
-                        {/* Title and badge column */}
-                        <div className="flex flex-col items-start w-full">
-                          <div className="flex items-center flex-wrap mb-1 w-full min-w-0">
-                            {/* Numbered badge */}
-                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-neutral-200 text-neutral-600 text-xs font-semibold mr-2 border border-neutral-300 flex-shrink-0">
-                              {idx + 1}
-                            </span>
-                            <h3 className="text-lg font-bold leading-tight truncate min-w-0 sm:text-base md:text-lg" style={{lineHeight: '1.2'}}>{chapter.name}</h3>
-                            {chapter.is_locked && chapter.offer && (
-                              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
-                                <Lock size={10} />
-                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: chapter.offer.currency }).format(chapter.offer.amount)}
-                              </span>
-                            )}
-                            {chapter.is_locked && !chapter.offer && (
-                              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-semibold">
-                                <Lock size={10} />
-                                {t('course.locked', 'Locked')}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-1 text-sm text-neutral-400 font-normal">
-                            <Layers size={16} className="mr-1" />
-                            <span>{chapter.activities.length} {t('activities.activities')}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className={`transition-all duration-200 ${isExpanded ? 'block' : 'hidden'}`}>
-                        <div className="">
-                          {chapter.activities.map((activity: any) => {
-                            const locked = !!activity.is_locked
-                            const RowInner = (
-                              <div className="flex space-x-3 items-center">
-                                <div className="flex items-center">
-                                  {locked ? (
-                                    <div className="text-rose-400">
-                                      <Lock size={14} className="stroke-[2]" />
-                                    </div>
-                                  ) : isActivityDone(activity) ? (
-                                    <div className="relative cursor-pointer">
-                                      <Square size={16} className="stroke-[2] text-teal-600" />
-                                      <Check size={16} className="stroke-[2.5] text-teal-600 absolute top-0 left-0" />
-                                    </div>
-                                  ) : (
-                                    <div className="text-neutral-300 cursor-pointer">
-                                      <Square size={16} className="stroke-[2]" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex flex-col grow">
-                                  <div className="flex items-center space-x-2 w-full">
-                                    <p className={`font-semibold transition-colors ${locked ? 'text-neutral-400' : 'text-neutral-600 group-hover:text-neutral-800'}`}>{activity.name}</p>
-                                    {locked && activity.offer && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
-                                        <Lock size={10} />
-                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.offer.currency }).format(activity.offer.amount)}
-                                      </span>
-                                    )}
-                                    {locked && !activity.offer && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-semibold">
-                                        <Lock size={10} />
-                                        {t('course.locked', 'Locked')}
-                                      </span>
-                                    )}
-                                    {!locked && isActivityCurrent(activity) && (
-                                      <div className="flex items-center space-x-1 text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-xs font-semibold animate-pulse">
-                                        <span>{t('activities.current')}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center space-x-1.5 mt-0.5 text-neutral-400">
-                                    {activity.activity_type === 'TYPE_DYNAMIC' && (
-                                      <StickyNote size={10} />
-                                    )}
-                                    {activity.activity_type === 'TYPE_VIDEO' && (
-                                      <Video size={10} />
-                                    )}
-                                    {activity.activity_type === 'TYPE_DOCUMENT' && (
-                                      <File size={10} />
-                                    )}
-                                    {activity.activity_type === 'TYPE_ASSIGNMENT' && (
-                                      <Backpack size={10} />
-                                    )}
-                                    <span className="text-xs font-medium">{getActivityTypeLabel(activity.activity_type)}</span>
-                                  </div>
-                                </div>
-                                <div className={`transition-colors ${locked ? 'text-neutral-200' : 'text-neutral-300 group-hover:text-neutral-400 cursor-pointer'}`}>
-                                  <ArrowRight size={14} />
-                                </div>
-                              </div>
-                            )
+              {/* Right column — cover + price/CTA (desktop only) + what you'll learn */}
+              <div className='course_metadata_right w-full md:w-[38%] space-y-4'>
+                {/* Cover image + Actions box — hidden on mobile; CourseActionsMobile's
+                    fixed bottom bar takes over there instead (without the cover image). */}
+                <div className="hidden md:block space-y-3">
+                  {renderCourseCover()}
+                  <CoursesActions courseuuid={courseuuid} orgslug={orgslug} course={course} trailData={trailData} />
+                </div>
 
-                            if (locked && activity.offer) {
-                              return (
-                                <Link
-                                  key={activity.activity_uuid}
-                                  href={getUriWithOrg(orgslug, `/store/offers/${activity.offer.offer_id}`)}
-                                  prefetch={false}
-                                  className="block group activity-container transition-all duration-200 px-4 py-4"
-                                  title={t('course.activity_locked_offer_hint', 'Purchase access to unlock this.')}
-                                >
-                                  {RowInner}
-                                </Link>
-                              )
-                            }
-
-                            if (locked) {
-                              return (
-                                <div
-                                  key={activity.activity_uuid}
-                                  className="block activity-container px-4 py-4 cursor-not-allowed select-none"
-                                  title={t('course.activity_locked_hint', 'Sign in or join the right user group to unlock this.')}
-                                >
-                                  {RowInner}
-                                </div>
-                              )
-                            }
-
-                            return (
-                              <Link
-                                key={activity.activity_uuid}
-                                href={
-                                  getUriWithOrg(orgslug, '') +
-                                  `/course/${courseuuid}/activity/${activity.activity_uuid.replace('activity_', '')}`
-                                }
-                                rel="noopener noreferrer"
-                                prefetch={false}
-                                className="block group activity-container transition-all duration-200 px-4 py-4"
-                                onMouseEnter={() => handleActivityMouseEnter(activity)}
-                              >
-                                {RowInner}
-                              </Link>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                {renderLearnings()}
               </div>
             </div>
 
@@ -701,9 +703,15 @@ const CourseClient = (props: any) => {
             <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg mt-4" />}>
               <CourseCommunitySection courseUuid={course.course_uuid} orgslug={orgslug} />
             </Suspense>
+
+            {/* Other courses on this site — only for signed-in visitors */}
+            <RelatedCoursesCarousel orgslug={orgslug} currentCourseUuid={course.course_uuid} />
+
+            {/* Spacer so the fixed mobile price bar never covers the tail of the page content. */}
+            <div className="h-24 md:hidden" />
           </GeneralWrapperStyled>
 
-          {/* Mobile Actions Box */}
+          {/* Mobile Actions Box — fixed to the bottom of the viewport */}
           {isMobile && (
             <CourseActionsMobile courseuuid={courseuuid} orgslug={orgslug} course={course} trailData={trailData} />
           )}
