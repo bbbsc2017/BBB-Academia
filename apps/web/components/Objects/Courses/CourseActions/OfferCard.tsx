@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, RefreshCcw, SquareCheck, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowRight, RefreshCcw, ShoppingCart, SquareCheck, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { getUriWithOrg } from '@services/config/config'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
@@ -100,11 +100,8 @@ export function OfferCard({ offer, orgslug }: OfferCardProps) {
             currency: offer.currency,
           })}
         >
-          <div className={`mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-sm transition-colors cursor-pointer ${
-            isSubscription
-              ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-              : 'bg-gray-900 hover:bg-gray-800 text-white'
-          }`}>
+          <div className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-sm transition-colors cursor-pointer bg-[#00a9bf] hover:bg-[#008da0] text-white">
+            {isSubscription ? <RefreshCcw size={14} /> : <ShoppingCart size={14} />}
             {isSubscription ? 'Subscribe now' : 'Get access'}
             <ArrowRight size={13} />
           </div>

@@ -215,13 +215,20 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
   }
 
   if (isLoading) {
-    return <div className="animate-pulse h-16 bg-gray-100 rounded-lg mt-4 mb-8" />
+    return (
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pt-3 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+        <div className="animate-pulse h-16 bg-gray-100 rounded-lg" />
+      </div>
+    )
   }
 
   // Show join organization prompt for authenticated users who are not part of the org
   if (session.data?.user && !isUserPartOfTheOrg) {
     return (
-      <div className="bg-white/90 backdrop-blur-sm shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden p-4 my-6 mx-2">
+      <div
+        className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+      >
         <div className="flex flex-col space-y-3">
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-center gap-2">
@@ -258,7 +265,10 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
     });
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden p-4 my-6 mx-2">
+    <div
+      className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+    >
       <div className="flex flex-col space-y-4">
         <MultipleAuthors authors={sortedAuthors} />
         
@@ -315,7 +325,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
                         amount: offer.amount,
                         currency: offer.currency,
                       })}
-                      className="w-full py-2 px-4 rounded-lg bg-neutral-900 text-white font-semibold text-sm hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-2 px-4 rounded-lg bg-[#00a9bf] text-white font-semibold text-sm hover:bg-[#008da0] transition-colors flex items-center justify-center gap-2"
                     >
                       <ShoppingCart className="w-4 h-4" />
                       {formattedPrice ? `Get Access — ${formattedPrice}` : 'Purchase Course'}
