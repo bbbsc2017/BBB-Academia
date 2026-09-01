@@ -490,6 +490,12 @@ const CourseClient = (props: any) => {
               />
             </div>
 
+            {/* Mobile-only banner — below the title, above the description.
+                On desktop the cover lives inside the right-column price box instead. */}
+            <div className="md:hidden mb-4">
+              {renderCourseCover()}
+            </div>
+
             <div className="flex flex-col md:flex-row gap-8 pt-2">
               {/* Left column — banner/description + lessons */}
               <div className="w-full md:w-[62%] space-y-4">
