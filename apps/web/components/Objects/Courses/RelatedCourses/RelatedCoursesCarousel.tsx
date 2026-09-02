@@ -37,7 +37,12 @@ function RelatedCoursesCarousel({ orgslug, currentCourseUuid }: RelatedCoursesCa
   return (
     <div className="w-full mt-8 mb-4">
       <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.other_courses', 'Other courses')}</h2>
-      <div className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1 snap-x snap-mandatory">
+      {/* Setting overflow-x forces the browser to also clip overflow-y (CSS
+          spec: an element can't be "scroll on x, visible on y") — so the
+          card's shadow/hover-lift (see CourseThumbnail's shadow + hover:-translate-y-1)
+          got cut off top and bottom. Generous py padding gives them room
+          inside the clipping box instead. */}
+      <div className="flex gap-4 overflow-x-auto pt-3 pb-8 -mx-1 px-1 snap-x snap-mandatory">
         {otherCourses.map((c) => (
           <div key={c.course_uuid} className="w-[260px] md:w-[280px] flex-shrink-0 snap-start">
             <CourseThumbnail course={c} orgslug={orgslug} />
