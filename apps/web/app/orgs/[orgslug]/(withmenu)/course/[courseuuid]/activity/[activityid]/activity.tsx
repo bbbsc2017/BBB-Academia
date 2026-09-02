@@ -419,13 +419,18 @@ function ActivityClient(props: ActivityClientProps) {
     else if (activity.activity_type == 'TYPE_ASSIGNMENT') {
       setMarkStatusButtonActive(false);
       setBgColor(isFocusMode ? 'bg-white' : 'bg-white nice-shadow');
-      getAssignmentUI();
+      // Wait for the access token — if `activity` resolves before the session
+      // does, fetching here with an undefined token 401s and, since
+      // access_token wasn't a dependency, never retried once the token
+      // arrived (assignment_object — including due_date — stayed empty for
+      // the rest of the page's life).
+      if (access_token) getAssignmentUI();
     }
     else {
       setBgColor(isFocusMode ? 'bg-zinc-950' : 'bg-zinc-950 nice-shadow');
     }
   }
-    , [activity, pathname, isFocusMode])
+    , [activity, pathname, isFocusMode, access_token])
 
   if (courseLoading || !course) {
     return (

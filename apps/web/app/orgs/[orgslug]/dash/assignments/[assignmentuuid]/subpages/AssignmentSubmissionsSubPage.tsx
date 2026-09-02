@@ -436,7 +436,7 @@ function SubmissionRow({
                                 ? `@${user.username}`
                                 : '...'}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                    <p className="text-xs text-gray-400 truncate">{user?.email || '...'}</p>
                 </div>
             </div>
 
