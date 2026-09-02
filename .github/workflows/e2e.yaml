@@ -46,13 +46,23 @@ jobs:
         working-directory: apps/e2e
         run: bunx playwright install --with-deps chromium
 
-      - name: Run E2E suite (all feature modules)
+      # SCORM is excluded here: every spec in features/scorm documents itself
+      # as "Requires Enterprise Edition — run against a `dev --ee` / EE stack"
+      # (see e.g. features/scorm/tests/01-import-and-track.spec.ts). This
+      # workflow installs the plain published OSS image via the CLI with no
+      # `--ee` flag and no `ee/` package present, so the backend never mounts
+      # `/scorm/*` at all (see apps/api/src/core/ee_hooks.py — SCORM's router
+      # only registers through register_ee_routers, unlike payments which was
+      # migrated to be a first-class OSS module). Running those specs here
+      # isn't a flaky/fixable test — the feature is structurally absent from
+      # this build, so they'd 404 on their very first request every time.
+      - name: Run E2E suite (OSS feature modules)
         working-directory: apps/e2e
         env:
           E2E_CLI: node ${{ github.workspace }}/apps/cli/dist/bin/learnhouse.js
           E2E_ADMIN_PASSWORD: E2eTestAdmin!234
           E2E_PORT: '8080'
-        run: bun run test
+        run: bun run test features/assignments features/payments
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
