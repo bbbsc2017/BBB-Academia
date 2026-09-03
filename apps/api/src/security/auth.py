@@ -1,19 +1,25 @@
-from typing import Optional, Union
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
-from src.core.events.database import get_db_session
-from src.db.users import AnonymousUser, APITokenUser, PublicUser, SuperadminAPITokenUser, User, UserRead
-from src.services.users.users import security_get_user
-from config.config import get_learnhouse_config
-from pydantic import BaseModel
+from datetime import UTC, datetime, timedelta
+
+import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from jwt.exceptions import PyJWTError
-from datetime import datetime, timedelta, timezone
-from src.services.users.users import security_verify_password
-from src.security.security import ALGORITHM, SECRET_KEY, security_hash_password
+from pydantic import BaseModel
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
+from config.config import get_learnhouse_config
+from src.core.events.database import get_db_session
+from src.db.users import (
+    AnonymousUser,
+    APITokenUser,
+    PublicUser,
+    SuperadminAPITokenUser,
+    User,
+    UserRead,
+)
+from src.security.security import ALGORITHM, SECRET_KEY, security_hash_password
+from src.services.users.users import security_get_user, security_verify_password
 
 # SECURITY: Pre-computed Argon2 hash of an unknown password. Verifying a
 # submitted password against this hash takes roughly the same wall-clock time
@@ -27,7 +33,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 def resolve_acting_user_id(
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
 ) -> int:
     """Return the real user id behind an authenticated principal.
 
@@ -53,7 +59,7 @@ JWT_COOKIE_DOMAIN = get_learnhouse_config().hosting_config.cookie_config.domain
 JWT_COOKIE_NAME = "LH_access"
 
 
-def extract_jwt_from_request(request: Request) -> Optional[str]:
+def extract_jwt_from_request(request: Request) -> str | None:
     """Extract JWT token from Authorization header or cookies.
 
     Authorization header takes precedence over cookies to ensure
@@ -72,7 +78,7 @@ def extract_jwt_from_request(request: Request) -> Optional[str]:
     return None
 
 
-def decode_jwt(token: str) -> Optional[dict]:
+def decode_jwt(token: str) -> dict | None:
     """
     Decode and validate a JWT token.
 
@@ -179,7 +185,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     which can work on tokens missing an issuance timestamp.
     """
     to_encode = data.copy()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if expires_delta:
         expire = now + expires_delta
     else:
@@ -204,7 +210,7 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
     """
     import secrets as _secrets
     to_encode = data.copy()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if expires_delta:
         expire = now + expires_delta
     else:
@@ -232,14 +238,14 @@ def _get_revocation_redis_client():
         return None
 
 
-def revoke_user_sessions_before(user_id: int, cutoff: Optional[datetime] = None) -> bool:
+def revoke_user_sessions_before(user_id: int, cutoff: datetime | None = None) -> bool:
     """
     Record that any JWT for ``user_id`` issued strictly before ``cutoff`` (or
     now, if omitted) must be rejected by :func:`get_current_user`. Safe to
     call on every logout; the key is written with a TTL that matches the
     longest possible session so old keys garbage-collect themselves.
     """
-    ts = (cutoff or datetime.now(timezone.utc)).replace(microsecond=0)
+    ts = (cutoff or datetime.now(UTC)).replace(microsecond=0)
     r = _get_revocation_redis_client()
     if r is None:
         return False
@@ -254,7 +260,7 @@ def revoke_user_sessions_before(user_id: int, cutoff: Optional[datetime] = None)
         return False
 
 
-def _is_token_revoked_for_user(user_id: int, token_iat: Optional[datetime]) -> bool:
+def _is_token_revoked_for_user(user_id: int, token_iat: datetime | None) -> bool:
     if token_iat is None:
         # Without ``iat`` we cannot compare — treat as potentially revoked only
         # if the user has an active revocation key. This prevents pre-upgrade
@@ -284,7 +290,7 @@ def _is_token_revoked_for_user(user_id: int, token_iat: Optional[datetime]) -> b
     return int(token_iat.timestamp()) < cutoff_ts
 
 
-def decode_refresh_token(token: str) -> Optional[dict]:
+def decode_refresh_token(token: str) -> dict | None:
     """
     Decode and validate a refresh JWT token.
 
@@ -369,7 +375,7 @@ def _store_refresh_grace(
         return
 
 
-def _get_refresh_grace(user_id: int, jti: str) -> Optional[dict]:
+def _get_refresh_grace(user_id: int, jti: str) -> dict | None:
     """Return the cached rotated pair for a recently-consumed ``jti`` (issued
     within the grace window), or ``None`` if there is no live grace entry."""
     r = _get_revocation_redis_client()
@@ -443,7 +449,7 @@ async def _verify_api_token_org_boundary(
 async def get_current_user(
     request: Request,
     db_session: AsyncSession = Depends(get_db_session),
-) -> Union[PublicUser, APITokenUser, SuperadminAPITokenUser, AnonymousUser]:
+) -> PublicUser | APITokenUser | SuperadminAPITokenUser | AnonymousUser:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -518,10 +524,10 @@ async def get_current_user(
             raise credentials_exception
 
         token_iat_raw = payload.get("iat") if token else None
-        issued_at: Optional[datetime] = None
+        issued_at: datetime | None = None
         if token_iat_raw:
             try:
-                issued_at = datetime.fromtimestamp(token_iat_raw, tz=timezone.utc)
+                issued_at = datetime.fromtimestamp(token_iat_raw, tz=UTC)
             except (TypeError, ValueError, OSError, OverflowError):
                 issued_at = None
 
@@ -530,7 +536,7 @@ async def get_current_user(
         pca_raw = getattr(user, "password_changed_at", None)
         if isinstance(pca_raw, datetime) and issued_at is not None:
             if pca_raw.tzinfo is None:
-                pca = pca_raw.replace(tzinfo=timezone.utc)
+                pca = pca_raw.replace(tzinfo=UTC)
             else:
                 pca = pca_raw
             if issued_at < pca:
@@ -558,7 +564,7 @@ async def non_public_endpoint(current_user: UserRead | AnonymousUser):
 async def get_authenticated_user(
     request: Request,
     db_session: AsyncSession = Depends(get_db_session),
-) -> Union[PublicUser, APITokenUser, SuperadminAPITokenUser]:
+) -> PublicUser | APITokenUser | SuperadminAPITokenUser:
     """
     Dependency that requires authentication.
 
@@ -586,7 +592,7 @@ async def get_authenticated_user(
 async def validate_api_token(
     token: str,
     db_session: AsyncSession,
-) -> Optional[APITokenUser]:
+) -> APITokenUser | None:
     """
     Validate an API token and return an APITokenUser if valid.
 
@@ -640,7 +646,7 @@ async def validate_api_token(
 async def validate_superadmin_api_token(
     token: str,
     db_session: AsyncSession,
-) -> Optional[SuperadminAPITokenUser]:
+) -> SuperadminAPITokenUser | None:
     """Validate a cross-org superadmin API token (lh_sa_...).
 
     Returns a SuperadminAPITokenUser principal on success, None otherwise.

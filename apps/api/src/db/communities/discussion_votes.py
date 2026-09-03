@@ -1,4 +1,4 @@
-from typing import Optional
+
 from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
@@ -13,7 +13,7 @@ class DiscussionVote(DiscussionVoteBase, table=True):
         UniqueConstraint("discussion_id", "user_id", name="unique_discussion_user_vote"),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     discussion_id: int = Field(
         sa_column=Column(Integer, ForeignKey("discussion.id", ondelete="CASCADE"))
     )

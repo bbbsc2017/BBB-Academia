@@ -1,7 +1,7 @@
 """Router tests for src/routers/content_files.py."""
 
-from types import SimpleNamespace
 import urllib.parse
+from types import SimpleNamespace
 
 import pytest
 from fastapi import FastAPI
@@ -10,7 +10,7 @@ from httpx import ASGITransport, AsyncClient
 from src.core.events.database import get_db_session
 from src.db.courses.courses import Course
 from src.db.podcasts.podcasts import Podcast
-from src.db.users import APITokenUser, AnonymousUser, PublicUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.routers import content_files
 from src.routers.content_files import router as content_files_router
 from src.security.auth import get_current_user
@@ -180,7 +180,7 @@ class TestContentFilesRouter:
 
         with pytest.raises(Exception) as not_found:
             await content_files._check_content_access(
-                "orgs/%s/courses/missing/activities/a/video.mp4" % org.org_uuid,
+                f"orgs/{org.org_uuid}/courses/missing/activities/a/video.mp4",
                 admin_user,
                 db,
             )

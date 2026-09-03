@@ -16,7 +16,7 @@ served*, mirroring the on-disk/R2 layout.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 _SEGMENT_SUFFIXES = (".ts", ".m4s", ".mp4")
 _PLAYLIST_SUFFIXES = (".m3u8",)

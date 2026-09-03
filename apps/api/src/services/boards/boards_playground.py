@@ -1,15 +1,16 @@
-from typing import Optional, AsyncGenerator
-from uuid import uuid4
-import logging
-import redis
 import json
+import logging
+from collections.abc import AsyncGenerator
+from uuid import uuid4
+
+import redis
 
 from config.config import get_learnhouse_config
 from src.services.ai.llm import generate_stream, model_for_tier
 from src.services.boards.schemas.boards_playground import (
     BoardsPlaygroundContext,
-    BoardsPlaygroundSessionData,
     BoardsPlaygroundMessage,
+    BoardsPlaygroundSessionData,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ def get_redis_connection():
     return None
 
 
-def get_boards_playground_session(session_uuid: str) -> Optional[BoardsPlaygroundSessionData]:
+def get_boards_playground_session(session_uuid: str) -> BoardsPlaygroundSessionData | None:
     r = get_redis_connection()
     if not r:
         return None
@@ -149,8 +150,8 @@ async def generate_boards_playground_stream(
     prompt: str,
     session: BoardsPlaygroundSessionData,
     model_name: str = "",
-    current_html: Optional[str] = None,
-) -> AsyncGenerator[str, None]:
+    current_html: str | None = None,
+) -> AsyncGenerator[str]:
     try:
         system_prompt = build_boards_playground_system_prompt(session.context)
 
@@ -200,7 +201,7 @@ Please modify the HTML code above according to the user's request. Output ONLY t
         save_boards_playground_session(session)
 
     except Exception as e:
-        yield f"Error: {str(e)}"
+        yield f"Error: {e!s}"
 
 
 def extract_html_from_response(response: str) -> str:

@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import base64
 import logging
-from typing import Any, AsyncGenerator, Optional, Sequence, Type, Union
+from collections.abc import AsyncGenerator, Sequence
+from typing import Any
 
 from pydantic_ai import Agent
 from pydantic_ai.messages import (
@@ -34,7 +35,7 @@ DEFAULT_TIMEOUT = 60.0
 STREAM_TIMEOUT = 90.0
 
 # A single user turn: a prompt string plus optional multimodal parts (images/docs/video).
-UserPrompt = Union[str, Sequence[Any]]
+UserPrompt = str | Sequence[Any]
 
 
 def to_message_history(stored: Any) -> list[ModelMessage]:
@@ -100,7 +101,7 @@ def attachments_to_parts(attachments: Any) -> list:
 
 
 def _settings(
-    max_tokens: Optional[int], temperature: Optional[float], timeout: float
+    max_tokens: int | None, temperature: float | None, timeout: float
 ) -> ModelSettings:
     settings: dict = {"timeout": timeout}
     if max_tokens is not None:
@@ -110,7 +111,7 @@ def _settings(
     return ModelSettings(**settings)
 
 
-def _agent(model_name: str, system_prompt: Optional[str], output_type: Any) -> Agent:
+def _agent(model_name: str, system_prompt: str | None, output_type: Any) -> Agent:
     return Agent(
         build_model(model_name),
         output_type=output_type,
@@ -122,11 +123,11 @@ async def generate(
     *,
     model_name: str,
     user_prompt: UserPrompt,
-    system_prompt: Optional[str] = None,
+    system_prompt: str | None = None,
     history: Any = None,
-    output_type: Type[Any] = str,
-    max_tokens: Optional[int] = None,
-    temperature: Optional[float] = None,
+    output_type: type[Any] = str,
+    max_tokens: int | None = None,
+    temperature: float | None = None,
     timeout: float = DEFAULT_TIMEOUT,
 ) -> Any:
     """Run a single (non-streaming) generation.
@@ -147,12 +148,12 @@ async def generate_stream(
     *,
     model_name: str,
     user_prompt: UserPrompt,
-    system_prompt: Optional[str] = None,
+    system_prompt: str | None = None,
     history: Any = None,
-    max_tokens: Optional[int] = None,
-    temperature: Optional[float] = None,
+    max_tokens: int | None = None,
+    temperature: float | None = None,
     timeout: float = STREAM_TIMEOUT,
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str]:
     """Stream text deltas for a single generation, yielding chunks as they arrive."""
     agent = _agent(model_name, system_prompt, str)
     async with agent.run_stream(

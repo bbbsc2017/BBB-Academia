@@ -1,5 +1,5 @@
+
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 class BoardsPlaygroundContext(BaseModel):
@@ -19,7 +19,7 @@ class SendBoardsPlaygroundMessage(BaseModel):
     board_uuid: str
     block_uuid: str
     message: str
-    current_html: Optional[str] = None
+    current_html: str | None = None
 
 
 class BoardsPlaygroundMessage(BaseModel):
@@ -31,8 +31,8 @@ class BoardsPlaygroundSessionResponse(BaseModel):
     session_uuid: str
     iteration_count: int
     max_iterations: int
-    html_content: Optional[str]
-    message_history: List[BoardsPlaygroundMessage]
+    html_content: str | None
+    message_history: list[BoardsPlaygroundMessage]
 
 
 class BoardsPlaygroundSessionData(BaseModel):
@@ -41,6 +41,6 @@ class BoardsPlaygroundSessionData(BaseModel):
     board_uuid: str
     iteration_count: int
     max_iterations: int
-    message_history: List[BoardsPlaygroundMessage]
-    current_html: Optional[str]
+    message_history: list[BoardsPlaygroundMessage]
+    current_html: str | None
     context: BoardsPlaygroundContext

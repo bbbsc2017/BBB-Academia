@@ -1,36 +1,45 @@
 import hmac
 import os
-from typing import List
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, UploadFile, File
 
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+)
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.boards import (
     BoardCreate,
+    BoardMemberBatchCreate,
+    BoardMemberCreate,
+    BoardMemberRead,
     BoardRead,
     BoardUpdate,
-    BoardMemberCreate,
-    BoardMemberBatchCreate,
-    BoardMemberRead,
 )
 from src.db.users import PublicUser
 from src.security.auth import get_current_user
 from src.security.features_utils.dependencies import require_boards_feature
 from src.services.boards.boards import (
-    create_board,
-    get_board,
-    get_boards_by_org,
-    update_board,
-    duplicate_board,
-    delete_board,
     add_board_member,
     add_board_members_batch,
-    remove_board_member,
     check_board_membership,
+    create_board,
+    delete_board,
+    duplicate_board,
+    get_board,
     get_board_members,
-    update_board_thumbnail,
+    get_boards_by_org,
     get_ydoc_state,
+    remove_board_member,
     store_ydoc_state,
+    update_board,
+    update_board_thumbnail,
 )
 
 router = APIRouter(dependencies=[Depends(require_boards_feature)])
@@ -70,11 +79,11 @@ async def api_create_board(
 
 @router.get(
     "/org/{org_id}",
-    response_model=List[BoardRead],
+    response_model=list[BoardRead],
     summary="List boards for an organization",
     description="List all boards in the given organization that the current user is a member of or allowed to see.",
     responses={
-        200: {"description": "List of boards accessible to the current user.", "model": List[BoardRead]},
+        200: {"description": "List of boards accessible to the current user.", "model": list[BoardRead]},
         401: {"description": "Authentication required"},
         403: {"description": "Access denied to this organization"},
     },
@@ -84,7 +93,7 @@ async def api_get_boards_by_org(
     org_id: int,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[BoardRead]:
+) -> list[BoardRead]:
     return await get_boards_by_org(request, org_id, current_user, db_session)
 
 
@@ -174,11 +183,11 @@ async def api_delete_board(
 
 @router.get(
     "/{board_uuid}/members",
-    response_model=List[BoardMemberRead],
+    response_model=list[BoardMemberRead],
     summary="List board members",
     description="Return the list of members on a given board. The current user must be a member of the board.",
     responses={
-        200: {"description": "List of board members.", "model": List[BoardMemberRead]},
+        200: {"description": "List of board members.", "model": list[BoardMemberRead]},
         401: {"description": "Authentication required"},
         403: {"description": "Not a member of this board"},
         404: {"description": "Board not found"},
@@ -189,7 +198,7 @@ async def api_get_board_members(
     board_uuid: str,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[BoardMemberRead]:
+) -> list[BoardMemberRead]:
     return await get_board_members(request, board_uuid, current_user, db_session)
 
 
@@ -241,11 +250,11 @@ async def api_add_board_member(
 
 @router.post(
     "/{board_uuid}/members/batch",
-    response_model=List[BoardMemberRead],
+    response_model=list[BoardMemberRead],
     summary="Add multiple members to a board",
     description="Add several users as members of a board in a single request. The current user must have permission to manage board members.",
     responses={
-        200: {"description": "Members added to board.", "model": List[BoardMemberRead]},
+        200: {"description": "Members added to board.", "model": list[BoardMemberRead]},
         401: {"description": "Authentication required"},
         403: {"description": "Board member limit reached or insufficient permissions"},
         404: {"description": "Board not found"},
@@ -257,7 +266,7 @@ async def api_add_board_members_batch(
     batch_object: BoardMemberBatchCreate,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[BoardMemberRead]:
+) -> list[BoardMemberRead]:
     return await add_board_members_batch(request, board_uuid, batch_object, current_user, db_session)
 
 

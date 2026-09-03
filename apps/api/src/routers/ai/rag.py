@@ -6,36 +6,40 @@ Provides streaming chatbot grounded in course content and manual re-index trigge
 
 import json
 import logging
-from typing import Literal, Optional
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlmodel import select
-
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.courses.courses import Course
 from src.db.organization_config import OrganizationConfig
 from src.db.organizations import Organization
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
-from src.security.auth import get_current_user, get_authenticated_user, resolve_acting_user_id
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.auth import (
+    get_authenticated_user,
+    get_current_user,
+    resolve_acting_user_id,
+)
 from src.security.features_utils.usage import reserve_ai_credit
 from src.security.org_auth import is_org_member, require_org_admin
 from src.services.ai.base import (
-    get_chat_session_history,
-    save_message_to_history,
-    generate_follow_up_suggestions,
-    generate_chat_title,
-    get_user_chat_sessions,
-    get_chat_messages,
-    delete_chat_session,
-    update_chat_session_meta,
     chat_session_belongs_to_user,
+    delete_chat_session,
+    generate_chat_title,
+    generate_follow_up_suggestions,
+    get_chat_messages,
+    get_chat_session_history,
+    get_user_chat_sessions,
+    save_message_to_history,
+    update_chat_session_meta,
 )
+from src.services.ai.llm import model_for_tier
 from src.services.ai.rag.embedding_service import embed_course_content
 from src.services.ai.rag.query_service import query_course_rag_stream
-from src.services.ai.llm import model_for_tier
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +53,10 @@ router = APIRouter()
 
 class RAGChatRequest(BaseModel):
     message: str
-    course_uuid: Optional[str] = None
-    aichat_uuid: Optional[str] = None
+    course_uuid: str | None = None
+    aichat_uuid: str | None = None
     mode: Literal["course_only", "general"] = "course_only"
-    org_slug: Optional[str] = None
+    org_slug: str | None = None
 
 
 class RAGIndexRequest(BaseModel):
@@ -76,11 +80,11 @@ async def rag_chat_event_generator(
     sources: list[dict],
     context_text: str,
     ai_model: str,
-    user_id: Optional[int] = None,
-    course_uuid: Optional[str] = None,
+    user_id: int | None = None,
+    course_uuid: str | None = None,
     is_new_session: bool = False,
     mode: str = "course_only",
-    org_id: Optional[int] = None,
+    org_id: int | None = None,
 ):
     """Convert async generator to SSE format with source references."""
     from src.security.features_utils.usage import refund_ai_credit
@@ -343,7 +347,7 @@ async def api_rag_index(
 async def api_rag_sessions(
     current_user: PublicUser | AnonymousUser | APITokenUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-    org_slug: Optional[str] = None,
+    org_slug: str | None = None,
 ):
     """List all chat sessions for the current user, optionally filtered by org."""
     org_id = None
@@ -400,8 +404,8 @@ async def api_rag_session_delete(
 
 
 class RAGSessionUpdateRequest(BaseModel):
-    title: Optional[str] = None
-    favorite: Optional[bool] = None
+    title: str | None = None
+    favorite: bool | None = None
 
 
 @router.patch(

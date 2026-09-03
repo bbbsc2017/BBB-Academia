@@ -1,9 +1,10 @@
 import pytest
 from fastapi import HTTPException
+
 from src.security.rbac.utils import (
     check_element_type,
-    get_singular_form_of_element,
     get_id_identifier_of_element,
+    get_singular_form_of_element,
 )
 
 

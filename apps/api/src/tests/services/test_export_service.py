@@ -240,14 +240,13 @@ class TestExportCoursesBatchValidation:
         with patch(
             "src.services.courses.transfer.export_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await export_courses_batch(
-                    mock_request,
-                    [course.course_uuid, other_course.course_uuid],
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await export_courses_batch(
+                mock_request,
+                [course.course_uuid, other_course.course_uuid],
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 400
         assert exc_info.value.detail == "All courses must belong to the same organization"
@@ -553,9 +552,8 @@ class TestBuildExportZip:
         ), patch(
             "src.services.courses.transfer.export_service.list_directory",
             side_effect=RuntimeError("boom"),
-        ):
-            with pytest.raises(RuntimeError, match="boom"):
-                _build_export_zip([("course-1", "Course 1", {}, [])], "org-1")
+        ), pytest.raises(RuntimeError, match="boom"):
+            _build_export_zip([("course-1", "Course 1", {}, [])], "org-1")
 
         assert not zip_path.exists()
 
@@ -596,13 +594,12 @@ class TestExportDirectoryToZip:
         ), patch(
             "src.services.courses.transfer.export_service.read_file_content",
             side_effect=_read_file_content,
-        ):
-            with zipfile.ZipFile(buffer, "w") as zip_file:
-                _export_directory_to_zip(
-                    zip_file,
-                    "content/orgs/org-1/courses/course-1/activities/activity-1",
-                    "courses/course-1/chapters/chapter-1/activities/activity-1/files",
-                )
+        ), zipfile.ZipFile(buffer, "w") as zip_file:
+            _export_directory_to_zip(
+                zip_file,
+                "content/orgs/org-1/courses/course-1/activities/activity-1",
+                "courses/course-1/chapters/chapter-1/activities/activity-1/files",
+            )
 
         with zipfile.ZipFile(buffer) as zip_file:
             assert set(zip_file.namelist()) == {

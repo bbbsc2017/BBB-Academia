@@ -1,11 +1,11 @@
-from typing import Tuple
-import hashlib
 import base64
+import hashlib
 import secrets
+
 from pwdlib import PasswordHash
 from pwdlib.hashers.argon2 import Argon2Hasher
-from config.config import get_learnhouse_config
 
+from config.config import get_learnhouse_config
 
 ### 🔒 JWT ##############################################################
 
@@ -115,7 +115,7 @@ def security_verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
-def security_verify_and_update_password(plain_password: str, hashed_password: str) -> Tuple[bool, str | None]:
+def security_verify_and_update_password(plain_password: str, hashed_password: str) -> tuple[bool, str | None]:
     """
     Verify a password and return a new hash if the current one uses a deprecated algorithm.
 

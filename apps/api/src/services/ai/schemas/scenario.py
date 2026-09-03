@@ -8,7 +8,6 @@ Using refs (not real ids) keeps the branching valid regardless of how the model
 orders nodes.
 """
 
-from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -16,19 +15,19 @@ from pydantic import BaseModel, Field
 class GenScenarioOption(BaseModel):
     text: str
     # The ref of the scenario this option leads to; null/empty ends the scenario.
-    next_ref: Optional[str] = None
+    next_ref: str | None = None
 
 
 class GenScenario(BaseModel):
     # Short stable label the AI uses to link nodes (e.g. "s1", "start", "win").
     ref: str
     text: str
-    options: List[GenScenarioOption] = Field(default_factory=list)
+    options: list[GenScenarioOption] = Field(default_factory=list)
 
 
 class GeneratedScenarioSet(BaseModel):
     title: str = "Interactive Scenario"
-    scenarios: List[GenScenario] = Field(default_factory=list)
+    scenarios: list[GenScenario] = Field(default_factory=list)
 
 
 # --- Request / response ---
@@ -36,8 +35,8 @@ class GeneratedScenarioSet(BaseModel):
 class GenerateScenarioRequest(BaseModel):
     org_id: int
     prompt: str
-    activity_uuid: Optional[str] = None
-    session_uuid: Optional[str] = None
+    activity_uuid: str | None = None
+    session_uuid: str | None = None
     num_scenarios: int = 5
 
 
@@ -50,7 +49,7 @@ class GenerateScenarioResponse(BaseModel):
 
 class AIScenarioHistoryItem(BaseModel):
     ai_generation_uuid: str
-    session_uuid: Optional[str] = None
+    session_uuid: str | None = None
     prompt: str
     scenario: dict
-    creation_date: Optional[str] = None
+    creation_date: str | None = None

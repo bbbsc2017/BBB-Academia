@@ -18,6 +18,7 @@ from src.db.courses.assignments import (
     GradingTypeEnum,
 )
 
+
 @pytest.fixture
 async def assignment(db, org, course, chapter, activity):
     a = Assignment(

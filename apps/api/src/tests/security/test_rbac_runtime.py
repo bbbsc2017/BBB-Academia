@@ -6,8 +6,18 @@ import pytest
 from fastapi import HTTPException, Request
 from sqlmodel import Field, SQLModel
 
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
-from src.db.roles import DashboardPermission, Permission, PermissionsWithOwn, Rights, Role
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
+from src.db.roles import (
+    DashboardPermission,
+    Permission,
+    PermissionsWithOwn,
+    Rights,
+    Role,
+)
 from src.db.users import APITokenUser
 from src.security.rbac.rbac import (
     _get_offer_for_usergroup,

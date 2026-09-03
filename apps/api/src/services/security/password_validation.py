@@ -9,14 +9,14 @@ Requirements:
 - At least 1 special character
 """
 import re
-from typing import List
+
 from pydantic import BaseModel
 
 
 class PasswordValidationResult(BaseModel):
     """Result of password validation."""
     is_valid: bool
-    errors: List[str]
+    errors: list[str]
     requirements: dict
 
 
@@ -38,7 +38,7 @@ def validate_password_complexity(password: str) -> PasswordValidationResult:
     Returns:
         PasswordValidationResult with validation status and any errors
     """
-    errors: List[str] = []
+    errors: list[str] = []
 
     requirements = {
         "min_length": False,
@@ -87,7 +87,7 @@ def validate_password_complexity(password: str) -> PasswordValidationResult:
     )
 
 
-def get_password_requirements() -> List[dict]:
+def get_password_requirements() -> list[dict]:
     """
     Get list of password requirements for display purposes.
 

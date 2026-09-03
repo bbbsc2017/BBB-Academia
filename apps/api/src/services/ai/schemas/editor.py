@@ -1,4 +1,5 @@
-from typing import Optional, Any
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -7,8 +8,8 @@ class StartEditorAIChatSession(BaseModel):
     activity_uuid: str
     message: str
     current_content: Any  # TipTap JSON content
-    selected_text: Optional[str] = None
-    cursor_position: Optional[int] = None  # Cursor position in editor
+    selected_text: str | None = None
+    cursor_position: int | None = None  # Cursor position in editor
 
 
 class SendEditorAIChatMessage(BaseModel):
@@ -17,15 +18,15 @@ class SendEditorAIChatMessage(BaseModel):
     activity_uuid: str
     message: str
     current_content: Any  # TipTap JSON content
-    selected_text: Optional[str] = None
-    cursor_position: Optional[int] = None  # Cursor position in editor
+    selected_text: str | None = None
+    cursor_position: int | None = None  # Cursor position in editor
 
 
 class EditorModificationRequest(BaseModel):
     """Describes a requested modification to the editor content"""
     action: str  # 'replace', 'insert', 'append', 'delete'
-    target_text: Optional[str] = None
-    position: Optional[str] = None  # 'start', 'end', 'cursor', or specific location
+    target_text: str | None = None
+    position: str | None = None  # 'start', 'end', 'cursor', or specific location
 
 
 class EditorAIChatSessionResponse(BaseModel):
@@ -33,7 +34,7 @@ class EditorAIChatSessionResponse(BaseModel):
     aichat_uuid: str
     activity_uuid: str
     message: str
-    modification: Optional[EditorModificationRequest] = None
+    modification: EditorModificationRequest | None = None
 
 
 # Block Schema Reference for AI System Prompt

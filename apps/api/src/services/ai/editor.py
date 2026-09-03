@@ -1,20 +1,21 @@
-from typing import Dict, Any
+from typing import Any
+
 from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.organizations import Organization
-from src.security.features_utils.usage import reserve_ai_credit
+from src.db.courses.activities import Activity, ActivityRead
 from src.db.courses.courses import Course, CourseRead
+from src.db.organizations import Organization
 from src.db.users import PublicUser
 from src.security.auth import resolve_acting_user_id
-from src.db.courses.activities import Activity, ActivityRead
+from src.security.features_utils.usage import reserve_ai_credit
 from src.services.ai.base import get_chat_session_history
 from src.services.ai.llm import model_for_tier
 from src.services.ai.schemas.editor import (
-    StartEditorAIChatSession,
-    SendEditorAIChatMessage,
     EDITOR_AI_SYSTEM_PROMPT,
+    SendEditorAIChatMessage,
+    StartEditorAIChatSession,
 )
 
 
@@ -109,7 +110,7 @@ async def editor_ai_start_chat_session_stream(
     chat_session_object: StartEditorAIChatSession,
     current_user: PublicUser,
     db_session: AsyncSession,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Start a new AI Editor chat session with streaming response.
     Returns context needed for streaming.
@@ -217,7 +218,7 @@ async def editor_ai_send_message_stream(
     chat_session_object: SendEditorAIChatMessage,
     current_user: PublicUser,
     db_session: AsyncSession,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Send a message in an existing AI Editor chat session with streaming response.
     Returns context needed for streaming.

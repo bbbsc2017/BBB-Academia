@@ -1,18 +1,19 @@
 from fastapi import APIRouter, Depends, File, Request, UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.core.events.database import get_db_session
 from src.db.podcasts.episodes import (
     PodcastEpisodeRead,
     PodcastEpisodeUpdate,
 )
+from src.security.auth import get_current_user
 from src.services.podcasts.episodes import (
+    delete_episode,
     get_episode,
     update_episode,
-    delete_episode,
     upload_episode_audio_file,
     upload_episode_thumbnail_file,
 )
-from src.core.events.database import get_db_session
-from src.security.auth import get_current_user
 
 router = APIRouter()
 

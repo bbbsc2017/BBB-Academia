@@ -1,6 +1,6 @@
 """Tests for src/services/api_tokens/superadmin_api_tokens.py."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi import HTTPException
@@ -192,13 +192,13 @@ class TestValidateForAuth:
         assert result is None
 
     async def test_expired_token_returns_none(self, db):
-        past = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat()
+        past = (datetime.now(UTC) - timedelta(minutes=5)).isoformat()
         _, full = await _seed_token(db, expires_at=past)
         result = await validate_superadmin_token_for_auth(full, db)
         assert result is None
 
     async def test_future_expiry_still_valid(self, db):
-        future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        future = (datetime.now(UTC) + timedelta(days=1)).isoformat()
         _, full = await _seed_token(db, expires_at=future)
         result = await validate_superadmin_token_for_auth(full, db)
         assert result is not None

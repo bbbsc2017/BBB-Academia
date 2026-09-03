@@ -17,13 +17,12 @@ from httpx import ASGITransport, AsyncClient
 from src.core.events.database import get_db_session
 from src.db.media.media import Media
 from src.db.organization_config import OrganizationConfig
-from src.db.usergroups import UserGroup
 from src.db.usergroup_resources import UserGroupResource
+from src.db.usergroups import UserGroup
 from src.routers.orgs.orgs import router as orgs_router
 from src.security.auth import get_authenticated_user, get_current_user
 from src.security.features_utils.dependencies import require_org_admin
 from src.services.users.usergroups import add_resources_to_usergroup
-
 
 # ---------------------------------------------------------------------------
 # 1) usergroups.py media branch (lines 74-75)

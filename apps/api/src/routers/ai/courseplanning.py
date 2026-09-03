@@ -6,42 +6,46 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlmodel import select
-
-from src.db.organizations import Organization
-from src.db.courses.courses import Course
-from src.db.courses.chapters import Chapter
-from src.db.courses.activities import Activity, ActivityTypeEnum, ActivitySubTypeEnum
-from src.db.courses.course_chapters import CourseChapter
-from src.db.courses.chapter_activities import ChapterActivity
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
+from src.db.courses.activities import Activity, ActivitySubTypeEnum, ActivityTypeEnum
+from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.chapters import Chapter
+from src.db.courses.course_chapters import CourseChapter
+from src.db.courses.courses import Course
+from src.db.organizations import Organization
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user, resolve_acting_user_id
-from src.security.org_auth import is_org_member
 from src.security.features_utils.usage import (
     reserve_ai_credit,
 )
-from src.services.ai.llm import resolve_model_for_org, model_for_tier
+from src.security.org_auth import is_org_member
 from src.services.ai.courseplanning import (
-    get_course_planning_session,
-    create_course_planning_session,
-    save_course_planning_session,
-    generate_course_plan_stream,
-    generate_activity_content_stream,
-    MAX_PLANNING_ITERATIONS,
-    MAX_ACTIVITY_ITERATIONS,
     ENABLE_ACTIVITY_CONTENT_GENERATION,
+    MAX_ACTIVITY_ITERATIONS,
+    MAX_PLANNING_ITERATIONS,
+    create_course_planning_session,
+    generate_activity_content_stream,
+    generate_course_plan_stream,
+    get_course_planning_session,
+    save_course_planning_session,
 )
+from src.services.ai.llm import model_for_tier, resolve_model_for_org
 from src.services.ai.schemas.courseplanning import (
-    StartCoursePlanningSession,
-    SendCoursePlanningMessage,
+    CoursePlanningMessage,
+    CoursePlanningSessionResponse,
     FinalizeCoursePlanRequest,
+    FinalizeCoursePlanResponse,
     GenerateActivityContentRequest,
     SaveActivityContentRequest,
-    CoursePlanningSessionResponse,
-    FinalizeCoursePlanResponse,
-    CoursePlanningMessage,
+    SendCoursePlanningMessage,
+    StartCoursePlanningSession,
 )
 
 logger = logging.getLogger(__name__)
@@ -682,7 +686,7 @@ async def save_activity_content(
         import traceback
         logger.error(f"[Save Activity Content] Traceback: {traceback.format_exc()}")
         await db_session.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to save content: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save content: {e!s}")
 
 
 @router.get(

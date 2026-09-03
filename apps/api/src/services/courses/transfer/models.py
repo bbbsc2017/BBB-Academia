@@ -2,7 +2,7 @@
 Pydantic models for course transfer (export/import)
 """
 
-from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -25,7 +25,7 @@ class ImportCourseInfo(BaseModel):
     """Information about a course found in an import package"""
     course_uuid: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     chapters_count: int = 0
     activities_count: int = 0
     has_thumbnail: bool = False
@@ -41,7 +41,7 @@ class ImportAnalysisResponse(BaseModel):
 class ImportOptions(BaseModel):
     """Options for importing courses"""
     course_uuids: list[str]  # Which courses to import from the package
-    name_prefix: Optional[str] = None  # Prefix to add to course names
+    name_prefix: str | None = None  # Prefix to add to course names
     set_private: bool = True  # Make imported courses private
     set_unpublished: bool = True  # Make imported courses unpublished
 
@@ -52,7 +52,7 @@ class ImportCourseResult(BaseModel):
     new_uuid: str
     name: str
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class ImportResult(BaseModel):

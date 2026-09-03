@@ -13,8 +13,9 @@ Development override:
 
 import os
 from typing import Literal
+
 from config.config import get_learnhouse_config
-from src.core.ee_hooks import is_ee_available, get_ee_hooks
+from src.core.ee_hooks import get_ee_hooks, is_ee_available
 
 DeploymentMode = Literal['saas', 'oss', 'ee']
 

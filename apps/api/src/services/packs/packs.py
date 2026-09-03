@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
+
 from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -11,7 +12,7 @@ from src.security.features_utils.usage import (
     _get_redis_client,
     add_ai_credits,
 )
-from src.services.webhooks.dispatch import dispatch_webhooks, _background_tasks
+from src.services.webhooks.dispatch import _background_tasks, dispatch_webhooks
 
 logger = logging.getLogger(__name__)
 

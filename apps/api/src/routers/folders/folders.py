@@ -1,5 +1,6 @@
-from typing import List, Optional
+
 from fastapi import APIRouter, Depends, File, Request, UploadFile
+
 from src.core.events.database import get_db_session
 from src.db.folders.folders import (
     FolderContentItem,
@@ -10,25 +11,24 @@ from src.db.folders.folders import (
     FolderUpdateOrder,
 )
 from src.security.auth import get_current_user
-from src.services.users.users import PublicUser
 from src.services.folders.folders import (
+    add_folder_content,
+    add_org_root_content,
     create_folder,
+    delete_folder,
     get_folder,
     get_folders,
-    update_folder,
-    delete_folder,
-    reorder_folders,
-    reorder_folder_content,
-    add_folder_content,
-    remove_folder_content,
-    move_folder_content,
     get_org_root_items,
-    add_org_root_content,
+    move_folder_content,
+    remove_folder_content,
     remove_org_root_content,
-    upload_folder_thumbnail,
+    reorder_folder_content,
+    reorder_folders,
     search_library,
+    update_folder,
+    upload_folder_thumbnail,
 )
-
+from src.services.users.users import PublicUser
 
 router = APIRouter()
 
@@ -65,7 +65,7 @@ async def api_get_folder(
 
 @router.get(
     "/org/{org_id}/page/{page}/limit/{limit}",
-    response_model=List[FolderRead],
+    response_model=list[FolderRead],
     summary="List folders for org",
     description="List folders for an organization. By default lists root folders; pass `parent_folder_uuid` to list a folder's direct sub-folders.",
 )
@@ -74,10 +74,10 @@ async def api_get_folders_by(
     page: int,
     limit: int,
     org_id: str,
-    parent_folder_uuid: Optional[str] = None,
+    parent_folder_uuid: str | None = None,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> List[FolderRead]:
+) -> list[FolderRead]:
     return await get_folders(
         request, org_id, current_user, db_session, parent_folder_uuid, page, limit
     )
@@ -114,7 +114,7 @@ async def api_reorder_folders(
     request: Request,
     org_id: int,
     order: FolderUpdateOrder,
-    parent_folder_uuid: Optional[str] = None,
+    parent_folder_uuid: str | None = None,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
 ):
@@ -149,7 +149,7 @@ async def api_reorder_folder_content(
 
 @router.get(
     "/org/{org_id}/root",
-    response_model=List[FolderContentItem],
+    response_model=list[FolderContentItem],
     summary="List org library root items",
     description="List the items placed directly at the organization library root (not inside any folder).",
 )
@@ -158,7 +158,7 @@ async def api_get_org_root_items(
     org_id: str,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> List[FolderContentItem]:
+) -> list[FolderContentItem]:
     return await get_org_root_items(request, org_id, current_user, db_session)
 
 

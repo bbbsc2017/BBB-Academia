@@ -1,18 +1,18 @@
-from typing import List, Union
+from datetime import UTC, datetime
 from uuid import uuid4
-from datetime import datetime, timezone
+
+from fastapi import HTTPException, Request
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import HTTPException, Request
 
-from src.db.users import PublicUser, AnonymousUser, User
-from src.db.playgrounds import Playground
 from src.db.playground_reactions import (
     PlaygroundReaction,
     PlaygroundReactionSummary,
     ReactionUser,
 )
+from src.db.playgrounds import Playground
+from src.db.users import AnonymousUser, PublicUser, User
 from src.security.auth import resolve_acting_user_id
 from src.services.playgrounds.playgrounds import _check_read_access
 
@@ -20,9 +20,9 @@ from src.services.playgrounds.playgrounds import _check_read_access
 async def get_playground_reactions(
     request: Request,
     playground_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser],
+    current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[PlaygroundReactionSummary]:
+) -> list[PlaygroundReactionSummary]:
     playground = (await db_session.execute(
         select(Playground).where(Playground.playground_uuid == playground_uuid)
     )).scalars().first()
@@ -83,7 +83,7 @@ async def toggle_playground_reaction(
     request: Request,
     playground_uuid: str,
     emoji: str,
-    current_user: Union[PublicUser, AnonymousUser],
+    current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
 ) -> dict:
     if isinstance(current_user, AnonymousUser):
@@ -119,7 +119,7 @@ async def toggle_playground_reaction(
         user_id=acting_user_id,
         emoji=emoji,
         reaction_uuid=f"reaction_{uuid4()}",
-        creation_date=str(datetime.now(timezone.utc).replace(tzinfo=None)),
+        creation_date=str(datetime.now(UTC).replace(tzinfo=None)),
     )
     db_session.add(reaction)
     try:

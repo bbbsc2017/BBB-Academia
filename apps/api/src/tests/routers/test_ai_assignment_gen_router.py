@@ -9,9 +9,9 @@ from fastapi import HTTPException
 from src.routers.ai import assignment_gen as ag
 from src.services.ai.llm import AINotConfiguredError
 from src.services.ai.schemas.assignment import (
+    GenerateAssignmentRequest,
     GeneratedAssignmentPlan,
     GeneratedTask,
-    GenerateAssignmentRequest,
 )
 
 pytestmark = pytest.mark.asyncio

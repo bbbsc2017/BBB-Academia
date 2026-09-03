@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+
 from config.config import get_learnhouse_config
 
 

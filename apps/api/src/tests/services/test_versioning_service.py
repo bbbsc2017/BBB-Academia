@@ -1,6 +1,6 @@
 """Tests for src/services/courses/activities/versioning.py."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -12,9 +12,9 @@ from src.services.courses.activities.versioning import (
     MAX_ACTIVITY_VERSIONS,
     cleanup_old_versions,
     create_activity_version,
-    get_activity_versions,
-    get_activity_version,
     get_activity_state,
+    get_activity_version,
+    get_activity_versions,
     restore_activity_version,
 )
 
@@ -73,7 +73,7 @@ class TestCleanupOldVersions:
                 org_id=activity.org_id,
                 version_number=i + 1,
                 content={},
-                created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+                created_at=datetime.now(UTC).replace(tzinfo=None),
             ))
         await db.commit()
 
@@ -95,7 +95,7 @@ class TestCleanupOldVersions:
                 org_id=activity.org_id,
                 version_number=i + 1,
                 content={},
-                created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+                created_at=datetime.now(UTC).replace(tzinfo=None),
             ))
         await db.commit()
 
@@ -131,7 +131,7 @@ class TestGetActivityVersions:
             org_id=activity.org_id,
             version_number=1,
             content={"type": "doc"},
-            created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
         ))
         await db.commit()
 
@@ -179,7 +179,7 @@ class TestGetActivityVersion:
             org_id=activity.org_id,
             version_number=3,
             content={"type": "doc"},
-            created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
         ))
         await db.commit()
 
@@ -206,11 +206,10 @@ class TestGetActivityVersion:
         ), patch(
             "src.services.courses.activities.versioning.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_activity_version(
-                    mock_request, activity.activity_uuid, 999, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await get_activity_version(
+                mock_request, activity.activity_uuid, 999, admin_user, db
+            )
         assert exc.value.status_code == 404
 
 
@@ -263,7 +262,7 @@ class TestRestoreActivityVersion:
             org_id=activity.org_id,
             version_number=1,
             content={"type": "doc", "restored": True},
-            created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            created_at=datetime.now(UTC).replace(tzinfo=None),
         ))
         await db.commit()
 
@@ -293,9 +292,8 @@ class TestRestoreActivityVersion:
         ), patch(
             "src.services.courses.activities.versioning.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await restore_activity_version(
-                    mock_request, activity.activity_uuid, 999, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await restore_activity_version(
+                mock_request, activity.activity_uuid, 999, admin_user, db
+            )
         assert exc.value.status_code == 404

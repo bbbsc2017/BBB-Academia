@@ -1,5 +1,6 @@
 import hmac
 import os
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 from sqlmodel import select
@@ -8,19 +9,18 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.core.events.database import get_db_session
 from src.db.organizations import Organization
 from src.db.packs import OrgPackRead
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user, resolve_acting_user_id
 from src.security.features_utils.packs import AVAILABLE_PACKS
 from src.security.org_auth import is_org_admin
 from src.services.packs.packs import (
     activate_pack,
-    deactivate_pack,
     deactivate_all_packs_for_org,
-    mark_pack_canceling,
+    deactivate_pack,
     get_org_active_packs,
     get_org_pack_summary,
+    mark_pack_canceling,
 )
-
 
 # ============================================================================
 # Internal router (platform-key auth)

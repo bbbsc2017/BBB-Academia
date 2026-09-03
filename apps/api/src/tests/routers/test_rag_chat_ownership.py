@@ -56,11 +56,10 @@ class TestRagChatOwnership:
             rag_router, "reserve_ai_credit", new_callable=AsyncMock
         ), patch.object(
             rag_router, "chat_session_belongs_to_user", return_value=False
-        ) as belongs:
-            with pytest.raises(HTTPException) as exc:
-                await rag_router.api_rag_chat(
-                    MagicMock(), self._req("chat_foreign"), current_user, db
-                )
+        ) as belongs, pytest.raises(HTTPException) as exc:
+            await rag_router.api_rag_chat(
+                MagicMock(), self._req("chat_foreign"), current_user, db
+            )
 
         assert exc.value.status_code == 404
         belongs.assert_called_once_with("chat_foreign", 1)

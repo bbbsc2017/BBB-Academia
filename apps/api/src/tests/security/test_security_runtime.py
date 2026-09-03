@@ -11,7 +11,11 @@ from src.security.security import (
     Pbkdf2Sha256Hasher,
     security_verify_and_update_password,
 )
-from src.security.superadmin import _get_current_user_lazy, is_user_superadmin, require_superadmin
+from src.security.superadmin import (
+    _get_current_user_lazy,
+    is_user_superadmin,
+    require_superadmin,
+)
 
 
 def _make_pbkdf2_hash(password: str, salt: bytes = b"salt1234", rounds: int = 1000) -> str:
@@ -81,7 +85,8 @@ class TestSecurityRuntime:
 class TestSuperadminRuntime:
     @pytest.mark.asyncio
     async def test_is_user_superadmin_true_and_false(self):
-        from unittest.mock import AsyncMock as _AsyncMock, MagicMock as _MM
+        from unittest.mock import AsyncMock as _AsyncMock
+        from unittest.mock import MagicMock as _MM
 
         def _make_db(first_value):
             db = _AsyncMock()

@@ -1,26 +1,27 @@
 import logging
 import secrets
-from typing import List
-from uuid import uuid4
 from datetime import datetime
-from sqlmodel import select, func
-from sqlmodel.ext.asyncio.session import AsyncSession
+from uuid import uuid4
+
 from fastapi import HTTPException, Request
+from sqlmodel import func, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.courses.certifications import (
-    Certifications,
-    CertificationCreate,
-    CertificationRead,
-    CertificationUpdate,
     CertificateUser,
     CertificateUserRead,
+    CertificationCreate,
+    CertificationRead,
+    Certifications,
+    CertificationUpdate,
 )
-from src.db.courses.courses import Course
 from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.courses import Course
 from src.db.trail_steps import TrailStep
-from src.db.users import PublicUser, AnonymousUser
-from src.security.rbac import check_resource_access, AccessAction
-from src.services.analytics.analytics import track
+from src.db.users import AnonymousUser, PublicUser
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.analytics import events as analytics_events
+from src.services.analytics.analytics import track
 from src.services.webhooks.dispatch import dispatch_webhooks
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ async def get_certifications_by_course(
     course_uuid: str,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[CertificationRead]:
+) -> list[CertificationRead]:
     """Get all certifications for a course"""
     
     # Get course for RBAC check
@@ -355,7 +356,7 @@ async def get_user_certificates_for_course(
     course_uuid: str,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """Get all certificates for a user in a specific course with certification details"""
     
     # Check if course exists
@@ -565,7 +566,7 @@ async def get_all_user_certificates(
     request: Request,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """Get all certificates for the current user with complete linked information"""
     
     # Get all certificate users for this user

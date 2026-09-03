@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import Optional
-from sqlalchemy import Column, ForeignKey, Integer, Index
+
+from sqlalchemy import Column, ForeignKey, Index, Integer
 from sqlmodel import Field, SQLModel
 
 
@@ -20,7 +20,7 @@ class ResourceAuthor(SQLModel, table=True):
     __table_args__ = (
         Index("ix_resourceauthor_resource_uuid_user_id", "resource_uuid", "user_id"),
     )
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     resource_uuid: str = Field(index=True)
     user_id: int = Field(
         sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), index=True)

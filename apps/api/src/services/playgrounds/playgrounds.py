@@ -1,29 +1,28 @@
-from typing import List
+from datetime import UTC, datetime
 from uuid import uuid4
-from datetime import datetime, timezone
+
 from fastapi import HTTPException, Request, UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.db.courses.courses import Course
+from src.db.organizations import Organization
 from src.db.playgrounds import (
     Playground,
+    PlaygroundAccessType,
     PlaygroundCreate,
     PlaygroundRead,
     PlaygroundUpdate,
-    PlaygroundAccessType,
 )
+from src.db.user_organizations import UserOrganization
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
-from src.db.users import PublicUser, AnonymousUser, APITokenUser, User
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User
 from src.security.auth import resolve_acting_user_id
-from src.db.organizations import Organization
-from src.db.user_organizations import UserOrganization
-from src.db.courses.courses import Course
 from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
 from src.security.superadmin import is_user_superadmin
 from src.services.utils.upload_content import upload_file
 from src.services.webhooks.dispatch import dispatch_webhooks
-
 
 _SUPERADMIN_PLAYGROUND_RIGHTS = {
     "action_create": True,
@@ -187,7 +186,7 @@ async def create_playground(
         if course and course.org_id == org_id:
             course_id = course.id
 
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = datetime.now(UTC).replace(tzinfo=None).isoformat()
     playground = Playground(
         name=playground_data.name,
         description=playground_data.description,
@@ -256,7 +255,7 @@ async def list_org_playgrounds(
     org_id: int,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[PlaygroundRead]:
+) -> list[PlaygroundRead]:
     playgrounds = (await db_session.execute(
         select(Playground).where(Playground.org_id == org_id)
     )).scalars().all()
@@ -335,7 +334,7 @@ async def list_org_playgrounds(
         )).scalars().all()
         authors_map = {u.id: u for u in authors}
 
-    result: List[PlaygroundRead] = []
+    result: list[PlaygroundRead] = []
     for pg in allowed:
         read = PlaygroundRead.model_validate(pg)
         if org:
@@ -396,7 +395,7 @@ async def update_playground(
     for key, value in update_data.items():
         setattr(playground, key, value)
 
-    playground.update_date = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    playground.update_date = datetime.now(UTC).replace(tzinfo=None).isoformat()
     db_session.add(playground)
     await db_session.commit()
     await db_session.refresh(playground)
@@ -458,7 +457,7 @@ async def duplicate_playground(
     if not pg_rights.get("action_create", False):
         raise HTTPException(status_code=403, detail="Insufficient permissions to create playgrounds")
 
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = datetime.now(UTC).replace(tzinfo=None).isoformat()
     new_playground = Playground(
         name=f"{playground.name} (Copy)",
         description=playground.description,
@@ -519,7 +518,7 @@ async def add_usergroup_to_playground(
     if existing:
         return {"detail": "User group already has access"}
 
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = datetime.now(UTC).replace(tzinfo=None).isoformat()
     ugr = UserGroupResource(
         usergroup_id=ug.id,
         resource_uuid=playground_uuid,
@@ -616,7 +615,7 @@ async def update_playground_thumbnail(
     )
 
     playground.thumbnail_image = name_in_disk
-    playground.update_date = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    playground.update_date = datetime.now(UTC).replace(tzinfo=None).isoformat()
     db_session.add(playground)
     await db_session.commit()
     await db_session.refresh(playground)
@@ -628,7 +627,7 @@ async def get_playground_usergroups(
     playground_uuid: str,
     current_user: PublicUser,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     playground = (await db_session.execute(
         select(Playground).where(Playground.playground_uuid == playground_uuid)
     )).scalars().first()

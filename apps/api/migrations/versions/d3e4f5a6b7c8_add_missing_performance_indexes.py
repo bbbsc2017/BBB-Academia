@@ -8,16 +8,16 @@ Revises: z5a6b7c8d9e0
 Create Date: 2026-05-15
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
+import sqlmodel  # noqa: F401
 from alembic import op
 from sqlalchemy import inspect
-import sqlmodel  # noqa: F401
 
 revision: str = "d3e4f5a6b7c8"
-down_revision: Union[str, None] = "z5a6b7c8d9e0"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "z5a6b7c8d9e0"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 # IF NOT EXISTS / IF EXISTS so the migration is safe to run against DBs

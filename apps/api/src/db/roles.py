@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Union
+
 from pydantic import BaseModel
 from sqlalchemy import JSON, Column, ForeignKey, Index, Integer
 from sqlmodel import Field, SQLModel
@@ -102,16 +102,16 @@ class RoleTypeEnum(str, Enum):
 
 class RoleBase(SQLModel):
     name: str
-    description: Optional[str] = None
-    rights: Optional[Union[Rights, dict]] = Field(default_factory=dict, sa_column=Column(JSON))
+    description: str | None = None
+    rights: Rights | dict | None = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 class Role(RoleBase, table=True):
     __table_args__ = (
         Index("ix_role_org_type", "org_id", "role_type"),
     )
-    id: Optional[int] = Field(default=None, primary_key=True)
-    org_id: Optional[int] = Field(
+    id: int | None = Field(default=None, primary_key=True)
+    org_id: int | None = Field(
         default=None,
         sa_column=Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), index=True)
     )
@@ -122,8 +122,8 @@ class Role(RoleBase, table=True):
 
 
 class RoleRead(RoleBase):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    org_id: Optional[int] = Field(default=None, foreign_key="organization.id")
+    id: int | None = Field(default=None, primary_key=True)
+    org_id: int | None = Field(default=None, foreign_key="organization.id")
     role_type: RoleTypeEnum = RoleTypeEnum.TYPE_GLOBAL
     role_uuid: str
     creation_date: str
@@ -131,11 +131,11 @@ class RoleRead(RoleBase):
 
 
 class RoleCreate(RoleBase):
-    org_id: Optional[int] = Field(default=None, foreign_key="organization.id")
+    org_id: int | None = Field(default=None, foreign_key="organization.id")
 
 
 class RoleUpdate(SQLModel):
     role_id: int = Field(default=None, foreign_key="role.id")
-    name: Optional[str] = None
-    description: Optional[str] = None
-    rights: Optional[Union[Rights, dict]] = Field(default_factory=dict, sa_column=Column(JSON))
+    name: str | None = None
+    description: str | None = None
+    rights: Rights | dict | None = Field(default_factory=dict, sa_column=Column(JSON))

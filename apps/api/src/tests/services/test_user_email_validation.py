@@ -25,7 +25,6 @@ from pydantic import ValidationError
 from src.db.users import User, UserUpdate
 from src.services.users.users import update_user
 
-
 # ---------------------------------------------------------------------------
 # Schema-level: format validation via EmailStr
 # ---------------------------------------------------------------------------

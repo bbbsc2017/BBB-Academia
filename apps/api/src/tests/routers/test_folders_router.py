@@ -9,12 +9,12 @@ RBAC and webhooks are stubbed; the real persistence + resolution logic runs.
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
-from src.security.auth import get_current_user
 from src.routers.folders.folders import router
+from src.security.auth import get_current_user
 
 
 @pytest.fixture

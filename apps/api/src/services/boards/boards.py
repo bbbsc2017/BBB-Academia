@@ -1,26 +1,31 @@
-from typing import List, Optional
-from uuid import uuid4
 from datetime import datetime
-from sqlmodel import select, func, col
-from sqlmodel.ext.asyncio.session import AsyncSession
+from uuid import uuid4
+
 from fastapi import HTTPException, Request, UploadFile
+from sqlmodel import col, func, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.boards import (
     Board,
     BoardCreate,
-    BoardRead,
-    BoardUpdate,
     BoardMember,
-    BoardMemberCreate,
     BoardMemberBatchCreate,
+    BoardMemberCreate,
     BoardMemberRead,
     BoardMemberRole,
+    BoardRead,
+    BoardUpdate,
 )
 from src.db.organizations import Organization
-from src.db.users import PublicUser, AnonymousUser, APITokenUser, User
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User
 from src.security.auth import resolve_acting_user_id
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
-from src.security.rbac import AccessAction, check_resource_access
 from src.security.org_auth import require_org_membership
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.utils.upload_content import upload_file
 from src.services.webhooks.dispatch import dispatch_webhooks
 
@@ -99,7 +104,7 @@ async def get_boards_by_org(
     org_id: int,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
-) -> List[BoardRead]:
+) -> list[BoardRead]:
     # Require org membership before listing boards — prevents unauthenticated
     # and cross-org enumeration of boards.
     await require_org_membership(resolve_acting_user_id(current_user), org_id, db_session)
@@ -282,7 +287,7 @@ async def add_board_members_batch(
     batch_object: BoardMemberBatchCreate,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[BoardMemberRead]:
+) -> list[BoardMemberRead]:
     board = await _get_board_or_404(board_uuid, db_session)
     await check_resource_access(request, db_session, current_user, board.board_uuid, AccessAction.UPDATE)
 
@@ -291,7 +296,7 @@ async def add_board_members_batch(
         select(func.count(BoardMember.id)).where(BoardMember.board_id == board.id)
     )).scalar_one()
 
-    added: List[BoardMemberRead] = []
+    added: list[BoardMemberRead] = []
 
     for member_create in batch_object.members:
         # Stop if we'd exceed the limit
@@ -412,7 +417,7 @@ async def get_board_members(
     board_uuid: str,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[BoardMemberRead]:
+) -> list[BoardMemberRead]:
     board = await _get_board_or_404(board_uuid, db_session)
     await check_resource_access(request, db_session, current_user, board.board_uuid, AccessAction.READ)
 
@@ -479,7 +484,7 @@ async def update_board_thumbnail(
 async def get_ydoc_state(
     board_uuid: str,
     db_session: AsyncSession,
-) -> Optional[bytes]:
+) -> bytes | None:
     board = await _get_board_or_404(board_uuid, db_session)
     return board.ydoc_state
 

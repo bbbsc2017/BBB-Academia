@@ -1,19 +1,27 @@
-from typing import List, Optional
 import json
 import os
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, Request, Query, BackgroundTasks
+
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, field_validator
-
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.courses.course_updates import (
     CourseUpdateCreate,
     CourseUpdateRead,
     CourseUpdateUpdate,
 )
-from src.db.users import PublicUser
 from src.db.courses.courses import (
     Course,
     CourseCreate,
@@ -22,45 +30,46 @@ from src.db.courses.courses import (
     FullCourseRead,
     ThumbnailType,
 )
+from src.db.resource_authors import ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
+from src.db.users import PublicUser
 from src.security.auth import get_current_user
 from src.security.features_utils.dependencies import require_courses_feature
-from src.security.rbac import check_resource_access, AccessAction
+from src.security.rbac import AccessAction, check_resource_access
+from src.services.courses.contributors import (
+    add_bulk_course_contributors,
+    apply_course_contributor,
+    get_course_contributors,
+    remove_bulk_course_contributors,
+    update_course_contributor,
+)
 from src.services.courses.courses import (
+    clone_course,
     create_course,
+    delete_course,
     get_course,
     get_course_by_id,
     get_course_meta,
-    get_courses_orgslug,
-    get_courses_count_orgslug,
-    update_course,
-    delete_course,
-    update_course_thumbnail,
-    search_courses,
     get_course_user_rights,
-    clone_course,
+    get_courses_count_orgslug,
+    get_courses_orgslug,
+    search_courses,
+    update_course,
+    update_course_thumbnail,
+)
+from src.services.courses.transfer import (
+    ImportAnalysisResponse,
+    ImportOptions,
+    ImportResult,
+    analyze_import_package,
+    export_course,
+    export_courses_batch,
+    import_courses,
 )
 from src.services.courses.updates import (
     create_update,
     delete_update,
     get_updates_by_course_uuid,
     update_update,
-)
-from src.services.courses.contributors import (
-    apply_course_contributor,
-    update_course_contributor,
-    get_course_contributors,
-    add_bulk_course_contributors,
-    remove_bulk_course_contributors,
-)
-from src.db.resource_authors import ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
-from src.services.courses.transfer import (
-    export_course,
-    export_courses_batch,
-    analyze_import_package,
-    import_courses,
-    ImportOptions,
-    ImportAnalysisResponse,
-    ImportResult,
 )
 
 
@@ -71,7 +80,7 @@ class BatchExportRequest(BaseModel):
 
     SECURITY: Limited to 20 courses per request to prevent resource exhaustion.
     """
-    course_uuids: List[str]
+    course_uuids: list[str]
 
     @field_validator('course_uuids')
     @classmethod
@@ -90,7 +99,7 @@ class ImportRequest(BaseModel):
     SECURITY: Limited to 20 courses per import request.
     """
     temp_id: str
-    course_uuids: List[str]
+    course_uuids: list[str]
     name_prefix: str | None = None
     set_private: bool = True
     set_unpublished: bool = True
@@ -291,7 +300,7 @@ async def api_create_course(
     tags: str = Form(None),
     about: str = Form(),
     thumbnail_type: ThumbnailType = Form(default=ThumbnailType.IMAGE),
-    extra_metadata: Optional[str] = Form(default=None),
+    extra_metadata: str | None = Form(default=None),
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
     thumbnail: UploadFile | None = None,
@@ -299,7 +308,7 @@ async def api_create_course(
     """
     Create new Course
     """
-    parsed_metadata: Optional[dict] = None
+    parsed_metadata: dict | None = None
     if extra_metadata:
         try:
             parsed_metadata = json.loads(extra_metadata)
@@ -457,7 +466,7 @@ async def api_get_course_meta(
 
 @router.get(
     "/org_slug/{org_slug}/page/{page}/limit/{limit}",
-    response_model=List[CourseRead],
+    response_model=list[CourseRead],
     summary="List courses for an organization",
     description=(
         "Paginated list of courses for an organization identified by slug. "
@@ -465,7 +474,7 @@ async def api_get_course_meta(
         "update permission on the organization)."
     ),
     responses={
-        200: {"description": "Paginated list of courses", "model": List[CourseRead]},
+        200: {"description": "Paginated list of courses", "model": list[CourseRead]},
         403: {"description": "User lacks permission to list unpublished courses"},
         404: {"description": "Organization not found"},
     },
@@ -478,7 +487,7 @@ async def api_get_course_by_orgslug(
     include_unpublished: bool = False,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[CourseRead]:
+) -> list[CourseRead]:
     """
     Get courses by page and limit
     """
@@ -512,7 +521,7 @@ async def api_get_courses_count(
 
 @router.get(
     "/org_slug/{org_slug}/search",
-    response_model=List[CourseRead],
+    response_model=list[CourseRead],
     summary="Search courses",
     description=(
         "Full-text search courses by title and description within an organization. "
@@ -520,7 +529,7 @@ async def api_get_courses_count(
         "maximum page size of 50 to prevent data dumping."
     ),
     responses={
-        200: {"description": "Paginated list of matching courses", "model": List[CourseRead]},
+        200: {"description": "Paginated list of matching courses", "model": list[CourseRead]},
         404: {"description": "Organization not found"},
         422: {"description": "Invalid query or pagination parameters"},
     },
@@ -533,7 +542,7 @@ async def api_search_courses(
     limit: int = Query(default=10, ge=1, le=50, description="Items per page (max 50)"),
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[CourseRead]:
+) -> list[CourseRead]:
     """
     Search courses by title and description.
 
@@ -734,11 +743,11 @@ async def api_apply_course_contributor(
 
 @router.get(
     "/{course_uuid}/updates",
-    response_model=List[CourseUpdateRead],
+    response_model=list[CourseUpdateRead],
     summary="List course updates",
     description="Return all course update posts for a given course.",
     responses={
-        200: {"description": "List of course update posts", "model": List[CourseUpdateRead]},
+        200: {"description": "List of course update posts", "model": list[CourseUpdateRead]},
         403: {"description": "User lacks read access to the course"},
         404: {"description": "Course not found"},
     },
@@ -748,7 +757,7 @@ async def api_get_course_updates(
     course_uuid: str,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[CourseUpdateRead]:
+) -> list[CourseUpdateRead]:
     """
     Get Course Updates by course_uuid
     """
@@ -923,7 +932,7 @@ async def api_update_course_contributor(
 async def api_add_bulk_course_contributors(
     request: Request,
     course_uuid: str,
-    usernames: List[str],
+    usernames: list[str],
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
 ):
@@ -953,7 +962,7 @@ async def api_add_bulk_course_contributors(
 async def api_remove_bulk_course_contributors(
     request: Request,
     course_uuid: str,
-    usernames: List[str],
+    usernames: list[str],
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
 ):

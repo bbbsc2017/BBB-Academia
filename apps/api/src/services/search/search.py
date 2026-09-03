@@ -1,26 +1,30 @@
-from typing import Any, List, Sequence
+from collections.abc import Sequence
+from typing import Any
+
 from fastapi import Request
-from sqlalchemy import ColumnElement, func, true as sa_true
-from sqlmodel import select, or_, and_
-from sqlmodel.ext.asyncio.session import AsyncSession
 from pydantic import BaseModel, ConfigDict
-from src.db.users import PublicUser, AnonymousUser, UserRead, User, APITokenUser
+from sqlalchemy import ColumnElement, func
+from sqlalchemy import true as sa_true
+from sqlmodel import and_, or_, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db.communities.communities import Community, CommunityRead
+from src.db.communities.discussions import Discussion, DiscussionRead
 from src.db.courses.courses import CourseRead
 from src.db.folders.folders import Folder, FolderRead
 from src.db.organizations import Organization
-from src.db.user_organizations import UserOrganization
-from src.db.communities.communities import Community, CommunityRead
-from src.db.communities.discussions import Discussion, DiscussionRead
-from src.db.playgrounds import Playground, PlaygroundRead, PlaygroundAccessType
+from src.db.playgrounds import Playground, PlaygroundAccessType, PlaygroundRead
 from src.db.podcasts.podcasts import Podcast, PodcastRead
+from src.db.user_organizations import UserOrganization
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserRead
+from src.security.auth import resolve_acting_user_id
+from src.security.org_auth import is_org_member
 from src.services.courses.courses import search_courses
 from src.services.search.normalization import (
     LIKE_ESCAPE_CHAR,
     build_like_pattern,
     escape_like_wildcards,
 )
-from src.security.auth import resolve_acting_user_id
-from src.security.org_auth import is_org_member
 
 
 class SearchDiscussionRead(DiscussionRead):
@@ -39,13 +43,13 @@ class SearchResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    courses: List[CourseRead]
-    folders: List[FolderRead]
-    users: List[UserRead]
-    communities: List[CommunityRead]
-    discussions: List[SearchDiscussionRead]
-    playgrounds: List[PlaygroundRead]
-    podcasts: List[PodcastRead]
+    courses: list[CourseRead]
+    folders: list[FolderRead]
+    users: list[UserRead]
+    communities: list[CommunityRead]
+    discussions: list[SearchDiscussionRead]
+    playgrounds: list[PlaygroundRead]
+    podcasts: list[PodcastRead]
 
     total_courses: int = 0
     total_folders: int = 0

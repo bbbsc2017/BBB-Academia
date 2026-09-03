@@ -8,7 +8,6 @@ are derived from these definitions at runtime.
 
 from typing import Literal
 
-
 # Plan type definition - matches OrgCloudConfig
 PlanLevel = Literal["free", "personal", "personal-family", "standard", "pro", "enterprise"]
 

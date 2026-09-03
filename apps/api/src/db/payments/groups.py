@@ -1,17 +1,17 @@
-from typing import Optional
+
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlmodel import Field, SQLModel
 
 
 class PaymentsGroupBase(SQLModel):
     name: str
-    description: Optional[str] = ""
+    description: str | None = ""
 
 
 class PaymentsGroup(PaymentsGroupBase, table=True):
     __tablename__ = "paymentsgroup"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), nullable=False)
     )
@@ -20,7 +20,7 @@ class PaymentsGroup(PaymentsGroupBase, table=True):
     # e.g. to grant membership in a pre-existing "community" UserGroup that
     # isn't itself modeled as a PaymentsGroupResource. Nullable: a group can
     # exist purely as a resource bundle with no extra UserGroup side effect.
-    usergroup_id: Optional[int] = Field(
+    usergroup_id: int | None = Field(
         default=None,
         sa_column=Column(Integer, ForeignKey("usergroup.id", ondelete="SET NULL"), nullable=True),
     )
@@ -33,14 +33,14 @@ class PaymentsGroupCreate(PaymentsGroupBase):
 
 
 class PaymentsGroupUpdate(SQLModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
 
 
 class PaymentsGroupRead(PaymentsGroupBase):
     id: int
     org_id: int
-    usergroup_id: Optional[int] = None
+    usergroup_id: int | None = None
     creation_date: str
     update_date: str
 
@@ -48,7 +48,7 @@ class PaymentsGroupRead(PaymentsGroupBase):
 class PaymentsGroupResource(SQLModel, table=True):
     __tablename__ = "paymentsgroupresource"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     group_id: int = Field(
         sa_column=Column(Integer, ForeignKey("paymentsgroup.id", ondelete="CASCADE"), nullable=False)
     )

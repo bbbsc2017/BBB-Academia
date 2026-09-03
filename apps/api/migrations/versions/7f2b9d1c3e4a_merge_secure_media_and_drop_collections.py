@@ -14,14 +14,13 @@ Revises: 5e3a9c7f1b2d, d4e5f6a7b8c9
 Create Date: 2026-06-23
 
 """
-from typing import Sequence, Union
-
+from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
 revision: str = '7f2b9d1c3e4a'
-down_revision: Union[str, Sequence[str], None] = ('5e3a9c7f1b2d', 'd4e5f6a7b8c9')
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = ('5e3a9c7f1b2d', 'd4e5f6a7b8c9')
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

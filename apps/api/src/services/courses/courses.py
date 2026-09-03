@@ -1,47 +1,52 @@
-from typing import List
-from uuid import uuid4
 import logging
-from sqlmodel import select, or_, and_, func
+from datetime import datetime
+from uuid import uuid4
+
+from fastapi import HTTPException, Request, UploadFile, status
+from sqlmodel import and_, func, or_, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.usergroup_resources import UserGroupResource
-from src.db.usergroup_user import UserGroupUser
-from src.db.organizations import Organization
-from src.db.roles import Role
-from src.db.user_organizations import UserOrganization
-from src.security.features_utils.usage import (
-    check_limits_with_usage,
-    decrease_feature_usage,
-    increase_feature_usage,
-)
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
-from src.db.users import PublicUser, AnonymousUser, User, UserRead, APITokenUser
+
 from src.db.courses.courses import (
+    AuthorWithRole,
     Course,
     CourseCreate,
     CourseRead,
     CourseUpdate,
     FullCourseRead,
-    AuthorWithRole,
     ThumbnailType,
 )
-from src.security.auth import resolve_acting_user_id
-from src.security.org_auth import require_org_membership
-from src.security.rbac.rbac import (
-    authorization_verify_if_user_is_anon,
-    authorization_verify_based_on_org_admin_status,
+from src.db.organizations import Organization
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
 )
+from src.db.roles import Role
+from src.db.user_organizations import UserOrganization
+from src.db.usergroup_resources import UserGroupResource
+from src.db.usergroup_user import UserGroupUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserRead
+from src.security.auth import resolve_acting_user_id
+from src.security.features_utils.usage import (
+    check_limits_with_usage,
+    decrease_feature_usage,
+    increase_feature_usage,
+)
+from src.security.org_auth import require_org_membership
 from src.security.rbac import (
     AccessAction,
     AccessContext,
     check_resource_access,
 )
 from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
+from src.security.rbac.rbac import (
+    authorization_verify_based_on_org_admin_status,
+    authorization_verify_if_user_is_anon,
+)
 from src.security.superadmin import is_user_superadmin
 from src.services.courses.thumbnails import upload_thumbnail
 from src.services.search.normalization import LIKE_ESCAPE_CHAR, build_like_pattern
 from src.services.webhooks.dispatch import dispatch_webhooks
-from fastapi import HTTPException, Request, UploadFile, status
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +262,7 @@ async def get_courses_orgslug(
     page: int = 1,
     limit: int = 10,
     include_unpublished: bool = False,
-) -> List[CourseRead]:
+) -> list[CourseRead]:
     # Cap limit to prevent excessive DB reads
     limit = min(limit, 100)
 
@@ -470,7 +475,7 @@ async def search_courses(
     db_session: AsyncSession,
     page: int = 1,
     limit: int = 10,
-) -> List[CourseRead]:
+) -> list[CourseRead]:
     """
     Search courses within an organization.
 
@@ -972,7 +977,7 @@ async def get_user_courses(
     db_session: AsyncSession,
     page: int = 1,
     limit: int = 10,
-) -> List[CourseRead]:
+) -> list[CourseRead]:
     # Verify user is not anonymous
     await authorization_verify_if_user_is_anon(current_user.id)
 
@@ -1048,8 +1053,11 @@ def _copy_storage_file(src_path: str, dst_path: str) -> None:
     """Copy a file using S3 or local filesystem."""
     import os
     import shutil
+
     from src.services.courses.transfer.storage_utils import (
-        is_s3_enabled, read_file_content, upload_to_s3,
+        is_s3_enabled,
+        read_file_content,
+        upload_to_s3,
     )
 
     if is_s3_enabled():
@@ -1082,8 +1090,11 @@ def _copy_storage_directory(src_dir: str, dst_dir: str) -> None:
     """Recursively copy a directory using S3 or local filesystem."""
     import os
     import shutil
+
     from src.services.courses.transfer.storage_utils import (
-        is_s3_enabled, get_storage_client, get_s3_bucket_name,
+        get_s3_bucket_name,
+        get_storage_client,
+        is_s3_enabled,
     )
 
     if is_s3_enabled():
@@ -1136,17 +1147,18 @@ async def clone_course(
     - Have the current user as the creator
     """
     import os
-    from src.services.courses.transfer.storage_utils import (
-        is_s3_enabled,
-        file_exists,
-        list_directory,
-    )
     from collections import defaultdict
-    from src.db.courses.chapters import Chapter
+
     from src.db.courses.activities import Activity
     from src.db.courses.blocks import Block
-    from src.db.courses.course_chapters import CourseChapter
     from src.db.courses.chapter_activities import ChapterActivity
+    from src.db.courses.chapters import Chapter
+    from src.db.courses.course_chapters import CourseChapter
+    from src.services.courses.transfer.storage_utils import (
+        file_exists,
+        is_s3_enabled,
+        list_directory,
+    )
 
     # Get the original course
     statement = select(Course).where(Course.course_uuid == course_uuid)
@@ -1574,8 +1586,10 @@ async def get_course_user_rights(
                 rights["ownership"]["is_owner"] = True
 
     # Check user roles
-    from src.security.rbac.rbac import authorization_verify_based_on_org_admin_status
-    from src.security.rbac.rbac import authorization_verify_based_on_roles
+    from src.security.rbac.rbac import (
+        authorization_verify_based_on_org_admin_status,
+        authorization_verify_based_on_roles,
+    )
     
     # Check admin/maintainer role
     is_admin_or_maintainer = await authorization_verify_based_on_org_admin_status(

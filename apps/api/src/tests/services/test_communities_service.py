@@ -1,14 +1,14 @@
 """Tests for src/services/communities/*.py."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
 
 from src.db.communities.communities import Community, CommunityCreate, CommunityUpdate
-from src.db.communities.discussions import Discussion, DiscussionUpdate
 from src.db.communities.discussion_votes import DiscussionVote
+from src.db.communities.discussions import Discussion, DiscussionUpdate
 from src.db.courses.courses import Course
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
@@ -401,15 +401,14 @@ class TestCommunitiesService:
         with patch(
             "src.services.communities.communities.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as link_org_exc:
-                await link_community_to_course(
-                    mock_request,
-                    other_org_community.community_uuid,
-                    other_course.course_uuid,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as link_org_exc:
+            await link_community_to_course(
+                mock_request,
+                other_org_community.community_uuid,
+                other_course.course_uuid,
+                admin_user,
+                db,
+            )
 
         assert admin_rights_result["permissions"]["create"] is True
         assert admin_rights_result["permissions"]["update"] is True
@@ -509,15 +508,14 @@ class TestCommunitiesService:
             "src.services.communities.communities.authorization_verify_based_on_roles",
             new_callable=AsyncMock,
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as create_exc:
-                await create_community(
-                    mock_request,
-                    org.id,
-                    CommunityCreate(name="Denied", description="Desc", public=True),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as create_exc:
+            await create_community(
+                mock_request,
+                org.id,
+                CommunityCreate(name="Denied", description="Desc", public=True),
+                admin_user,
+                db,
+            )
         assert create_exc.value.status_code == 403
 
         with patch(
@@ -544,18 +542,17 @@ class TestCommunitiesService:
         with patch(
             "src.services.communities.communities.is_user_superadmin",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_communities_by_org(mock_request, 987654, admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await get_communities_by_org(mock_request, 987654, admin_user, db)
         assert exc.value.status_code == 404
         assert exc.value.detail == "Organization not found"
 
 
 class TestDiscussionsService:
     def test_hot_score_and_label_validation(self):
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         naive = datetime.now().replace(tzinfo=None).isoformat()
-        old = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+        old = (datetime.now(UTC) - timedelta(days=2)).isoformat()
         assert calculate_hot_score(10, now) > calculate_hot_score(10, old)
         assert isinstance(calculate_hot_score(5, naive), float)
         assert isinstance(calculate_hot_score(5, "not-a-timestamp"), float)
@@ -632,7 +629,7 @@ class TestDiscussionsService:
             id=20,
             discussion_uuid="discussion_old",
             upvote_count=5,
-            creation_date=(datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+            creation_date=(datetime.now(UTC) - timedelta(days=1)).isoformat(),
         )
         db.add(
             DiscussionVote(
@@ -762,14 +759,13 @@ class TestDiscussionsService:
         with patch(
             "src.services.communities.discussions.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as list_missing_exc:
-                await get_discussions_by_community(
-                    mock_request,
-                    "community_missing_discussions",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as list_missing_exc:
+            await get_discussions_by_community(
+                mock_request,
+                "community_missing_discussions",
+                admin_user,
+                db,
+            )
         assert list_missing_exc.value.status_code == 404
 
         with patch(
@@ -831,17 +827,16 @@ class TestDiscussionsService:
         ), patch(
             "src.services.communities.discussions.validate_discussion_content",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as create_exc:
-                await create_discussion(
-                    mock_request,
-                    "community_missing",
-                    "Title",
-                    "Body",
-                    "question",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as create_exc:
+            await create_discussion(
+                mock_request,
+                "community_missing",
+                "Title",
+                "Body",
+                "question",
+                admin_user,
+                db,
+            )
         assert create_exc.value.status_code == 404
 
         with pytest.raises(HTTPException) as missing_discussion_exc:
@@ -851,11 +846,10 @@ class TestDiscussionsService:
         with patch(
             "src.services.communities.discussions.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as orphan_get_exc:
-                await get_discussion(
-                    mock_request, orphan_discussion.discussion_uuid, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as orphan_get_exc:
+            await get_discussion(
+                mock_request, orphan_discussion.discussion_uuid, admin_user, db
+            )
         assert orphan_get_exc.value.status_code == 404
 
         with patch(

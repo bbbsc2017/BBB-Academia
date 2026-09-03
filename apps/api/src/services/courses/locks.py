@@ -11,7 +11,7 @@ Batch helpers are provided for TOC-style reads where many resources need
 to be checked at once without N+1 queries.
 """
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession

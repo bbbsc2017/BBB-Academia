@@ -11,10 +11,11 @@ import functools
 import logging
 import os
 import threading
-from typing import Optional
+
 import boto3
 import botocore.config
 from botocore.exceptions import ClientError, NoCredentialsError
+
 from config.config import get_learnhouse_config
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ _s3_client_lock = threading.Lock()
 _CONTENT_ROOT = "content"
 
 
-def _validate_local_path(file_path: str) -> Optional[str]:
+def _validate_local_path(file_path: str) -> str | None:
     """Validate a local filesystem path for reading.
 
     Rejects NUL bytes, ``..`` traversal components and absolute paths, then
@@ -128,7 +129,7 @@ PRESIGNED_URL_TTL_SECONDS = 24 * 60 * 60
 
 def generate_presigned_get_url(
     s3_key: str, expires_in: int = PRESIGNED_URL_TTL_SECONDS
-) -> Optional[str]:
+) -> str | None:
     """
     Generate a presigned GET URL for an object so the browser can fetch it
     directly from S3/R2 (with native HTTP Range support) instead of proxying
@@ -155,7 +156,7 @@ def generate_presigned_get_url(
         return None
 
 
-def read_file_content(file_path: str) -> Optional[bytes]:
+def read_file_content(file_path: str) -> bytes | None:
     """
     Read file content based on configured content delivery type.
 

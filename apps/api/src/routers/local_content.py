@@ -24,8 +24,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.core.events.database import get_db_session
 from src.db.courses.courses import Course
 from src.db.podcasts.podcasts import Podcast
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
 from src.db.user_organizations import UserOrganization
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user
 
 router = APIRouter()
@@ -140,7 +140,7 @@ async def _check_content_access(
     # Library media content: enforce the media's (folder-aware) access. Closes
     # the legacy hole where orgs/{}/media/... fell through to the public branch.
     if len(parts) >= 4 and parts[0] == 'orgs' and parts[2] == 'media':
-        from src.security.rbac import check_resource_access, AccessAction
+        from src.security.rbac import AccessAction, check_resource_access
         media_uuid = parts[3]  # legacy keys embed media_uuid as the directory
         if media_uuid.startswith('media_'):
             await check_resource_access(

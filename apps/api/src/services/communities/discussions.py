@@ -1,34 +1,34 @@
-from typing import List, Union, Optional
-from uuid import uuid4
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
+from uuid import uuid4
+
+from fastapi import HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import HTTPException, Request
 
-from src.db.users import PublicUser, AnonymousUser, APITokenUser, User, UserReadAuthor
-from src.security.auth import resolve_acting_user_id
 from src.db.communities.communities import Community
-from src.services.analytics.analytics import track
-from src.services.analytics import events as analytics_events
-from src.services.webhooks.dispatch import dispatch_webhooks
+from src.db.communities.discussion_votes import DiscussionVote
 from src.db.communities.discussions import (
+    DISCUSSION_LABELS,
     Discussion,
     DiscussionReadWithVoteStatus,
     DiscussionUpdate,
-    DISCUSSION_LABELS,
 )
-from src.db.communities.discussion_votes import DiscussionVote
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserReadAuthor
+from src.security.auth import resolve_acting_user_id
 from src.security.rbac import (
-    check_resource_access,
     AccessAction,
-    authorization_verify_if_user_is_anon,
     authorization_verify_based_on_org_admin_status,
+    authorization_verify_if_user_is_anon,
+    check_resource_access,
 )
+from src.services.analytics import events as analytics_events
+from src.services.analytics.analytics import track
 from src.services.communities.moderation import (
-    validate_discussion_content,
     enforce_posting_limits,
+    validate_discussion_content,
 )
+from src.services.webhooks.dispatch import dispatch_webhooks
 
 
 class DiscussionSortBy(str, Enum):
@@ -54,11 +54,11 @@ def calculate_hot_score(upvotes: int, creation_date: str) -> float:
     try:
         created = datetime.fromisoformat(creation_date.replace("Z", "+00:00"))
         if created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
+            created = created.replace(tzinfo=UTC)
     except (ValueError, AttributeError):
-        created = datetime.now(timezone.utc)
+        created = datetime.now(UTC)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     hours = max(0, (now - created).total_seconds() / 3600)
 
     return (upvotes - 1) / pow(hours + BASE_HOURS, GRAVITY)
@@ -78,9 +78,9 @@ async def create_discussion(
     title: str,
     content: str,
     label: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
-    emoji: Optional[str] = None,
+    emoji: str | None = None,
 ) -> DiscussionReadWithVoteStatus:
     """
     Create a new discussion in a community.
@@ -187,7 +187,7 @@ async def create_discussion(
 async def get_discussion(
     request: Request,
     discussion_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionReadWithVoteStatus:
     """
@@ -233,13 +233,13 @@ async def get_discussion(
 async def get_discussions_by_community(
     request: Request,
     community_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
     sort_by: DiscussionSortBy = DiscussionSortBy.RECENT,
     page: int = 1,
     limit: int = 10,
-    label: Optional[str] = None,
-) -> List[DiscussionReadWithVoteStatus]:
+    label: str | None = None,
+) -> list[DiscussionReadWithVoteStatus]:
     """
     Get paginated list of discussions for a community with sorting.
     Pinned discussions are always returned first.
@@ -359,7 +359,7 @@ async def update_discussion(
     request: Request,
     discussion_uuid: str,
     discussion_object: DiscussionUpdate,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionReadWithVoteStatus:
     """
@@ -460,7 +460,7 @@ async def pin_discussion(
     request: Request,
     discussion_uuid: str,
     is_pinned: bool,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionReadWithVoteStatus:
     """
@@ -529,7 +529,7 @@ async def lock_discussion(
     request: Request,
     discussion_uuid: str,
     is_locked: bool,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionReadWithVoteStatus:
     """
@@ -597,7 +597,7 @@ async def lock_discussion(
 async def delete_discussion(
     request: Request,
     discussion_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> dict:
     """

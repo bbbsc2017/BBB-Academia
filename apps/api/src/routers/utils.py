@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+
 from src.db.users import AnonymousUser, PublicUser
 from src.security.auth import get_current_user
 from src.services.utils.link_preview import fetch_link_preview

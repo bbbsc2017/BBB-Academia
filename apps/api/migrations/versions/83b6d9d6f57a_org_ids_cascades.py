@@ -5,18 +5,17 @@ Revises: cb2029aadc2d
 Create Date: 2024-08-29 19:38:10.022100
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
+import sqlalchemy as sa  # noqa: F401
+import sqlmodel  # noqa: F401
 from alembic import op
-import sqlalchemy as sa # noqa: F401
-import sqlmodel # noqa: F401
-
 
 # revision identifiers, used by Alembic.
 revision: str = '83b6d9d6f57a'
-down_revision: Union[str, None] = 'cb2029aadc2d'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'cb2029aadc2d'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

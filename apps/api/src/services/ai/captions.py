@@ -15,7 +15,6 @@ import logging
 import os
 import re
 import subprocess
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +119,7 @@ def _parse_ts(ts: str) -> float:
 def _seconds_to_ts(total: float) -> str:
     if total < 0:
         total = 0.0
-    ms = int(round((total - int(total)) * 1000))
+    ms = round((total - int(total)) * 1000)
     total = int(total)
     h, rem = divmod(total, 3600)
     m, s = divmod(rem, 60)
@@ -195,8 +194,10 @@ _TRANSCRIBE_SYSTEM = (
 )
 
 
-async def _transcribe_chunk(audio_path: str, model_name: str, source_language: Optional[str]) -> str:
-    from pydantic_ai import BinaryContent  # local import: heavy dep, keeps module import cheap
+async def _transcribe_chunk(audio_path: str, model_name: str, source_language: str | None) -> str:
+    from pydantic_ai import (
+        BinaryContent,  # local import: heavy dep, keeps module import cheap
+    )
 
     from src.services.ai.llm import generate
 
@@ -221,7 +222,7 @@ async def _transcribe_chunk(audio_path: str, model_name: str, source_language: O
 
 
 async def transcribe_to_vtt(
-    audio_chunks: list[str], model_name: str, source_language: Optional[str] = None
+    audio_chunks: list[str], model_name: str, source_language: str | None = None
 ) -> str:
     """Transcribe ordered audio chunks and stitch into one WebVTT document.
 

@@ -18,7 +18,6 @@ from src.routers.ai import rag as rag_router_module
 from src.routers.boards import boards_playground as boards_playground_router_module
 from src.routers.courses import migration as migration_router_module
 
-
 UNAUTH_BILLING_ROUTES = [
     (
         "POST",

@@ -7,7 +7,6 @@ before being formatted in.
 
 from typing import Final
 
-
 SUPPORTED_LANGUAGES: Final[tuple[str, ...]] = ("en", "es")
 
 # Locales selectable as an organisation's UI language; mirrors

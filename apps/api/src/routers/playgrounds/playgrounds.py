@@ -1,28 +1,28 @@
-from typing import List
+
 from fastapi import APIRouter, Depends, File, Request, UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
-from src.db.playgrounds import PlaygroundCreate, PlaygroundRead, PlaygroundUpdate
 from src.db.playground_reactions import PlaygroundReactionSummary
-from src.db.users import PublicUser, AnonymousUser
+from src.db.playgrounds import PlaygroundCreate, PlaygroundRead, PlaygroundUpdate
+from src.db.users import AnonymousUser, PublicUser
 from src.security.auth import get_current_user
 from src.security.features_utils.dependencies import require_playgrounds_feature
-from src.services.playgrounds.playgrounds import (
-    create_playground,
-    get_playground,
-    list_org_playgrounds,
-    update_playground,
-    update_playground_thumbnail,
-    delete_playground,
-    duplicate_playground,
-    add_usergroup_to_playground,
-    remove_usergroup_from_playground,
-    get_playground_usergroups,
-)
 from src.services.playgrounds.playground_reactions import (
     get_playground_reactions,
     toggle_playground_reaction,
+)
+from src.services.playgrounds.playgrounds import (
+    add_usergroup_to_playground,
+    create_playground,
+    delete_playground,
+    duplicate_playground,
+    get_playground,
+    get_playground_usergroups,
+    list_org_playgrounds,
+    remove_usergroup_from_playground,
+    update_playground,
+    update_playground_thumbnail,
 )
 
 router = APIRouter(dependencies=[Depends(require_playgrounds_feature)])
@@ -52,11 +52,11 @@ async def api_create_playground(
 
 @router.get(
     "/org/{org_id}",
-    response_model=List[PlaygroundRead],
+    response_model=list[PlaygroundRead],
     summary="List playgrounds for an organization",
     description="List all playgrounds in the given organization that the current user is allowed to see.",
     responses={
-        200: {"description": "List of playgrounds accessible to the current user.", "model": List[PlaygroundRead]},
+        200: {"description": "List of playgrounds accessible to the current user.", "model": list[PlaygroundRead]},
         401: {"description": "Authentication required"},
         403: {"description": "Access denied to this organization"},
     },
@@ -66,7 +66,7 @@ async def api_list_org_playgrounds(
     org_id: int,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[PlaygroundRead]:
+) -> list[PlaygroundRead]:
     return await list_org_playgrounds(request, org_id, current_user, db_session)
 
 
@@ -225,7 +225,7 @@ async def api_remove_usergroup_from_playground(
 
 @router.get(
     "/{playground_uuid}/usergroups",
-    response_model=List[dict],
+    response_model=list[dict],
     summary="List usergroups attached to a playground",
     description="Return the list of usergroups that have access to a given playground.",
     responses={
@@ -240,17 +240,17 @@ async def api_get_playground_usergroups(
     playground_uuid: str,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
-) -> List[dict]:
+) -> list[dict]:
     return await get_playground_usergroups(request, playground_uuid, current_user, db_session)
 
 
 @router.get(
     "/{playground_uuid}/reactions",
-    response_model=List[PlaygroundReactionSummary],
+    response_model=list[PlaygroundReactionSummary],
     summary="List reactions on a playground",
     description="Return reaction counts and the current user's reactions for a playground. Supports anonymous viewers.",
     responses={
-        200: {"description": "Aggregated reaction summary for the playground.", "model": List[PlaygroundReactionSummary]},
+        200: {"description": "Aggregated reaction summary for the playground.", "model": list[PlaygroundReactionSummary]},
         404: {"description": "Playground not found"},
     },
 )
@@ -259,7 +259,7 @@ async def api_get_playground_reactions(
     playground_uuid: str,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser | AnonymousUser = Depends(get_current_user),
-) -> List[PlaygroundReactionSummary]:
+) -> list[PlaygroundReactionSummary]:
     return await get_playground_reactions(request, playground_uuid, current_user, db_session)
 
 

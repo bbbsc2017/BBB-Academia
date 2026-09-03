@@ -1,4 +1,4 @@
-from typing import Optional
+
 from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
@@ -17,10 +17,10 @@ class FolderContent(SQLModel, table=True):
         UniqueConstraint("folder_id", "resource_uuid", name="uq_foldercontent_folder_resource"),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     # NULL folder_id = the org library root (Drive-like): content can live at the
     # root alongside folders, not only inside a folder.
-    folder_id: Optional[int] = Field(
+    folder_id: int | None = Field(
         default=None,
         sa_column=Column(
             Integer, ForeignKey("folder.id", ondelete="CASCADE"), nullable=True, index=True

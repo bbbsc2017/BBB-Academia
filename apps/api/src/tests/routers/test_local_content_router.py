@@ -3,14 +3,14 @@
 from unittest.mock import patch
 
 import pytest
-from fastapi import HTTPException, FastAPI
+from fastapi import FastAPI, HTTPException
 from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.db.courses.courses import Course
 from src.db.podcasts.podcasts import Podcast
 from src.db.user_organizations import UserOrganization
-from src.db.users import APITokenUser, AnonymousUser
+from src.db.users import AnonymousUser, APITokenUser
 from src.routers.local_content import router as local_content_router
 from src.security.auth import get_current_user
 

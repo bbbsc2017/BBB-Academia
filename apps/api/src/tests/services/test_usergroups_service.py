@@ -9,8 +9,8 @@ from fastapi import HTTPException
 from src.db.boards import Board
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
-from src.db.users import APITokenUser, InternalUser
 from src.db.usergroups import UserGroupCreate, UserGroupUpdate
+from src.db.users import APITokenUser, InternalUser
 from src.services.users.usergroups import (
     _validate_resource_exists_and_belongs_to_org,
     add_resources_to_usergroup,
@@ -20,11 +20,11 @@ from src.services.users.usergroups import (
     get_resources_by_usergroup,
     get_usergroups_by_resource,
     get_users_linked_to_usergroup,
+    rbac_check,
     read_usergroup_by_id,
     read_usergroups_by_org_id,
     remove_resources_from_usergroup,
     remove_users_from_usergroup,
-    rbac_check,
     update_usergroup_by_id,
 )
 
@@ -287,14 +287,13 @@ class TestUsergroupsService:
         with patch(
             "src.services.users.usergroups.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as missing_org_exc:
-                await create_usergroup(
-                    mock_request,
-                    db,
-                    admin_user,
-                    UserGroupCreate(name="UG2", description="Desc", org_id=999999),
-                )
+        ), pytest.raises(HTTPException) as missing_org_exc:
+            await create_usergroup(
+                mock_request,
+                db,
+                admin_user,
+                UserGroupCreate(name="UG2", description="Desc", org_id=999999),
+            )
         assert missing_org_exc.value.status_code == 403
 
         with patch(
@@ -581,7 +580,6 @@ class TestUsergroupsService:
         with patch(
             "src.services.users.usergroups.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as missing_group_exc:
-                await read_usergroup_by_id(mock_request, db, admin_user, 999)
+        ), pytest.raises(HTTPException) as missing_group_exc:
+            await read_usergroup_by_id(mock_request, db, admin_user, 999)
         assert missing_group_exc.value.status_code == 404

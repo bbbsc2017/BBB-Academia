@@ -1,13 +1,14 @@
-from typing import Optional
+
 from sqlalchemy import JSON, Column, ForeignKey
 from sqlmodel import Field, SQLModel
+
 
 class CertificationBase(SQLModel):
     course_id: int = Field(sa_column= Column("course_id", ForeignKey("course.id", ondelete="CASCADE")))
     config: dict = Field(default_factory=dict, sa_column= Column("config", JSON))
 
 class Certifications(CertificationBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     certification_uuid: str = Field(unique=True)
     course_id: int = Field(sa_column= Column("course_id", ForeignKey("course.id", ondelete="CASCADE")))
     config: dict = Field(default_factory=dict, sa_column= Column("config", JSON))
@@ -19,7 +20,7 @@ class CertificationCreate(SQLModel):
     config: dict = Field(default_factory=dict)
 
 class CertificationUpdate(SQLModel):
-    config: Optional[dict] = None
+    config: dict | None = None
 
 class CertificationRead(SQLModel):
     id: int
@@ -36,7 +37,7 @@ class CertificateUserBase(SQLModel):
     user_certification_uuid: str
 
 class CertificateUser(CertificateUserBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(sa_column= Column("user_id", ForeignKey("user.id", ondelete="CASCADE")))
     certification_id: int = Field(sa_column= Column("certification_id", ForeignKey("certifications.id", ondelete="CASCADE")))
     user_certification_uuid: str = Field(unique=True, index=True)
@@ -57,7 +58,7 @@ class CertificateUserRead(SQLModel):
     updated_at: str
 
 class CertificateUserUpdate(SQLModel):
-    user_id: Optional[int] = None
-    certification_id: Optional[int] = None
-    user_certification_uuid: Optional[str] = None
+    user_id: int | None = None
+    certification_id: int | None = None
+    user_certification_uuid: str | None = None
 

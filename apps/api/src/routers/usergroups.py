@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.core.events.database import get_db_session
 from src.db.usergroups import UserGroupCreate, UserGroupRead, UserGroupUpdate
 from src.db.users import PublicUser, UserReadPublic
+from src.security.auth import get_current_user
 from src.services.users.usergroups import (
     add_resources_to_usergroup,
     add_users_to_usergroup,
@@ -16,9 +19,6 @@ from src.services.users.usergroups import (
     remove_users_from_usergroup,
     update_usergroup_by_id,
 )
-from src.security.auth import get_current_user
-from src.core.events.database import get_db_session
-
 
 router = APIRouter()
 

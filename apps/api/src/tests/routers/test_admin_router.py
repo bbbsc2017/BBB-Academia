@@ -9,8 +9,8 @@ from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.db.trails import TrailRead
-from src.db.users import APITokenUser, UserRead
 from src.db.usergroups import UserGroupRead
+from src.db.users import APITokenUser, UserRead
 from src.routers.admin import router as admin_router
 from src.security.auth import get_current_user
 

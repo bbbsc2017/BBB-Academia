@@ -1,27 +1,31 @@
-from typing import List, Dict, Union
-from uuid import uuid4
 from datetime import datetime
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
+from uuid import uuid4
+
+from fastapi import HTTPException, Request
 from sqlalchemy import update as sql_update
 from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, Request
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
 from src.db.communities.communities import Community
-from src.db.communities.discussions import Discussion
-from src.db.communities.discussion_comments import DiscussionComment
 from src.db.communities.discussion_comment_votes import (
     DiscussionCommentVote,
     DiscussionCommentVoteRead,
 )
-from src.security.rbac import check_resource_access, AccessAction, authorization_verify_if_user_is_anon
+from src.db.communities.discussion_comments import DiscussionComment
+from src.db.communities.discussions import Discussion
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.rbac import (
+    AccessAction,
+    authorization_verify_if_user_is_anon,
+    check_resource_access,
+)
 
 
 async def upvote_comment(
     request: Request,
     comment_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionCommentVoteRead:
     """
@@ -113,7 +117,7 @@ async def upvote_comment(
 async def remove_comment_upvote(
     request: Request,
     comment_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> dict:
     """
@@ -162,10 +166,10 @@ async def remove_comment_upvote(
 
 
 async def get_user_votes_for_comments(
-    comment_ids: List[int],
+    comment_ids: list[int],
     user_id: int,
     db_session: AsyncSession,
-) -> Dict[int, bool]:
+) -> dict[int, bool]:
     """
     Check if user has voted for multiple comments.
 

@@ -32,7 +32,6 @@ from src.services.courses.transfer.import_service import (
     _import_chapter,
 )
 
-
 COURSE_META = {"category": "engineering", "audience": ["staff"]}
 CHAPTER_META = {"reviewer": "alice", "weight": 3}
 ACTIVITY_META = {"duration_minutes": 12, "tags": ["video", "intro"]}

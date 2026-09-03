@@ -1,8 +1,8 @@
-from typing import Optional
+from enum import Enum
+
 from pydantic import BaseModel
 from sqlalchemy import JSON, Column, ForeignKey, Integer, UniqueConstraint
 from sqlmodel import Field, SQLModel
-from enum import Enum
 
 from src.db.trail_steps import TrailStep
 
@@ -31,7 +31,7 @@ class TrailRun(SQLModel, table=True):
         ),
         {"extend_existing": True},
     )
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     data: dict = Field(default_factory=dict, sa_column=Column(JSON))
     status: StatusEnum = StatusEnum.STATUS_IN_PROGRESS
     # foreign keys
@@ -65,19 +65,19 @@ class TrailRunCreate(SQLModel):
 
 # trick because Lists are not supported in SQLModel (runs: list[TrailStep] )
 class TrailRunRead(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     data: dict = Field(default_factory=dict)
     status: StatusEnum = StatusEnum.STATUS_IN_PROGRESS
     # foreign keys
-    trail_id: Optional[int] = None
-    course_id: Optional[int] = None
-    org_id: Optional[int] = None
-    user_id: Optional[int] = None
+    trail_id: int | None = None
+    course_id: int | None = None
+    org_id: int | None = None
+    user_id: int | None = None
     # course object
-    course: Optional[dict] = None
+    course: dict | None = None
     # timestamps
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
+    creation_date: str | None = None
+    update_date: str | None = None
     # number of activities in course
     course_total_steps: int = 0
     steps: list[TrailStep] = Field(default_factory=list)

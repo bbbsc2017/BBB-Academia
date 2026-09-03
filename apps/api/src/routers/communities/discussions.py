@@ -1,59 +1,58 @@
-from typing import List, Dict
-from fastapi import APIRouter, Depends, Request, Query
-from pydantic import BaseModel
 
+from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
-from src.db.users import PublicUser
-from src.db.communities.discussions import (
-    DiscussionReadWithVoteStatus,
-    DiscussionUpdate,
-    DiscussionPinUpdate,
-    DiscussionLockUpdate,
-    DiscussionLabelInfo,
-    DISCUSSION_LABELS,
-)
-from src.db.communities.discussion_votes import DiscussionVoteRead
+from src.db.communities.discussion_comment_votes import DiscussionCommentVoteRead
 from src.db.communities.discussion_comments import (
     DiscussionCommentReadWithVoteStatus,
     DiscussionCommentUpdate,
 )
-from src.db.communities.discussion_comment_votes import DiscussionCommentVoteRead
 from src.db.communities.discussion_reactions import (
     DiscussionReactionSummary,
 )
-from src.security.auth import get_current_user
-from src.services.communities.discussions import (
-    create_discussion,
-    get_discussion,
-    get_discussions_by_community,
-    update_discussion,
-    delete_discussion,
-    pin_discussion,
-    lock_discussion,
-    DiscussionSortBy,
+from src.db.communities.discussion_votes import DiscussionVoteRead
+from src.db.communities.discussions import (
+    DISCUSSION_LABELS,
+    DiscussionLabelInfo,
+    DiscussionLockUpdate,
+    DiscussionPinUpdate,
+    DiscussionReadWithVoteStatus,
+    DiscussionUpdate,
 )
-from src.services.communities.votes import (
-    upvote_discussion,
-    remove_upvote,
-    get_user_votes_for_discussions,
+from src.db.users import PublicUser
+from src.security.auth import get_current_user
+from src.services.communities.comment_votes import (
+    remove_comment_upvote,
+    upvote_comment,
 )
 from src.services.communities.comments import (
     create_comment,
-    get_comments_by_discussion,
-    update_comment,
     delete_comment,
     get_comment_count,
+    get_comments_by_discussion,
+    update_comment,
 )
-from src.services.communities.comment_votes import (
-    upvote_comment,
-    remove_comment_upvote,
+from src.services.communities.discussions import (
+    DiscussionSortBy,
+    create_discussion,
+    delete_discussion,
+    get_discussion,
+    get_discussions_by_community,
+    lock_discussion,
+    pin_discussion,
+    update_discussion,
 )
 from src.services.communities.reactions import (
     get_reactions,
     toggle_reaction,
 )
-
+from src.services.communities.votes import (
+    get_user_votes_for_discussions,
+    remove_upvote,
+    upvote_discussion,
+)
 
 router = APIRouter()
 
@@ -67,14 +66,14 @@ class DiscussionCreateRequest(BaseModel):
 
 @router.get(
     "/discussions/labels",
-    response_model=List[DiscussionLabelInfo],
+    response_model=list[DiscussionLabelInfo],
     summary="List discussion labels",
     description="Return the catalog of labels (category tags) that can be assigned to discussions.",
     responses={
-        200: {"description": "Available discussion labels.", "model": List[DiscussionLabelInfo]},
+        200: {"description": "Available discussion labels.", "model": list[DiscussionLabelInfo]},
     },
 )
-async def api_get_discussion_labels() -> List[DiscussionLabelInfo]:
+async def api_get_discussion_labels() -> list[DiscussionLabelInfo]:
     """
     Get available discussion labels.
     """
@@ -119,11 +118,11 @@ async def api_create_discussion(
 
 @router.get(
     "/communities/{community_uuid}/discussions",
-    response_model=List[DiscussionReadWithVoteStatus],
+    response_model=list[DiscussionReadWithVoteStatus],
     summary="List discussions in a community",
     description="Retrieve a paginated list of discussions for a community with sorting and optional label filtering. Pinned discussions are always returned first.",
     responses={
-        200: {"description": "Discussions for the community.", "model": List[DiscussionReadWithVoteStatus]},
+        200: {"description": "Discussions for the community.", "model": list[DiscussionReadWithVoteStatus]},
         401: {"description": "Authentication required"},
         403: {"description": "User does not have access to this community"},
         404: {"description": "Community not found"},
@@ -138,7 +137,7 @@ async def api_get_discussions_by_community(
     label: str | None = Query(default=None),
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[DiscussionReadWithVoteStatus]:
+) -> list[DiscussionReadWithVoteStatus]:
     """
     Get paginated list of discussions for a community with sorting.
 
@@ -349,10 +348,10 @@ async def api_remove_upvote(
 )
 async def api_get_user_votes_batch(
     request: Request,
-    discussion_uuids: List[str],
+    discussion_uuids: list[str],
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     """
     Batch check if user has voted for multiple discussions.
 
@@ -417,11 +416,11 @@ async def api_create_comment(
 
 @router.get(
     "/discussions/{discussion_uuid}/comments",
-    response_model=List[DiscussionCommentReadWithVoteStatus],
+    response_model=list[DiscussionCommentReadWithVoteStatus],
     summary="List comments for a discussion",
     description="Retrieve a paginated list of comments belonging to a discussion, including the current user's vote status.",
     responses={
-        200: {"description": "Comments for the discussion.", "model": List[DiscussionCommentReadWithVoteStatus]},
+        200: {"description": "Comments for the discussion.", "model": list[DiscussionCommentReadWithVoteStatus]},
         401: {"description": "Authentication required"},
         403: {"description": "User does not have access to this discussion's community"},
         404: {"description": "Discussion not found"},
@@ -434,7 +433,7 @@ async def api_get_comments_by_discussion(
     limit: int = Query(default=50, ge=1, le=100),
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[DiscussionCommentReadWithVoteStatus]:
+) -> list[DiscussionCommentReadWithVoteStatus]:
     """
     Get paginated list of comments for a discussion.
     """
@@ -586,11 +585,11 @@ class ReactionRequest(BaseModel):
 
 @router.get(
     "/discussions/{discussion_uuid}/reactions",
-    response_model=List[DiscussionReactionSummary],
+    response_model=list[DiscussionReactionSummary],
     summary="List reactions on a discussion",
     description="Return all emoji reactions on a discussion, grouped by emoji, with counts and a flag indicating whether the current user has reacted.",
     responses={
-        200: {"description": "Reaction summaries for the discussion.", "model": List[DiscussionReactionSummary]},
+        200: {"description": "Reaction summaries for the discussion.", "model": list[DiscussionReactionSummary]},
         401: {"description": "Authentication required"},
         403: {"description": "User does not have access to this discussion's community"},
         404: {"description": "Discussion not found"},
@@ -601,7 +600,7 @@ async def api_get_reactions(
     discussion_uuid: str,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[DiscussionReactionSummary]:
+) -> list[DiscussionReactionSummary]:
     """
     Get all reactions for a discussion, grouped by emoji.
 

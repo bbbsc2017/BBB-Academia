@@ -13,10 +13,10 @@ import pytest
 from fastapi import HTTPException
 
 from src.security.file_validation import (
-    validate_upload,
-    validate_ole_content,
-    validate_zip_content,
     get_safe_filename,
+    validate_ole_content,
+    validate_upload,
+    validate_zip_content,
 )
 
 # The categories the media upload endpoint allows (see src/services/media/media.py).

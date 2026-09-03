@@ -14,7 +14,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
 from src.db.organizations import Organization
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user, resolve_acting_user_id
 from src.security.features_utils.usage import (
     add_ai_credits,
@@ -22,9 +22,8 @@ from src.security.features_utils.usage import (
     reset_ai_credits_usage,
     set_ai_credits,
 )
-from src.security.org_auth import is_org_member, is_org_admin
+from src.security.org_auth import is_org_admin, is_org_member
 from src.security.superadmin import is_user_superadmin
-
 
 router = APIRouter()
 

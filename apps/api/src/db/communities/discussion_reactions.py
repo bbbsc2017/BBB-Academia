@@ -1,4 +1,4 @@
-from typing import Optional, List
+
 from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
@@ -15,7 +15,7 @@ class DiscussionReaction(DiscussionReactionBase, table=True):
         ),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     discussion_id: int = Field(
         sa_column=Column(Integer, ForeignKey("discussion.id", ondelete="CASCADE"))
     )
@@ -48,9 +48,9 @@ class ReactionUser(SQLModel):
     id: int
     user_uuid: str
     username: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    avatar_image: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
+    avatar_image: str | None = None
 
 
 class DiscussionReactionSummary(SQLModel):
@@ -58,5 +58,5 @@ class DiscussionReactionSummary(SQLModel):
 
     emoji: str
     count: int
-    users: List[ReactionUser]
+    users: list[ReactionUser]
     has_reacted: bool

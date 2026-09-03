@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 """Tests for the superadmin API token auth path.
 
 Covers the new ``lh_sa_`` branch in ``get_current_user``, the
@@ -169,9 +168,8 @@ class TestRequireSuperadminWithTokenPrincipal:
         with patch(
             "src.security.superadmin.is_user_superadmin",
             new=AsyncMock(return_value=False),
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await require_superadmin(current_user=principal, db_session=Mock())
+        ), pytest.raises(HTTPException) as exc:
+            await require_superadmin(current_user=principal, db_session=Mock())
 
         assert exc.value.status_code == 403
         assert "no longer a superadmin" in exc.value.detail.lower()
@@ -184,9 +182,8 @@ class TestRequireSuperadminWithTokenPrincipal:
         with patch(
             "src.security.superadmin.is_user_superadmin",
             new=AsyncMock(return_value=True),
-        ) as check:
-            with pytest.raises(HTTPException) as exc:
-                await require_superadmin(current_user=org_token, db_session=Mock())
+        ) as check, pytest.raises(HTTPException) as exc:
+            await require_superadmin(current_user=org_token, db_session=Mock())
 
         assert exc.value.status_code == 403
         check.assert_not_called()

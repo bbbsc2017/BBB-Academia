@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.db.usergroups import UserGroup
 import src.services.orgs.invites as invites_module
+from src.db.usergroups import UserGroup
 from src.services.orgs.invites import (
     _get_redis,
     create_invite_code,
@@ -103,9 +103,8 @@ class TestOrgInvitesService:
         with patch(
             "src.services.orgs.invites.get_learnhouse_config",
             return_value=_fake_config(None),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_invite_code(mock_request, org.id, admin_user, db)
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_invite_code(mock_request, org.id, admin_user, db)
         assert exc_info.value.status_code == 500
 
         with patch(
@@ -117,9 +116,8 @@ class TestOrgInvitesService:
         ), patch(
             "src.services.orgs.invites._get_redis",
             return_value=_fake_redis(eval_return=0),
-        ):
-            with pytest.raises(HTTPException) as limit_exc:
-                await create_invite_code(mock_request, org.id, admin_user, db)
+        ), pytest.raises(HTTPException) as limit_exc:
+            await create_invite_code(mock_request, org.id, admin_user, db)
         assert limit_exc.value.status_code == 400
 
         with patch(
@@ -131,15 +129,14 @@ class TestOrgInvitesService:
         ), patch(
             "src.services.orgs.invites._get_redis",
             return_value=_fake_redis(),
-        ):
-            with pytest.raises(HTTPException) as group_exc:
-                await create_invite_code(
-                    mock_request,
-                    org.id,
-                    admin_user,
-                    db,
-                    usergroup_id=999,
-                )
+        ), pytest.raises(HTTPException) as group_exc:
+            await create_invite_code(
+                mock_request,
+                org.id,
+                admin_user,
+                db,
+                usergroup_id=999,
+            )
         assert group_exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -285,15 +282,14 @@ class TestOrgInvitesService:
         ), patch(
             "src.services.orgs.invites._get_redis",
             return_value=_fake_redis(scan_keys=[]),
-        ):
-            with pytest.raises(HTTPException) as delete_missing_keys_exc:
-                await delete_invite_code(
-                    mock_request,
-                    org.id,
-                    "org_invite_code_missing",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as delete_missing_keys_exc:
+            await delete_invite_code(
+                mock_request,
+                org.id,
+                "org_invite_code_missing",
+                admin_user,
+                db,
+            )
         assert delete_missing_keys_exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -411,15 +407,14 @@ class TestOrgInvitesService:
         ), patch(
             "src.services.orgs.invites._get_redis",
             return_value=_fake_redis(),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_invite_code(
-                    mock_request,
-                    org.id,
-                    "bad-code*",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_invite_code(
+                mock_request,
+                org.id,
+                "bad-code*",
+                admin_user,
+                db,
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -458,15 +453,14 @@ class TestOrgInvitesService:
         ), patch(
             "src.services.orgs.invites._get_redis",
             return_value=_fake_redis(),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await delete_invite_code(
-                    mock_request,
-                    org.id,
-                    "org_invite_code_99999999-9999-9999-9999-999999999999",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await delete_invite_code(
+                mock_request,
+                org.id,
+                "org_invite_code_99999999-9999-9999-9999-999999999999",
+                admin_user,
+                db,
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio

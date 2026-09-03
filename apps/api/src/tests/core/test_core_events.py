@@ -4,11 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import src.core.ee_hooks as ee_hooks
-import src.core.events.autoinstall as autoinstall
-import src.core.events.content as content
-import src.core.events.events as events
-import src.core.events.logs as logs
+from src.core import ee_hooks
+from src.core.events import autoinstall, content, events, logs
 
 
 class _FakeResult:
@@ -417,8 +414,7 @@ async def test_periodic_migration_cleanup_logs_and_exits(monkeypatch, caplog):
         lambda: (_ for _ in ()).throw(RuntimeError("cleanup failed")),
     )
 
-    with caplog.at_level(logging.WARNING):
-        with pytest.raises(asyncio.CancelledError):
-            await events._periodic_migration_cleanup()
+    with caplog.at_level(logging.WARNING), pytest.raises(asyncio.CancelledError):
+        await events._periodic_migration_cleanup()
 
     assert "Periodic migration cleanup failed" in caplog.text

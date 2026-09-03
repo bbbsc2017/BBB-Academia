@@ -8,18 +8,18 @@ Adds SUBTYPE_DYNAMIC_RESOURCE to activitysubtypeenum so a course activity can
 embed an existing Library resource (board / podcast / community / playground /
 course) under the existing TYPE_DYNAMIC type.
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa  # noqa: F401
 import sqlmodel  # noqa: F401
+from alembic import op
 from alembic_postgresql_enum import TableReference  # type: ignore
 
 # revision identifiers, used by Alembic.
 revision: str = 'r5s6t7u8v9w0'
-down_revision: Union[str, None] = 'f01de40de012'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'f01de40de012'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

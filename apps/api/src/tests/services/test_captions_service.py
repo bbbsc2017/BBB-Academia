@@ -2,7 +2,6 @@
 
 import src.services.ai.captions as cap
 
-
 # --- VTT sanitizing --------------------------------------------------------
 
 def test_sanitize_adds_header_and_strips_fences():
@@ -84,7 +83,7 @@ async def test_transcribe_stitches_chunks(monkeypatch, tmp_path):
         calls["n"] += 1
         return "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nline"
 
-    import src.services.ai.llm as llm
+    from src.services.ai import llm
     monkeypatch.setattr(llm, "generate", _fake_generate)
 
     c0 = tmp_path / "chunk_0000.mp3"
@@ -104,7 +103,7 @@ async def test_transcribe_raises_without_cues(monkeypatch, tmp_path):
     async def _empty(**kwargs):
         return "WEBVTT\n\n(silence)"
 
-    import src.services.ai.llm as llm
+    from src.services.ai import llm
     monkeypatch.setattr(llm, "generate", _empty)
     c0 = tmp_path / "chunk_0000.mp3"
     c0.write_bytes(b"x")
@@ -124,7 +123,7 @@ async def test_translate_vtt(monkeypatch):
         # echo a translated cue
         return "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nBonjour"
 
-    import src.services.ai.llm as llm
+    from src.services.ai import llm
     monkeypatch.setattr(llm, "generate", _fake)
     out = await cap.translate_vtt("WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello", "French", "gemini-x")
     assert "Bonjour" in out and out.startswith("WEBVTT")
@@ -134,7 +133,7 @@ async def test_translate_raises_without_cues(monkeypatch):
     async def _fake(**kwargs):
         return "sorry I cannot"
 
-    import src.services.ai.llm as llm
+    from src.services.ai import llm
     monkeypatch.setattr(llm, "generate", _fake)
     import pytest
     with pytest.raises(ValueError):

@@ -15,18 +15,17 @@ Usage:
         ...
 """
 
-from typing import Callable, Union, TYPE_CHECKING
+from collections.abc import Callable
+
 from fastapi import Depends, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
-from src.security.rbac.types import AccessAction, AccessContext, AccessDecision
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.rbac.resource_access import ResourceAccessChecker
+from src.security.rbac.types import AccessAction, AccessContext, AccessDecision
 
 # Avoid circular import - get_current_user is imported lazily
-if TYPE_CHECKING:
-    pass
 
 
 def _get_current_user_dependency():
@@ -67,7 +66,7 @@ def require_resource_access(
     async def dependency(
         request: Request,
         db_session: AsyncSession = Depends(get_db_session),
-        current_user: Union[PublicUser, AnonymousUser, APITokenUser] = Depends(_get_current_user_dependency()),
+        current_user: PublicUser | AnonymousUser | APITokenUser = Depends(_get_current_user_dependency()),
     ) -> AccessDecision:
         # Extract resource_uuid from path parameters
         resource_uuid = request.path_params.get(resource_uuid_param)
@@ -168,7 +167,7 @@ def require_create_access(
     async def dependency(
         request: Request,
         db_session: AsyncSession = Depends(get_db_session),
-        current_user: Union[PublicUser, AnonymousUser, APITokenUser] = Depends(_get_current_user_dependency()),
+        current_user: PublicUser | AnonymousUser | APITokenUser = Depends(_get_current_user_dependency()),
     ) -> AccessDecision:
         # Use placeholder UUID for creation
         resource_uuid = f"{resource_type[:-1]}_x"  # e.g., "course_x"

@@ -5,10 +5,10 @@ from fastapi import HTTPException, Request
 
 from src.db.users import PublicUser
 from src.security.rbac.dependencies import (
-    _get_current_user_dependency,
     CommunityAccess,
     CourseAccess,
     PodcastAccess,
+    _get_current_user_dependency,
     require_create_access,
     require_dashboard_access,
     require_read_access,

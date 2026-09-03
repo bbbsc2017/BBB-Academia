@@ -11,7 +11,6 @@ import os
 import tempfile
 import zipfile
 from datetime import datetime
-from typing import Optional
 
 from fastapi import HTTPException, Request
 from sqlmodel import select
@@ -24,11 +23,11 @@ from src.db.courses.chapters import Chapter
 from src.db.courses.course_chapters import CourseChapter
 from src.db.courses.courses import Course
 from src.db.organizations import Organization
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
-from src.security.rbac import check_resource_access, AccessAction
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.rbac import AccessAction, check_resource_access
 
-from .models import ExportManifest, ExportCourseInfo
-from .storage_utils import read_file_content, list_directory, walk_directory
+from .models import ExportCourseInfo, ExportManifest
+from .storage_utils import list_directory, read_file_content, walk_directory
 
 # File extensions that are already compressed — use ZIP_STORED to skip
 # re-compression, saving significant CPU on large media files.
@@ -84,7 +83,7 @@ async def export_courses_batch(
 
     # Phase 1: Validate access and load all DB data on the main thread
     courses_to_export = []
-    org: Optional[Organization] = None
+    org: Organization | None = None
 
     for course_uuid in course_uuids:
         statement = select(Course).where(Course.course_uuid == course_uuid)

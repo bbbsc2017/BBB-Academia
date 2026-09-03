@@ -1,7 +1,7 @@
 """Tests for src/services/utils/caption_jobs.py (AI caption pipeline)."""
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -202,9 +202,9 @@ async def test_stop_consumer_reenqueues_inflight(monkeypatch):
 
 async def test_requeue_stale_processing(monkeypatch, db, org, course, chapter, activity):
     _bind_session(monkeypatch, db)
-    old = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    old = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
     await _add_caption_activity(db, org, course, "stale", captions={"status": "processing", "updated_at": old})
-    await _add_caption_activity(db, org, course, "fresh", captions={"status": "processing", "updated_at": datetime.now(timezone.utc).isoformat()})
+    await _add_caption_activity(db, org, course, "fresh", captions={"status": "processing", "updated_at": datetime.now(UTC).isoformat()})
     await _add_caption_activity(db, org, course, "ready1", captions={"status": "ready"})
     pushed = []
 
@@ -245,8 +245,8 @@ def _mock_engine(monkeypatch):
     monkeypatch.setattr(cj, "is_s3_enabled", lambda: True)
     monkeypatch.setattr(cj, "upload_directory_to_s3", lambda d, p: True)
 
-    import src.security.features_utils.usage as usage
-    import src.services.ai.llm as llm
+    from src.security.features_utils import usage
+    from src.services.ai import llm
 
     async def _feat(*a, **k):
         return True

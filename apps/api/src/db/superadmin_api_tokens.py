@@ -1,13 +1,13 @@
-from typing import Optional
+
 from pydantic import BaseModel
-from sqlalchemy import Column, ForeignKey, Integer, String, Index
+from sqlalchemy import Column, ForeignKey, Index, Integer, String
 from sqlmodel import Field, SQLModel
 
 
 class SuperadminAPITokenBase(SQLModel):
     """Base model for superadmin API tokens (cross-org)."""
     name: str = Field(max_length=100)
-    description: Optional[str] = Field(default=None, max_length=500)
+    description: str | None = Field(default=None, max_length=500)
 
 
 class SuperadminAPIToken(SuperadminAPITokenBase, table=True):
@@ -24,7 +24,7 @@ class SuperadminAPIToken(SuperadminAPITokenBase, table=True):
         {"extend_existing": True},
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     token_uuid: str = Field(default="", max_length=100)  # satoken_{uuid4()}
     token_prefix: str = Field(default="", max_length=15)
     token_hash: str = Field(default="", sa_column=Column(String(255)))
@@ -33,34 +33,34 @@ class SuperadminAPIToken(SuperadminAPITokenBase, table=True):
     )
     creation_date: str = ""
     update_date: str = ""
-    last_used_at: Optional[str] = None
-    expires_at: Optional[str] = None  # None = never expires
+    last_used_at: str | None = None
+    expires_at: str | None = None  # None = never expires
     is_active: bool = Field(default=True)  # False = revoked
 
 
 class SuperadminAPITokenCreate(BaseModel):
     name: str
-    description: Optional[str] = None
-    expires_at: Optional[str] = None
+    description: str | None = None
+    expires_at: str | None = None
 
 
 class SuperadminAPITokenUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    expires_at: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    expires_at: str | None = None
 
 
 class SuperadminAPITokenRead(BaseModel):
     id: int
     token_uuid: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     token_prefix: str
     created_by_user_id: int
     creation_date: str
     update_date: str
-    last_used_at: Optional[str] = None
-    expires_at: Optional[str] = None
+    last_used_at: str | None = None
+    expires_at: str | None = None
     is_active: bool
 
 
@@ -69,8 +69,8 @@ class SuperadminAPITokenCreatedResponse(BaseModel):
     token: str
     token_uuid: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     token_prefix: str
     created_by_user_id: int
     creation_date: str
-    expires_at: Optional[str] = None
+    expires_at: str | None = None

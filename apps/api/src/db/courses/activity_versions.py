@@ -1,14 +1,14 @@
-from typing import Optional
-from sqlalchemy import JSON, Column, ForeignKey, Integer, DateTime
-from sqlmodel import Field, SQLModel
 from datetime import datetime
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer
+from sqlmodel import Field, SQLModel
 
 
 class ActivityVersionBase(SQLModel):
     """Base model for activity versions"""
     content: dict = Field(default_factory=dict, sa_column=Column(JSON))
     version_number: int
-    created_by_id: Optional[int] = Field(
+    created_by_id: int | None = Field(
         default=None,
         sa_column=Column(Integer, ForeignKey("user.id", ondelete="SET NULL"))
     )
@@ -19,7 +19,7 @@ class ActivityVersion(ActivityVersionBase, table=True):
     Stores historical versions of activity content.
     Each save creates a new version, keeping the last MAX_ACTIVITY_VERSIONS saves.
     """
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     activity_id: int = Field(
         sa_column=Column(Integer, ForeignKey("activity.id", ondelete="CASCADE"))
     )
@@ -38,8 +38,8 @@ class ActivityVersionRead(ActivityVersionBase):
     activity_id: int
     org_id: int
     created_at: datetime
-    created_by_username: Optional[str] = None
-    created_by_avatar: Optional[str] = None
+    created_by_username: str | None = None
+    created_by_avatar: str | None = None
 
 
 class ActivityStateRead(SQLModel):
@@ -50,5 +50,5 @@ class ActivityStateRead(SQLModel):
     activity_uuid: str
     update_date: str
     current_version: int
-    last_modified_by_id: Optional[int] = None
-    last_modified_by_username: Optional[str] = None
+    last_modified_by_id: int | None = None
+    last_modified_by_username: str | None = None

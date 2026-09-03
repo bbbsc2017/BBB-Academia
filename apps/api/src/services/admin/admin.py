@@ -6,42 +6,34 @@ All functions require an APITokenUser and operate within the token's org scope.
 """
 
 from datetime import datetime, timedelta
-from typing import List, Optional
 from uuid import uuid4
+
 from fastapi import HTTPException, Request, status
-from sqlmodel import select, func
+from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db.api_tokens import APIToken
 from src.db.courses.activities import Activity
-from src.db.courses.chapter_activities import ChapterActivity
-from src.db.courses.chapters import Chapter
-from src.db.courses.course_chapters import CourseChapter
-from src.db.courses.courses import Course
 from src.db.courses.certifications import (
     CertificateUser,
     CertificateUserRead,
     CertificationRead,
     Certifications,
 )
+from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.chapters import Chapter
+from src.db.courses.course_chapters import CourseChapter
+from src.db.courses.courses import Course
 from src.db.organizations import Organization
+from src.db.roles import Role
 from src.db.trail_runs import TrailRun
 from src.db.trail_steps import TrailStep
 from src.db.trails import Trail, TrailRead
-from src.db.api_tokens import APIToken
-from src.db.roles import Role
+from src.db.user_organizations import UserOrganization
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
 from src.db.usergroups import UserGroup, UserGroupRead
-from src.db.user_organizations import UserOrganization
 from src.db.users import APITokenUser, User, UserRead
-from src.services.trail.trail import _build_trail_read
-from src.services.courses.certifications import (
-    check_course_completion_and_create_certificate,
-    create_certificate_user,
-)
-from src.services.email.utils import get_base_url_from_request
-from src.services.analytics.analytics import track
-from src.services.analytics import events as analytics_events
-from src.services.webhooks.dispatch import dispatch_webhooks
 from src.security.auth import create_access_token, create_refresh_token
 from src.security.features_utils.plan_check import get_org_plan
 from src.security.features_utils.plans import plan_meets_requirement
@@ -53,9 +45,18 @@ from src.security.features_utils.usage import (
     enforce_admin_seat_limit_for_role_change,
     increase_feature_usage,
 )
-from src.security.security import security_hash_password
 from src.security.rbac.constants import ADMIN_ROLE_ID, MAINTAINER_ROLE_ID
+from src.security.security import security_hash_password
+from src.services.analytics import events as analytics_events
+from src.services.analytics.analytics import track
+from src.services.courses.certifications import (
+    check_course_completion_and_create_certificate,
+    create_certificate_user,
+)
+from src.services.email.utils import get_base_url_from_request
 from src.services.security.password_validation import validate_password_complexity
+from src.services.trail.trail import _build_trail_read
+from src.services.webhooks.dispatch import dispatch_webhooks
 
 
 def _require_api_token(current_user) -> APITokenUser:
@@ -711,7 +712,7 @@ async def get_all_user_progress(
     token_user: APITokenUser,
     user_id: int,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """Get progress summary for all courses a user is enrolled in."""
 
     await _get_user_in_org(user_id, token_user.org_id, db_session)
@@ -782,14 +783,14 @@ async def get_user_trail_detail(
     token_user: APITokenUser,
     user_id: int,
     db_session: AsyncSession,
-    course_uuid: Optional[str] = None,
+    course_uuid: str | None = None,
 ) -> dict:
     """Build a full trail breakdown for a user — every chapter + every activity
     with per-activity completion status. Optionally filtered to a single course."""
 
     await _get_user_in_org(user_id, token_user.org_id, db_session)
 
-    target_course: Optional[Course] = None
+    target_course: Course | None = None
     if course_uuid is not None:
         target_course = (await db_session.execute(
             select(Course).where(
@@ -969,11 +970,11 @@ async def provision_user(
     username: str,
     first_name: str,
     last_name: str,
-    password: Optional[str],
+    password: str | None,
     role_id: int,
     request: Request,
     db_session: AsyncSession,
-    extra_metadata: Optional[dict] = None,
+    extra_metadata: dict | None = None,
 ) -> UserRead:
     """Create a user and attach them to the token's org in one call.
 
@@ -1199,7 +1200,7 @@ async def get_user_by_email(
 # -- Magic link ---------------------------------------------------------------
 
 
-def _validate_magic_link_redirect(redirect_to: Optional[str]) -> Optional[str]:
+def _validate_magic_link_redirect(redirect_to: str | None) -> str | None:
     """Validate that a magic-link redirect_to is a same-origin path.
 
     Rejects anything that contains a scheme or looks like a protocol-relative
@@ -1233,7 +1234,7 @@ def _validate_magic_link_redirect(redirect_to: Optional[str]) -> Optional[str]:
 async def issue_magic_link(
     token_user: APITokenUser,
     user_id: int,
-    redirect_to: Optional[str],
+    redirect_to: str | None,
     ttl_seconds: int,
     org_slug: str,
     request: Request,
@@ -1280,7 +1281,7 @@ async def issue_magic_link(
 async def consume_magic_link_token(
     token: str,
     db_session: AsyncSession,
-) -> tuple[User, str, str, Optional[str]]:
+) -> tuple[User, str, str, str | None]:
     """Validate a magic-link JWT. Returns (user, access_token, refresh_token, redirect_to).
 
     Raises HTTPException on expired/invalid token or if the user is no longer
@@ -1314,6 +1315,7 @@ async def consume_magic_link_token(
     if jti:
         try:
             import redis as _redis
+
             from config.config import get_learnhouse_config as _get_cfg
             _lh_cfg = _get_cfg()
             _redis_url = _lh_cfg.redis_config.redis_connection_string
@@ -1366,7 +1368,7 @@ async def consume_magic_link_token(
 async def bulk_enroll_users(
     token_user: APITokenUser,
     course_uuid: str,
-    user_ids: List[int],
+    user_ids: list[int],
     request: Request,
     db_session: AsyncSession,
 ) -> dict:
@@ -1400,10 +1402,10 @@ async def bulk_enroll_users(
         )).scalars().all()
     )
 
-    enrolled: List[int] = []
-    already_enrolled: List[int] = []
-    skipped: List[int] = []
-    to_enroll: List[int] = []
+    enrolled: list[int] = []
+    already_enrolled: list[int] = []
+    skipped: list[int] = []
+    to_enroll: list[int] = []
 
     for user_id in user_ids:
         if user_id not in member_ids:
@@ -1481,7 +1483,7 @@ async def list_course_enrollments(
     db_session: AsyncSession,
     page: int = 1,
     limit: int = 25,
-) -> List[dict]:
+) -> list[dict]:
     """List users enrolled in a course within the token's org."""
 
     course = (await db_session.execute(
@@ -1782,7 +1784,7 @@ async def get_user_certificates(
     token_user: APITokenUser,
     user_id: int,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """Get all certificates for a user in the token's org."""
 
     await _get_user_in_org(user_id, token_user.org_id, db_session)
@@ -2053,7 +2055,7 @@ async def list_usergroup_members(
     db_session: AsyncSession,
     page: int = 1,
     limit: int = 25,
-) -> List[dict]:
+) -> list[dict]:
     """List users in a cohort, with pagination."""
 
     group = await _get_usergroup_in_org(usergroup_uuid, token_user.org_id, db_session)
@@ -2081,7 +2083,7 @@ async def get_user_groups(
     token_user: APITokenUser,
     user_id: int,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """List user groups a user belongs to within the token's org."""
 
     await _get_user_in_org(user_id, token_user.org_id, db_session)
@@ -2207,7 +2209,7 @@ async def remove_course_from_usergroup(
 async def bulk_unenroll_users(
     token_user: APITokenUser,
     course_uuid: str,
-    user_ids: List[int],
+    user_ids: list[int],
     db_session: AsyncSession,
 ) -> dict:
     """Unenroll a batch of users from a course. Returns summary."""

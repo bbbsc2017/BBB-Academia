@@ -6,28 +6,27 @@ import ipaddress
 import secrets
 import socket
 from datetime import datetime
-from typing import List
 from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import HTTPException, Request, status
-from sqlmodel import select, col
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.organizations import Organization
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.db.webhooks import (
+    WebhookDeliveryLog,
+    WebhookDeliveryLogRead,
     WebhookEndpoint,
     WebhookEndpointCreate,
     WebhookEndpointCreatedResponse,
     WebhookEndpointRead,
     WebhookEndpointUpdate,
-    WebhookDeliveryLog,
-    WebhookDeliveryLogRead,
 )
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
 from src.security.auth import resolve_acting_user_id
-from src.security.rbac.rbac import authorization_verify_if_user_is_anon
 from src.security.org_auth import require_org_admin
+from src.security.rbac.rbac import authorization_verify_if_user_is_anon
 from src.services.webhooks.crypto import encrypt_secret
 from src.services.webhooks.events import WEBHOOK_EVENTS
 
@@ -71,7 +70,7 @@ def _validate_webhook_url(url: str) -> None:
             )
 
 
-def _validate_events(events: List[str]) -> None:
+def _validate_events(events: list[str]) -> None:
     """Raise 400 if any event name is not in the allowed set."""
     invalid = set(events) - set(WEBHOOK_EVENTS.keys())
     if invalid:
@@ -161,7 +160,7 @@ async def get_webhook_endpoints(
     db_session: AsyncSession,
     org_id: int,
     current_user: PublicUser | AnonymousUser | APITokenUser,
-) -> List[WebhookEndpointRead]:
+) -> list[WebhookEndpointRead]:
     acting_user_id = resolve_acting_user_id(current_user)
     await authorization_verify_if_user_is_anon(acting_user_id)
     await require_org_admin(acting_user_id, org_id, db_session)
@@ -289,7 +288,7 @@ async def get_webhook_delivery_logs(
     webhook_uuid: str,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     limit: int = 50,
-) -> List[WebhookDeliveryLogRead]:
+) -> list[WebhookDeliveryLogRead]:
     acting_user_id = resolve_acting_user_id(current_user)
     await authorization_verify_if_user_is_anon(acting_user_id)
     await require_org_admin(acting_user_id, org_id, db_session)

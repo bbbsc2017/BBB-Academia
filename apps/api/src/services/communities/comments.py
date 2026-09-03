@@ -1,21 +1,28 @@
-from typing import List, Union
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
+
+from fastapi import HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import HTTPException, Request
 
-from src.db.users import PublicUser, AnonymousUser, APITokenUser, User, UserReadAuthor
 from src.db.communities.communities import Community
-from src.db.communities.discussions import Discussion
 from src.db.communities.discussion_comments import (
     DiscussionComment,
     DiscussionCommentReadWithVoteStatus,
     DiscussionCommentUpdate,
 )
+from src.db.communities.discussions import Discussion
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserReadAuthor
+from src.security.rbac import (
+    AccessAction,
+    authorization_verify_if_user_is_anon,
+    check_resource_access,
+)
 from src.services.communities.comment_votes import get_user_votes_for_comments
-from src.security.rbac import check_resource_access, AccessAction, authorization_verify_if_user_is_anon
-from src.services.communities.moderation import validate_comment_content, enforce_auto_lock
+from src.services.communities.moderation import (
+    enforce_auto_lock,
+    validate_comment_content,
+)
 from src.services.webhooks.dispatch import dispatch_webhooks
 
 
@@ -23,7 +30,7 @@ async def create_comment(
     request: Request,
     discussion_uuid: str,
     content: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionCommentReadWithVoteStatus:
     """
@@ -108,11 +115,11 @@ async def create_comment(
 async def get_comments_by_discussion(
     request: Request,
     discussion_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
     page: int = 1,
     limit: int = 50,
-) -> List[DiscussionCommentReadWithVoteStatus]:
+) -> list[DiscussionCommentReadWithVoteStatus]:
     """
     Get paginated list of comments for a discussion.
     """
@@ -182,7 +189,7 @@ async def update_comment(
     request: Request,
     comment_uuid: str,
     comment_update: DiscussionCommentUpdate,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> DiscussionCommentReadWithVoteStatus:
     """
@@ -249,7 +256,7 @@ async def update_comment(
 async def delete_comment(
     request: Request,
     comment_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> dict:
     """
@@ -315,7 +322,7 @@ async def delete_comment(
 async def get_comment_count(
     request: Request,
     discussion_uuid: str,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> int:
     """

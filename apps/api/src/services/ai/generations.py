@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Optional
 from uuid import uuid4
 
 from sqlmodel import select
@@ -36,10 +35,10 @@ async def record_generation(
     user_id: int,
     prompt: str,
     result: dict,
-    session_uuid: Optional[str] = None,
-    course_id: Optional[int] = None,
-    activity_id: Optional[int] = None,
-    assignment_id: Optional[int] = None,
+    session_uuid: str | None = None,
+    course_id: int | None = None,
+    activity_id: int | None = None,
+    assignment_id: int | None = None,
 ) -> AIGenerationRead:
     """Persist a kept AI-generated artifact and return the read model."""
     now = str(datetime.now())
@@ -95,7 +94,7 @@ async def get_generation(
     *,
     ai_generation_uuid: str,
     user_id: int,
-) -> Optional[AIGenerationRead]:
+) -> AIGenerationRead | None:
     """Fetch one generation, enforcing ownership. Returns None if missing/not owned."""
     row = await _get_owned(db_session, ai_generation_uuid, user_id)
     if row is None:
@@ -122,7 +121,7 @@ async def _get_owned(
     db_session: AsyncSession,
     ai_generation_uuid: str,
     user_id: int,
-) -> Optional[AIGeneration]:
+) -> AIGeneration | None:
     statement = select(AIGeneration).where(
         AIGeneration.ai_generation_uuid == ai_generation_uuid
     )

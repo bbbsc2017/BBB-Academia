@@ -16,8 +16,8 @@ from src.services.ai.llm import (
     model_for_tier,
     to_message_history,
 )
-from src.services.ai.llm import provider as provider_mod
 from src.services.ai.llm import embeddings as embeddings_mod
+from src.services.ai.llm import provider as provider_mod
 
 
 def _patch_ai_config(monkeypatch, **overrides):

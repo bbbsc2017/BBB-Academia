@@ -1,12 +1,11 @@
 from datetime import datetime
-from typing import List, Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.db.folders.folder_content import FolderContent
 from src.db.folders.folders import (
     Folder,
     FolderBreadcrumb,
@@ -16,17 +15,16 @@ from src.db.folders.folders import (
     FolderUpdate,
     FolderUpdateOrder,
 )
-from src.db.folders.folder_content import FolderContent
 from src.db.organization_config import OrganizationConfig
 from src.db.resource_authors import (
     ResourceAuthor,
     ResourceAuthorshipEnum,
     ResourceAuthorshipStatusEnum,
 )
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import resolve_acting_user_id
-from src.security.rbac import check_resource_access, AccessAction
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.webhooks.dispatch import dispatch_webhooks
-
 
 # ----------------------------------------------------------------------------
 # Folder ordering — org-scoped, admin-controlled sort mode
@@ -82,12 +80,12 @@ def _apply_folder_sort(statement, sort_mode: str):
 
 def _resource_registry():
     """prefix -> (resource_type label, model, uuid_field). Lazy to avoid cycles."""
-    from src.db.courses.courses import Course
-    from src.db.podcasts.podcasts import Podcast
-    from src.db.communities.communities import Community
     from src.db.boards import Board
-    from src.db.playgrounds import Playground
+    from src.db.communities.communities import Community
+    from src.db.courses.courses import Course
     from src.db.media.media import Media
+    from src.db.playgrounds import Playground
+    from src.db.podcasts.podcasts import Podcast
 
     return {
         "course_": ("courses", Course, "course_uuid"),
@@ -103,7 +101,7 @@ async def _resolve_items(
     db_session: AsyncSession,
     content_rows: list[FolderContent],
     include_private: bool,
-) -> List[FolderContentItem]:
+) -> list[FolderContentItem]:
     """Resolve FolderContent rows into typed items, batching per resource type."""
     registry = _resource_registry()
 
@@ -116,7 +114,7 @@ async def _resolve_items(
                 by_prefix.setdefault(prefix, []).append(row.resource_uuid)
                 break
 
-    items: List[FolderContentItem] = []
+    items: list[FolderContentItem] = []
     for prefix, uuids in by_prefix.items():
         resource_type, model, uuid_field = registry[prefix]
         uuid_col = getattr(model, uuid_field)
@@ -140,10 +138,10 @@ async def _resolve_items(
     return items
 
 
-async def _build_breadcrumbs(db_session: AsyncSession, folder: Folder) -> List[FolderBreadcrumb]:
+async def _build_breadcrumbs(db_session: AsyncSession, folder: Folder) -> list[FolderBreadcrumb]:
     """Walk parent_folder_id up to the root."""
-    crumbs: List[FolderBreadcrumb] = []
-    current: Optional[Folder] = folder
+    crumbs: list[FolderBreadcrumb] = []
+    current: Folder | None = folder
     seen: set[int] = set()
     while current is not None:
         if current.id in seen:  # guard against cycles
@@ -169,9 +167,9 @@ async def _folder_to_read(
 ) -> FolderRead:
     from sqlalchemy import func
 
-    subfolders: List[FolderRead] = []
-    items: List[FolderContentItem] = []
-    breadcrumbs: List[FolderBreadcrumb] = []
+    subfolders: list[FolderRead] = []
+    items: list[FolderContentItem] = []
+    breadcrumbs: list[FolderBreadcrumb] = []
 
     # Always compute a lightweight total count (sub-folders + leaf content) so
     # cards show the right number even for nested folders rendered without
@@ -450,10 +448,10 @@ async def get_folders(
     org_id: str,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
-    parent_folder_uuid: Optional[str] = None,
+    parent_folder_uuid: str | None = None,
     page: int = 1,
     limit: int = 50,
-) -> List[FolderRead]:
+) -> list[FolderRead]:
     """List folders for an org. Lists root folders by default; pass
     parent_folder_uuid to list a folder's direct sub-folders."""
     anonymous = _is_anonymous(current_user)
@@ -474,7 +472,7 @@ async def get_folders(
         Folder.parent_folder_id == parent_id,
     )
     if anonymous:
-        statement = statement.where(Folder.public == True)  # noqa: E712
+        statement = statement.where(Folder.public == True)
 
     sort_mode = await _get_folders_sort_mode(db_session, int(org_id))
     statement = _apply_folder_sort(statement, sort_mode)
@@ -493,7 +491,7 @@ async def reorder_folders(
     order: FolderUpdateOrder,
     current_user: PublicUser,
     db_session: AsyncSession,
-    parent_folder_uuid: Optional[str] = None,
+    parent_folder_uuid: str | None = None,
 ) -> dict:
     """Persist the manual (admin drag) ordering of sibling folders.
 
@@ -769,7 +767,7 @@ async def search_library(
     # Cache folder paths (full breadcrumb chain) by folder id
     path_cache: dict[int, list] = {}
 
-    async def folder_path(folder_id: Optional[int]) -> list:
+    async def folder_path(folder_id: int | None) -> list:
         if folder_id is None:
             return []
         if folder_id in path_cache:
@@ -788,7 +786,7 @@ async def search_library(
         func.lower(Folder.name).like(like),
     )
     if anonymous:
-        fstmt = fstmt.where(Folder.public == True)  # noqa: E712
+        fstmt = fstmt.where(Folder.public == True)
     folder_rows = (await db_session.execute(fstmt)).scalars().all()
 
     folder_results = []
@@ -860,7 +858,7 @@ async def get_org_root_items(
     org_id: str,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
-) -> List[FolderContentItem]:
+) -> list[FolderContentItem]:
     """Resolve the items that live at the org library root (no parent folder)."""
     anonymous = _is_anonymous(current_user)
     content_rows = (
@@ -947,7 +945,7 @@ async def remove_org_root_content(
 
 async def _would_create_cycle(db_session: AsyncSession, folder_id: int, new_parent_id: int) -> bool:
     """Return True if making new_parent_id the parent of folder_id creates a cycle."""
-    current_id: Optional[int] = new_parent_id
+    current_id: int | None = new_parent_id
     seen: set[int] = set()
     while current_id is not None:
         if current_id == folder_id:

@@ -1,28 +1,32 @@
-from typing import List
+from datetime import datetime
 from uuid import uuid4
+
+from fastapi import HTTPException, Request, UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.organizations import Organization
-from src.db.roles import Role
-from src.db.user_organizations import UserOrganization
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipStatusEnum
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
-from src.security.auth import resolve_acting_user_id
-from src.db.podcasts.podcasts import Podcast
 from src.db.podcasts.episodes import (
     PodcastEpisode,
     PodcastEpisodeCreate,
     PodcastEpisodeRead,
     PodcastEpisodeUpdate,
 )
-from src.services.podcasts.thumbnails import upload_episode_thumbnail, upload_episode_audio
-from fastapi import HTTPException, Request, UploadFile
-from datetime import datetime
-from src.security.rbac import check_resource_access, AccessAction
-from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
+from src.db.podcasts.podcasts import Podcast
+from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipStatusEnum
+from src.db.roles import Role
+from src.db.user_organizations import UserOrganization
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.auth import resolve_acting_user_id
 from src.security.features_utils.usage import check_feature_access
-from src.services.webhooks.dispatch import dispatch_webhooks
+from src.security.rbac import AccessAction, check_resource_access
+from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
 from src.security.superadmin import is_user_superadmin
+from src.services.podcasts.thumbnails import (
+    upload_episode_audio,
+    upload_episode_thumbnail,
+)
+from src.services.webhooks.dispatch import dispatch_webhooks
 
 
 async def _user_can_view_unpublished_episode(
@@ -117,7 +121,7 @@ async def get_episodes_by_podcast(
     db_session: AsyncSession,
     current_user: PublicUser | AnonymousUser,
     include_unpublished: bool = False,
-) -> List[PodcastEpisodeRead]:
+) -> list[PodcastEpisodeRead]:
     # Get the podcast first
     podcast_statement = select(Podcast).where(Podcast.id == podcast_id)
     podcast = (await db_session.execute(podcast_statement)).scalars().first()
@@ -456,10 +460,10 @@ async def upload_episode_thumbnail_file(
 async def reorder_episodes(
     request: Request,
     podcast_uuid: str,
-    episode_orders: List[dict],  # [{"episode_uuid": "...", "order": 0}, ...]
+    episode_orders: list[dict],  # [{"episode_uuid": "...", "order": 0}, ...]
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[PodcastEpisodeRead]:
+) -> list[PodcastEpisodeRead]:
     # Get the podcast
     podcast_statement = select(Podcast).where(Podcast.podcast_uuid == podcast_uuid)
     podcast = (await db_session.execute(podcast_statement)).scalars().first()

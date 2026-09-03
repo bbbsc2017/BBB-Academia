@@ -1,9 +1,15 @@
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from config.config import get_learnhouse_config
-from migrations.orgconfigs.orgconfigs_migrations import migrate_to_v1_1, migrate_to_v1_2, migrate_v0_to_v1
+from migrations.orgconfigs.orgconfigs_migrations import (
+    migrate_to_v1_1,
+    migrate_to_v1_2,
+    migrate_v0_to_v1,
+)
 from src.core.events.database import get_db_session
 from src.db.organization_config import OrganizationConfig
 from src.db.users import PublicUser

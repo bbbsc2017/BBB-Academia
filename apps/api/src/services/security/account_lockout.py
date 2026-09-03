@@ -9,11 +9,11 @@ under the per-IP rate cap. Multi-IP gating ensures a single misbehaving
 client (e.g. a stale password in a keychain) can't trigger a lock on its own.
 """
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
-from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.users import User
+from datetime import UTC, datetime, timedelta
 
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db.users import User
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ LOCKOUT_DURATION_MINUTES = 5
 FAILED_IP_WINDOW_SECONDS = 30 * 60
 
 
-def _record_failed_ip(user_id: int, ip_address: Optional[str]) -> int:
+def _record_failed_ip(user_id: int, ip_address: str | None) -> int:
     """
     Record a failed-login IP for this user and return the approximate count of
     distinct IPs that have hit this account in the current window. Uses Redis
@@ -48,7 +48,7 @@ def _record_failed_ip(user_id: int, ip_address: Optional[str]) -> int:
         return 1
 
 
-def check_account_locked(user: User) -> Tuple[bool, Optional[int]]:
+def check_account_locked(user: User) -> tuple[bool, int | None]:
     """
     Check if a user account is currently locked.
 
@@ -67,9 +67,9 @@ def check_account_locked(user: User) -> Tuple[bool, Optional[int]]:
         locked_until = datetime.fromisoformat(user.locked_until)
         # Ensure timezone awareness
         if locked_until.tzinfo is None:
-            locked_until = locked_until.replace(tzinfo=timezone.utc)
+            locked_until = locked_until.replace(tzinfo=UTC)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if now < locked_until:
             remaining = int((locked_until - now).total_seconds())
@@ -85,8 +85,8 @@ def check_account_locked(user: User) -> Tuple[bool, Optional[int]]:
 async def record_failed_login(
     user: User,
     db_session: AsyncSession,
-    ip_address: Optional[str] = None,
-) -> Tuple[bool, Optional[int]]:
+    ip_address: str | None = None,
+) -> tuple[bool, int | None]:
     """
     Record a failed login attempt and lock the account if the threshold is
     reached AND the attempts originated from more than one source IP.
@@ -109,7 +109,7 @@ async def record_failed_login(
     Returns:
         Tuple of (is_now_locked, lockout_duration_seconds)
     """
-    from sqlalchemy import update, case
+    from sqlalchemy import case, update
 
     distinct_ips = _record_failed_ip(user.id, ip_address)
     MIN_DISTINCT_IPS_FOR_LOCK = 2
@@ -121,7 +121,7 @@ async def record_failed_login(
     )
 
     lock_until_iso = (
-        datetime.now(timezone.utc) + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+        datetime.now(UTC) + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
     ).isoformat()
 
     stmt = (
@@ -151,8 +151,8 @@ async def record_failed_login(
         try:
             lu = datetime.fromisoformat(str(user.locked_until))
             if lu.tzinfo is None:
-                lu = lu.replace(tzinfo=timezone.utc)
-            is_locked = datetime.now(timezone.utc) < lu
+                lu = lu.replace(tzinfo=UTC)
+            is_locked = datetime.now(UTC) < lu
         except (ValueError, TypeError):
             is_locked = False
     return is_locked, LOCKOUT_DURATION_MINUTES * 60 if is_locked else None
@@ -198,7 +198,7 @@ async def update_login_info(user: User, ip_address: str, db_session: AsyncSessio
     if not db_user:
         return
 
-    db_user.last_login_at = datetime.now(timezone.utc).isoformat()
+    db_user.last_login_at = datetime.now(UTC).isoformat()
     db_user.last_login_ip = ip_address
     await db_session.commit()
 

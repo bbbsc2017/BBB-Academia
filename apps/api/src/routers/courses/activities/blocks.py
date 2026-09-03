@@ -1,26 +1,26 @@
-from typing import Union
-from fastapi import APIRouter, Depends, UploadFile, Form, Request
-from src.db.courses.blocks import BlockRead
+
+from fastapi import APIRouter, Depends, Form, Request, UploadFile
+
 from src.core.events.database import get_db_session
+from src.db.courses.blocks import BlockRead
+from src.db.users import AnonymousUser, PublicUser
 from src.security.auth import get_current_user
+from src.services.blocks.block_types.audioBlock.audioBlock import (
+    create_audio_block,
+    get_audio_block,
+)
 from src.services.blocks.block_types.imageBlock.imageBlock import (
     create_image_block,
     get_image_block,
-)
-from src.services.blocks.block_types.videoBlock.videoBlock import (
-    create_video_block,
-    get_video_block,
 )
 from src.services.blocks.block_types.pdfBlock.pdfBlock import (
     create_pdf_block,
     get_pdf_block,
 )
-from src.services.blocks.block_types.audioBlock.audioBlock import (
-    create_audio_block,
-    get_audio_block,
+from src.services.blocks.block_types.videoBlock.videoBlock import (
+    create_video_block,
+    get_video_block,
 )
-
-from src.db.users import AnonymousUser, PublicUser
 
 router = APIRouter()
 
@@ -44,7 +44,7 @@ async def api_create_image_file_block(
     file_object: UploadFile,
     activity_uuid: str = Form(),
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Create new image file
@@ -67,7 +67,7 @@ async def api_get_image_file_block(
     request: Request,
     block_uuid: str,
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Get image file
@@ -95,7 +95,7 @@ async def api_create_video_file_block(
     file_object: UploadFile,
     activity_uuid: str = Form(),
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Create new video file
@@ -118,7 +118,7 @@ async def api_get_video_file_block(
     request: Request,
     block_uuid: str,
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Get video file
@@ -146,7 +146,7 @@ async def api_create_pdf_file_block(
     file_object: UploadFile,
     activity_uuid: str = Form(),
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Create new pdf file
@@ -169,7 +169,7 @@ async def api_get_pdf_file_block(
     request: Request,
     block_uuid: str,
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Get pdf file
@@ -197,7 +197,7 @@ async def api_create_audio_file_block(
     file_object: UploadFile,
     activity_uuid: str = Form(),
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Create new audio file
@@ -220,7 +220,7 @@ async def api_get_audio_file_block(
     request: Request,
     block_uuid: str,
     db_session=Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> BlockRead:
     """
     Get audio file

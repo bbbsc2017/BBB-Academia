@@ -16,8 +16,7 @@ import asyncio
 import logging
 import os
 import tempfile
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy.orm.attributes import flag_modified
@@ -43,8 +42,8 @@ CONSUMER_POLL_SECONDS = 2
 STALE_PROCESSING_SECONDS = 20 * 60
 REAPER_INTERVAL_SECONDS = 5 * 60
 
-_consumer_task: Optional["asyncio.Task"] = None
-_reaper_task: Optional["asyncio.Task"] = None
+_consumer_task: asyncio.Task | None = None
+_reaper_task: asyncio.Task | None = None
 _children: set = set()
 _inflight: set = set()
 
@@ -57,7 +56,7 @@ def concurrency() -> int:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 # --------------------------------------------------------------------------
@@ -127,7 +126,7 @@ def enqueue(activity_uuid: str) -> None:
 # The job
 # --------------------------------------------------------------------------
 
-async def _resolve(activity_uuid: str) -> Optional[dict]:
+async def _resolve(activity_uuid: str) -> dict | None:
     """Return {org_id, org_uuid, course_uuid, filename, captions} for a hosted video."""
     async with _async_session_factory() as db:
         a = (
@@ -294,7 +293,7 @@ async def _consumer_loop(poll_seconds: int = CONSUMER_POLL_SECONDS) -> None:
         _inflight.add(uuid)
         try:
             await asyncio.wait_for(generate_activity_captions(uuid), timeout=JOB_TIMEOUT_SECONDS)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Captions: job %s exceeded %ss — marking failed", uuid, JOB_TIMEOUT_SECONDS)
             try:
                 await _patch_captions(uuid, status="failed", error="timeout")
@@ -338,7 +337,7 @@ async def _requeue_stale_processing(stale_after: int = STALE_PROCESSING_SECONDS)
     client = get_redis_client()
     if not client:
         return 0
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     requeued = 0
     async with _async_session_factory() as db:
         rows = (await db.execute(

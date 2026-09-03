@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import event as sa_event
 from sqlmodel import Session
 
-import src.core.events.database as database
+from src.core.events import database
 from src.db.courses.activities import Activity
 from src.db.courses.chapters import Chapter
 from src.db.courses.courses import Course

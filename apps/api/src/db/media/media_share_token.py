@@ -1,4 +1,3 @@
-from typing import Optional
 
 from sqlalchemy import BigInteger, Column, ForeignKey
 from sqlmodel import Field, SQLModel
@@ -11,7 +10,7 @@ class MediaShareToken(SQLModel, table=True):
     derivable from the media_uuid. The token is NOT an access bypass — the resolve
     endpoint still enforces the requesting user's access to the media.
     """
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     token: str = Field(default="", index=True)
     media_uuid: str = Field(default="", index=True)
     org_id: int = Field(
@@ -19,7 +18,7 @@ class MediaShareToken(SQLModel, table=True):
             BigInteger, ForeignKey("organization.id", ondelete="CASCADE"), index=True
         )
     )
-    created_by_user_id: Optional[int] = None
+    created_by_user_id: int | None = None
     revoked: bool = False
     creation_date: str = ""
     update_date: str = ""

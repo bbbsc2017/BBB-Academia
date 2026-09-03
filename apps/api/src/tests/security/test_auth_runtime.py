@@ -5,13 +5,13 @@ import pytest
 from fastapi import HTTPException, Request
 from sqlmodel import Session
 
-from src.db.users import APITokenUser, AnonymousUser, PublicUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import (
+    _verify_api_token_org_boundary,
     create_access_token,
     decode_jwt,
     get_authenticated_user,
     get_current_user,
-    _verify_api_token_org_boundary,
     validate_api_token,
 )
 

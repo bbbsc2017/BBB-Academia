@@ -13,6 +13,7 @@ Run locally:
 Override the model with OLLAMA_TEST_MODEL.
 """
 
+import os
 import socket
 
 import pytest
@@ -22,12 +23,10 @@ from src.services.ai.courseplanning import (
     extract_plan_from_response,
     generate_course_plan_stream,
 )
-from src.services.ai.schemas.courseplanning import CoursePlanningSessionData
 from src.services.ai.magicblocks import generate_magicblock_stream
-from src.services.ai.schemas.magicblocks import MagicBlockContext, MagicBlockSessionData
 from src.services.ai.rag.embedding_service import embed_single_text, generate_embeddings
-
-import os
+from src.services.ai.schemas.courseplanning import CoursePlanningSessionData
+from src.services.ai.schemas.magicblocks import MagicBlockContext, MagicBlockSessionData
 
 OLLAMA_HOST, OLLAMA_PORT = "localhost", 11434
 OLLAMA_MODEL = os.environ.get("OLLAMA_TEST_MODEL", "qwen2.5:3b")

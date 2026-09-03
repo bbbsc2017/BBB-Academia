@@ -12,16 +12,15 @@ Extracts text from all course content types:
 
 import logging
 import os
-from typing import Optional
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.courses.activities import Activity, ActivityTypeEnum
 from src.db.courses.blocks import Block, BlockTypeEnum
+from src.db.courses.chapter_activities import ChapterActivity
 from src.db.courses.chapters import Chapter
 from src.db.courses.courses import Course
-from src.db.courses.chapter_activities import ChapterActivity
 from src.services.courses.transfer.storage_utils import read_file_content
 
 logger = logging.getLogger(__name__)
@@ -166,8 +165,9 @@ def _collect_inline_text(node: dict) -> str:
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     """Extract text from PDF bytes using pypdf. Cap at MAX_PDF_CHARS."""
     try:
-        from pypdf import PdfReader
         from io import BytesIO
+
+        from pypdf import PdfReader
 
         reader = PdfReader(BytesIO(pdf_bytes))
         texts = []
@@ -185,7 +185,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
         return ""
 
 
-def _extract_block_content(block: Block, activity_name: str) -> Optional[dict]:
+def _extract_block_content(block: Block, activity_name: str) -> dict | None:
     """
     Extract text content from a block based on its type.
     Returns dict with {text, source_type} or None if no content.

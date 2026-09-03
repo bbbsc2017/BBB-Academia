@@ -226,15 +226,14 @@ class TestApiTokensBlockedOnSensitiveActions:
         recorded 403 is the API-token one, and the RBAC mock is never awaited.
         """
         rbac = _rbac_denied()
-        with patch(_PATCH_RBAC, rbac):
-            with pytest.raises(HTTPException) as exc:
-                await update_assignment(
-                    mock_request,
-                    assignment.assignment_uuid,
-                    AssignmentUpdate(title="X"),
-                    api_token_user,
-                    db,
-                )
+        with patch(_PATCH_RBAC, rbac), pytest.raises(HTTPException) as exc:
+            await update_assignment(
+                mock_request,
+                assignment.assignment_uuid,
+                AssignmentUpdate(title="X"),
+                api_token_user,
+                db,
+            )
         assert exc.value.status_code == 403
         assert "API token" in exc.value.detail
         rbac.assert_not_awaited()

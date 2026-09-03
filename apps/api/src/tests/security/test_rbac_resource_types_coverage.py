@@ -10,23 +10,23 @@ These tests exercise the real RBAC resolution functions (no RBAC bypass) with
 Media, Board and Playground rows inserted directly via their model classes.
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from starlette.requests import Request
 
-from src.security.rbac.utils import (
-    check_element_type,
-    get_singular_form_of_element,
-    get_element_organization_id,
-)
+from src.db.boards import Board
+from src.db.media.media import Media, MediaTypeEnum
+from src.db.playgrounds import Playground
+from src.db.users import AnonymousUser
 from src.security.rbac.rbac import authorization_verify_if_element_is_public
 from src.security.rbac.resource_access import ResourceAccessChecker
 from src.security.rbac.types import ResourceConfig
-from src.db.media.media import Media, MediaTypeEnum
-from src.db.boards import Board
-from src.db.playgrounds import Playground
-from src.db.users import AnonymousUser
-
+from src.security.rbac.utils import (
+    check_element_type,
+    get_element_organization_id,
+    get_singular_form_of_element,
+)
 
 # ---------------------------------------------------------------------------
 # Row helpers

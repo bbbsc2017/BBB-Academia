@@ -14,8 +14,8 @@ from src.services.roles.roles import (
     create_role,
     delete_role,
     get_roles_by_organization,
-    read_role,
     rbac_check,
+    read_role,
     update_role,
 )
 
@@ -187,14 +187,13 @@ class TestRolesService:
         ), patch(
             "src.services.roles.roles.is_user_superadmin",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await create_role(
-                    mock_request,
-                    db,
-                    RoleCreate(**kwargs),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await create_role(
+                mock_request,
+                db,
+                RoleCreate(**kwargs),
+                admin_user,
+            )
 
         assert exc.value.status_code == expected_status
         assert expected_detail in exc.value.detail
@@ -230,18 +229,17 @@ class TestRolesService:
         ), patch(
             "src.services.roles.roles.is_user_superadmin",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await create_role(
-                    mock_request,
-                    db,
-                    RoleCreate(
-                        org_id=org.id,
-                        name="Broken Rights",
-                        rights=rights,
-                    ),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await create_role(
+                mock_request,
+                db,
+                RoleCreate(
+                    org_id=org.id,
+                    name="Broken Rights",
+                    rights=rights,
+                ),
+                admin_user,
+            )
 
         assert exc.value.status_code == 400
         assert expected_detail in exc.value.detail
@@ -390,18 +388,17 @@ class TestRolesService:
             return_value=False,
         ), patch.object(db, "add"), patch.object(
             db, "commit", side_effect=commit_side_effect
-        ), patch.object(db, "refresh"):
-            with pytest.raises(IntegrityError):
-                await create_role(
-                    mock_request,
-                    db,
-                    RoleCreate(
-                        org_id=org.id,
-                        name="Bad Sequence",
-                        rights=rights_model,
-                    ),
-                    admin_user,
-                )
+        ), patch.object(db, "refresh"), pytest.raises(IntegrityError):
+            await create_role(
+                mock_request,
+                db,
+                RoleCreate(
+                    org_id=org.id,
+                    name="Bad Sequence",
+                    rights=rights_model,
+                ),
+                admin_user,
+            )
 
     @pytest.mark.asyncio
     async def test_get_roles_by_org_and_read_role(
@@ -453,9 +450,8 @@ class TestRolesService:
         with patch(
             "src.services.roles.roles.authorization_verify_if_user_is_anon",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as read_exc:
-                await read_role(mock_request, db, "99999", admin_user)
+        ), pytest.raises(HTTPException) as read_exc:
+            await read_role(mock_request, db, "99999", admin_user)
 
         with pytest.raises(HTTPException) as update_exc:
             await update_role(
@@ -594,18 +590,17 @@ class TestRolesService:
             "src.services.roles.roles.is_user_superadmin",
             new_callable=AsyncMock,
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await create_role(
-                    mock_request,
-                    db,
-                    RoleCreate(
-                        org_id=org.id,
-                        name="Escalation Missing Key",
-                        rights=rights,
-                    ),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await create_role(
+                mock_request,
+                db,
+                RoleCreate(
+                    org_id=org.id,
+                    name="Escalation Missing Key",
+                    rights=rights,
+                ),
+                admin_user,
+            )
 
         assert exc.value.status_code == 403
 
@@ -828,14 +823,13 @@ class TestRolesService:
             "src.services.roles.roles.is_user_superadmin",
             new_callable=AsyncMock,
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await update_role(
-                    mock_request,
-                    db,
-                    RoleUpdate(role_id=role.id, rights=escalated_rights),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await update_role(
+                mock_request,
+                db,
+                RoleUpdate(role_id=role.id, rights=escalated_rights),
+                admin_user,
+            )
 
         assert exc.value.status_code == 403
         assert "you don't have this permission yourself" in exc.value.detail.lower()

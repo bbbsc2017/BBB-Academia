@@ -4,28 +4,29 @@ Email verification service for verifying user email addresses.
 Uses Redis to store verification tokens with 1-hour TTL.
 Supports both org-based and org-less (platform) signups.
 """
-from datetime import datetime, timezone
 import json
 import os
 import secrets
+from datetime import UTC, datetime
+
 import redis
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from config.config import get_learnhouse_config
 from src.db.organization_config import OrganizationConfig
 from src.db.organizations import Organization, OrganizationRead
 from src.db.users import User, UserRead
-from config.config import get_learnhouse_config
-from src.services.orgs.orgs import get_org_default_language
-from src.services.users.emails import send_email_verification_email
 from src.services.email.utils import (
     get_base_url_from_request,
     get_trusted_base_url_from_request,
 )
+from src.services.orgs.orgs import get_org_default_language
 from src.services.security.rate_limiting import check_verification_resend_rate_limit
+from src.services.users.emails import send_email_verification_email
 from src.services.webhooks.dispatch import dispatch_webhooks
-
 
 # Token expiration time in seconds (1 hour)
 TOKEN_TTL_SECONDS = 60 * 60
@@ -112,8 +113,8 @@ async def send_verification_email(
         "user_uuid": user.user_uuid,
         "org_uuid": org_uuid,
         "email": user.email,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "expires_at": (datetime.now(timezone.utc).timestamp() + TOKEN_TTL_SECONDS),
+        "created_at": datetime.now(UTC).isoformat(),
+        "expires_at": (datetime.now(UTC).timestamp() + TOKEN_TTL_SECONDS),
     }
 
     # Store in Redis with TTL
@@ -211,7 +212,7 @@ async def verify_email_token(
     verification_data = json.loads(token_data)
 
     # Check if token has expired
-    if verification_data["expires_at"] < datetime.now(timezone.utc).timestamp():
+    if verification_data["expires_at"] < datetime.now(UTC).timestamp():
         r.delete(redis_key)
         raise HTTPException(
             status_code=400,
@@ -243,7 +244,7 @@ async def verify_email_token(
 
     # Mark email as verified
     user.email_verified = True
-    user.email_verified_at = datetime.now(timezone.utc).isoformat()
+    user.email_verified_at = datetime.now(UTC).isoformat()
 
     db_session.add(user)
     await db_session.commit()

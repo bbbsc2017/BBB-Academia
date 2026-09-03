@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import List
 from uuid import uuid4
+
 from fastapi import HTTPException, Request, status
 from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.courses.course_updates import (
     CourseUpdate,
     CourseUpdateCreate,
@@ -13,7 +14,7 @@ from src.db.courses.course_updates import (
 from src.db.courses.courses import Course
 from src.db.organizations import Organization
 from src.db.users import AnonymousUser, PublicUser
-from src.security.rbac import check_resource_access, AccessAction
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.webhooks.dispatch import dispatch_webhooks
 
 
@@ -142,7 +143,7 @@ async def get_updates_by_course_uuid(
     course_uuid: str,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-) -> List[CourseUpdateRead]:
+) -> list[CourseUpdateRead]:
     # FInd if course exists
     statement = select(Course).where(Course.course_uuid == course_uuid)
     course = (await db_session.execute(statement)).scalars().first()

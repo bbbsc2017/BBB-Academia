@@ -22,7 +22,6 @@ from src.db.roles import Role, RoleTypeEnum
 from src.db.user_organizations import UserOrganization
 from src.db.users import User
 from src.security.rbac.rbac import authorization_verify_based_on_roles
-
 from src.tests.conftest import ADMIN_RIGHTS
 
 

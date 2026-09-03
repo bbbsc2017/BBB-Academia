@@ -1,36 +1,46 @@
 import json
 import logging
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 from uuid import uuid4
+
+from fastapi import HTTPException, Request, UploadFile, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.core.ee_hooks import is_multi_org_allowed
 from src.db.organization_config import (
+    AuthBrandingConfig,
     OrganizationConfig,
     OrganizationConfigBase,
+    SeoOrgConfig,
 )
-from src.security.rbac.rbac import (
-    authorization_verify_based_on_org_admin_status,
-    authorization_verify_if_user_is_anon,
-)
-from src.security.rbac.constants import ADMIN_ROLE_ID
-from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser
-from src.db.user_organizations import UserOrganization
 from src.db.organizations import (
     Organization,
     OrganizationCreate,
     OrganizationRead,
     OrganizationUpdate,
 )
-from fastapi import HTTPException, UploadFile, status, Request
-
-from src.services.orgs.uploads import upload_org_logo, upload_org_preview, upload_org_thumbnail, upload_org_landing_content, upload_org_auth_background, upload_org_og_image, upload_org_favicon
-from src.db.organization_config import AuthBrandingConfig, SeoOrgConfig
-from src.core.ee_hooks import is_multi_org_allowed
+from src.db.user_organizations import UserOrganization
+from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser
+from src.security.rbac.constants import ADMIN_ROLE_ID
+from src.security.rbac.rbac import (
+    authorization_verify_based_on_org_admin_status,
+    authorization_verify_if_user_is_anon,
+)
+from src.services.orgs.uploads import (
+    upload_org_auth_background,
+    upload_org_favicon,
+    upload_org_landing_content,
+    upload_org_logo,
+    upload_org_og_image,
+    upload_org_preview,
+    upload_org_thumbnail,
+)
 from src.services.webhooks.dispatch import dispatch_webhooks
 
 
-async def _get_org_config_cached(org_id: int, db_session: AsyncSession) -> Optional[OrganizationConfig]:
+async def _get_org_config_cached(org_id: int, db_session: AsyncSession) -> OrganizationConfig | None:
     """Fetch OrganizationConfig with a Redis read-aside cache."""
     from src.services.orgs.cache import get_cached_org_config, set_cached_org_config
 
@@ -728,8 +738,8 @@ async def wipe_org_content(
     removed via the database CASCADE constraints on the course foreign keys.
     """
     from src.db.courses.courses import Course
-    from src.services.courses.transfer.storage_utils import delete_storage_directory
     from src.security.features_utils.usage import decrease_feature_usage
+    from src.services.courses.transfer.storage_utils import delete_storage_directory
 
     statement = select(Organization).where(Organization.id == org_id)
     org = (await db_session.execute(statement)).scalars().first()
@@ -921,11 +931,11 @@ async def update_org_signup_mechanism(
 
 async def update_org_ai_config(
     request: Request,
-    ai_enabled: Optional[bool],
+    ai_enabled: bool | None,
     org_id: int,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-    copilot_enabled: Optional[bool] = None,
+    copilot_enabled: bool | None = None,
 ):
     statement = select(Organization).where(Organization.id == org_id)
     org = (await db_session.execute(statement)).scalars().first()

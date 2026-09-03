@@ -3,50 +3,49 @@ Service for migrating content from other LMS platforms.
 Handles: bulk file upload to temp storage, AI structure suggestion, course creation from tree.
 """
 
+import asyncio
+import json
+import logging
 import os
 import re
-import json
 import shutil
-import asyncio
-import logging
+import time
+from datetime import UTC, datetime
 from uuid import uuid4
-from datetime import datetime, timezone
 
 from fastapi import UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.organizations import Organization
-from src.db.courses.courses import Course, ThumbnailType
-from src.db.courses.chapters import Chapter
 from src.db.courses.activities import (
     Activity,
-    ActivityTypeEnum,
     ActivitySubTypeEnum,
+    ActivityTypeEnum,
 )
-from src.db.courses.course_chapters import CourseChapter
-from src.db.courses.chapter_activities import ChapterActivity
 from src.db.courses.blocks import Block, BlockTypeEnum
+from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.chapters import Chapter
+from src.db.courses.course_chapters import CourseChapter
+from src.db.courses.courses import Course, ThumbnailType
+from src.db.organizations import Organization
 from src.db.resource_authors import (
     ResourceAuthor,
     ResourceAuthorshipEnum,
     ResourceAuthorshipStatusEnum,
 )
 from src.security.auth import resolve_acting_user_id
-from src.services.courses.transfer.storage_utils import (
-    upload_file_to_s3,
-    is_s3_enabled,
-)
 from src.services.courses.migration.models import (
-    UploadedFileInfo,
-    MigrationUploadResponse,
-    MigrationTreeStructure,
-    MigrationChapterNode,
     MigrationActivityNode,
+    MigrationChapterNode,
     MigrationCreateResult,
+    MigrationTreeStructure,
+    MigrationUploadResponse,
+    UploadedFileInfo,
 )
-
-import time
+from src.services.courses.transfer.storage_utils import (
+    is_s3_enabled,
+    upload_file_to_s3,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ _upload_semaphore = asyncio.Semaphore(MAX_CONCURRENT_UPLOADS)
 
 # Regex for validating UUID strings (used in temp_id and file_id)
 _UUID_RE = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
 )
 
 ALLOWED_EXTENSIONS = {
@@ -236,7 +235,7 @@ async def _upload_migration_files_inner(
     all_files = existing_files + [f.model_dump() for f in uploaded_files]
     manifest = {
         "temp_id": temp_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "files": all_files,
     }
     manifest_real = _resolve_within(temp_real, "manifest.json")
@@ -322,8 +321,7 @@ async def suggest_structure(
         # Strip markdown code fences if present
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[1]
-            if raw.endswith("```"):
-                raw = raw[:-3]
+            raw = raw.removesuffix("```")
             raw = raw.strip()
 
         structure = MigrationTreeStructure.model_validate_json(raw)

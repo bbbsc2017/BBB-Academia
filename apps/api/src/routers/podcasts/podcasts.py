@@ -1,30 +1,31 @@
-from typing import List, Optional
+
 from fastapi import APIRouter, Depends, File, Form, Path, Request, UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.core.events.database import get_db_session
+from src.db.podcasts.episodes import PodcastEpisodeRead
 from src.db.podcasts.podcasts import (
     PodcastRead,
-    PodcastUpdate,
     PodcastReadWithEpisodeCount,
+    PodcastUpdate,
 )
-from src.services.podcasts.podcasts import (
-    get_podcast,
-    get_podcast_meta,
-    get_podcasts_orgslug,
-    get_podcasts_count_orgslug,
-    create_podcast,
-    update_podcast,
-    update_podcast_thumbnail,
-    delete_podcast,
-    get_podcast_user_rights,
-)
+from src.security.auth import get_current_user
 from src.services.podcasts.episodes import (
-    get_episodes_by_podcast,
     create_episode,
+    get_episodes_by_podcast,
     reorder_episodes,
 )
-from src.db.podcasts.episodes import PodcastEpisodeRead
-from src.core.events.database import get_db_session
-from src.security.auth import get_current_user
+from src.services.podcasts.podcasts import (
+    create_podcast,
+    delete_podcast,
+    get_podcast,
+    get_podcast_meta,
+    get_podcast_user_rights,
+    get_podcasts_count_orgslug,
+    get_podcasts_orgslug,
+    update_podcast,
+    update_podcast_thumbnail,
+)
 
 router = APIRouter()
 
@@ -45,11 +46,11 @@ async def api_create_podcast(
     request: Request,
     org_id: int,
     name: str = Form(...),
-    description: Optional[str] = Form(None),
-    about: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),
+    description: str | None = Form(None),
+    about: str | None = Form(None),
+    tags: str | None = Form(None),
     public: bool = Form(False),
-    thumbnail: Optional[UploadFile] = File(None),
+    thumbnail: UploadFile | None = File(None),
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -119,11 +120,11 @@ async def api_get_podcast_meta(
 
 @router.get(
     "/org_slug/{org_slug}/page/{page}/limit/{limit}",
-    response_model=List[PodcastReadWithEpisodeCount],
+    response_model=list[PodcastReadWithEpisodeCount],
     summary="List podcasts for an organization",
     description="Return a paginated list of podcasts belonging to an organization, with episode counts. Set `include_unpublished=true` to include unpublished podcasts (requires appropriate permissions).",
     responses={
-        200: {"description": "Paginated list of podcasts with episode counts.", "model": List[PodcastReadWithEpisodeCount]},
+        200: {"description": "Paginated list of podcasts with episode counts.", "model": list[PodcastReadWithEpisodeCount]},
         401: {"description": "Authentication required"},
         403: {"description": "User lacks permission to list podcasts in this organization"},
         404: {"description": "Organization not found"},
@@ -270,11 +271,11 @@ async def api_get_podcast_rights(
 # Episode endpoints nested under podcast
 @router.get(
     "/{podcast_uuid}/episodes",
-    response_model=List[PodcastEpisodeRead],
+    response_model=list[PodcastEpisodeRead],
     summary="List podcast episodes",
     description="Return all episodes for a podcast. Set `include_unpublished=true` to include unpublished episodes (requires appropriate permissions).",
     responses={
-        200: {"description": "List of episodes for the podcast.", "model": List[PodcastEpisodeRead]},
+        200: {"description": "List of episodes for the podcast.", "model": list[PodcastEpisodeRead]},
         401: {"description": "Authentication required"},
         403: {"description": "User lacks permission to read this podcast"},
         404: {"description": "Podcast not found"},
@@ -289,8 +290,9 @@ async def api_get_podcast_episodes(
 ):
     """Get all episodes for a podcast"""
     from sqlmodel import select
+
     from src.db.podcasts.podcasts import Podcast
-    from src.security.rbac import check_resource_access, AccessAction
+    from src.security.rbac import AccessAction, check_resource_access
 
     # Get the podcast
     podcast_statement = select(Podcast).where(Podcast.podcast_uuid == podcast_uuid)
@@ -331,11 +333,11 @@ async def api_create_episode(
     request: Request,
     podcast_uuid: str,
     title: str = Form(...),
-    description: Optional[str] = Form(None),
-    duration_seconds: Optional[int] = Form(0),
+    description: str | None = Form(None),
+    duration_seconds: int | None = Form(0),
     published: bool = Form(False),
-    audio: Optional[UploadFile] = File(None),
-    thumbnail: Optional[UploadFile] = File(None),
+    audio: UploadFile | None = File(None),
+    thumbnail: UploadFile | None = File(None),
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -374,7 +376,7 @@ async def api_create_episode(
 async def api_reorder_episodes(
     request: Request,
     podcast_uuid: str,
-    episode_orders: List[dict],
+    episode_orders: list[dict],
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):

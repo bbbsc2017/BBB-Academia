@@ -7,7 +7,6 @@ Invalidated when courses are created, updated, or deleted.
 
 import json
 import logging
-from typing import Optional
 
 from src.core.redis import get_redis_client
 
@@ -20,7 +19,7 @@ CACHE_TTL_COURSES_LIST = 60  # 1 min — public course list
 _KEY_PREFIX = "courses_cache"
 
 
-def get_cached_courses_list(org_slug: str, page: int, limit: int) -> Optional[list]:
+def get_cached_courses_list(org_slug: str, page: int, limit: int) -> list | None:
     """Return cached public course list for an org, or None."""
     r = get_redis_client()
     if r is None:
@@ -66,7 +65,7 @@ def invalidate_courses_cache(org_slug: str) -> None:
 
 CACHE_TTL_COURSE_META = 60  # 1 min
 
-def get_cached_course_meta(course_uuid: str, slim: bool) -> Optional[dict]:
+def get_cached_course_meta(course_uuid: str, slim: bool) -> dict | None:
     """Return cached course meta, or None."""
     r = get_redis_client()
     if r is None:

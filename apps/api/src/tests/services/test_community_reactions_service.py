@@ -214,11 +214,10 @@ class TestCommunityReactionsService:
         ), patch(
             "src.services.communities.reactions.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as missing_disc_exc:
-                await toggle_reaction(
-                    mock_request, "nonexistent_uuid", "🔥", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as missing_disc_exc:
+            await toggle_reaction(
+                mock_request, "nonexistent_uuid", "🔥", admin_user, db
+            )
         assert missing_disc_exc.value.status_code == 404
 
         # Line 138: orphan discussion (community_id not found)
@@ -243,11 +242,10 @@ class TestCommunityReactionsService:
         ), patch(
             "src.services.communities.reactions.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as missing_comm_exc:
-                await toggle_reaction(
-                    mock_request, orphan_disc.discussion_uuid, "🔥", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as missing_comm_exc:
+            await toggle_reaction(
+                mock_request, orphan_disc.discussion_uuid, "🔥", admin_user, db
+            )
         assert missing_comm_exc.value.status_code == 404
 
         # Line 145: disable_reactions is True
@@ -278,10 +276,9 @@ class TestCommunityReactionsService:
         ), patch(
             "src.services.communities.reactions.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as reactions_exc:
-                await toggle_reaction(
-                    mock_request, disc_with_locked_reactions.discussion_uuid,
-                    "🔥", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as reactions_exc:
+            await toggle_reaction(
+                mock_request, disc_with_locked_reactions.discussion_uuid,
+                "🔥", admin_user, db
+            )
         assert reactions_exc.value.status_code == 403

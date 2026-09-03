@@ -1,6 +1,6 @@
-from typing import Optional
 from datetime import datetime
-from sqlalchemy import Column, ForeignKey, BigInteger, Index
+
+from sqlalchemy import BigInteger, Column, ForeignKey, Index
 from sqlmodel import Field, SQLModel
 
 
@@ -13,7 +13,7 @@ class UsageEvent(SQLModel, table=True):
         Index('ix_usage_event_org_feature_ts', 'org_id', 'feature', 'timestamp'),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("organization.id", ondelete="CASCADE"))
     )

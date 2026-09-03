@@ -17,7 +17,7 @@ by acknowledging it with no enrollment to act on — hence Optional.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal
 
 from src.db.payments.config import PaymentProviderEnum
 from src.db.payments.enrollments import PaymentsEnrollment
@@ -58,7 +58,7 @@ class PaymentProvider(ABC):
         enrollment: PaymentsEnrollment,
         redirect_uri: str,
         buyer: PublicUser,
-        db_session: "Optional[AsyncSession]" = None,
+        db_session: AsyncSession | None = None,
     ) -> str:
         """Create a checkout session/link with the provider and return the
         URL to redirect the buyer to. `enrollment.id` must be embedded as the
@@ -72,8 +72,8 @@ class PaymentProvider(ABC):
 
     @abstractmethod
     async def verify_and_parse_webhook(
-        self, raw_body: bytes, headers: dict[str, str], db_session: "Optional[AsyncSession]" = None
-    ) -> Optional[ProviderEvent]:
+        self, raw_body: bytes, headers: dict[str, str], db_session: AsyncSession | None = None
+    ) -> ProviderEvent | None:
         """Authenticate the webhook (via signature verification, or — for a
         provider that doesn't sign payloads — by calling back to the
         provider's REST API to fetch the transaction's real state) and

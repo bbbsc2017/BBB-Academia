@@ -9,21 +9,20 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-from sqlmodel import select, col, delete
+from sqlmodel import col, delete, select
 
 from src.core.events.database import _async_session_factory
-from src.db.webhooks import WebhookEndpoint, WebhookDeliveryLog
+from src.db.webhooks import WebhookDeliveryLog, WebhookEndpoint
 from src.services.utils.ssrf_guard import (
     SSRFBlockedError,
     assert_connected_peer_allowed,
     resolve_and_validate_url,
 )
-from src.services.webhooks.crypto import decrypt_secret, compute_signature
+from src.services.webhooks.crypto import compute_signature, decrypt_secret
 from src.services.webhooks.events import validate_event_data
 
 logger = logging.getLogger(__name__)
@@ -74,7 +73,7 @@ async def dispatch_webhooks(
     event_name: str,
     org_id: int,
     data: dict,
-    webhook_ids: Optional[List[int]] = None,
+    webhook_ids: list[int] | None = None,
 ) -> None:
     """
     Public entry point. Schedules webhook delivery as a background task.
@@ -102,7 +101,7 @@ async def _deliver_webhooks(
     event_name: str,
     org_id: int,
     data: dict,
-    webhook_ids: Optional[List[int]],
+    webhook_ids: list[int] | None,
 ) -> None:
     """Background task that queries matching endpoints and delivers payloads."""
     try:
@@ -163,7 +162,7 @@ async def _deliver_to_endpoint(
 ) -> None:
     """Deliver a single event to a single endpoint with retries."""
     delivery_uuid = f"dlv_{uuid4().hex[:16]}"
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     payload = {
         "event": event_name,

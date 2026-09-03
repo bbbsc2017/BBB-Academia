@@ -2,15 +2,16 @@ from src.db.communities.communities import (
     Community,
     CommunityBase,
     CommunityCreate,
-    CommunityUpdate,
     CommunityRead,
+    CommunityUpdate,
 )
-from src.db.communities.discussions import (
-    Discussion,
-    DiscussionBase,
-    DiscussionCreate,
-    DiscussionUpdate,
-    DiscussionRead,
+from src.db.communities.discussion_comments import (
+    DiscussionComment,
+    DiscussionCommentBase,
+    DiscussionCommentCreate,
+    DiscussionCommentRead,
+    DiscussionCommentReadWithAuthor,
+    DiscussionCommentUpdate,
 )
 from src.db.communities.discussion_votes import (
     DiscussionVote,
@@ -18,34 +19,33 @@ from src.db.communities.discussion_votes import (
     DiscussionVoteCreate,
     DiscussionVoteRead,
 )
-from src.db.communities.discussion_comments import (
-    DiscussionComment,
-    DiscussionCommentBase,
-    DiscussionCommentCreate,
-    DiscussionCommentUpdate,
-    DiscussionCommentRead,
-    DiscussionCommentReadWithAuthor,
+from src.db.communities.discussions import (
+    Discussion,
+    DiscussionBase,
+    DiscussionCreate,
+    DiscussionRead,
+    DiscussionUpdate,
 )
 
 __all__ = [
     "Community",
     "CommunityBase",
     "CommunityCreate",
-    "CommunityUpdate",
     "CommunityRead",
+    "CommunityUpdate",
     "Discussion",
     "DiscussionBase",
+    "DiscussionComment",
+    "DiscussionCommentBase",
+    "DiscussionCommentCreate",
+    "DiscussionCommentRead",
+    "DiscussionCommentReadWithAuthor",
+    "DiscussionCommentUpdate",
     "DiscussionCreate",
-    "DiscussionUpdate",
     "DiscussionRead",
+    "DiscussionUpdate",
     "DiscussionVote",
     "DiscussionVoteBase",
     "DiscussionVoteCreate",
     "DiscussionVoteRead",
-    "DiscussionComment",
-    "DiscussionCommentBase",
-    "DiscussionCommentCreate",
-    "DiscussionCommentUpdate",
-    "DiscussionCommentRead",
-    "DiscussionCommentReadWithAuthor",
 ]

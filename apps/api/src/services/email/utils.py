@@ -3,12 +3,12 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
 from urllib.parse import urlparse
 
-from pydantic import EmailStr
-from fastapi import Request
 import resend
+from fastapi import Request
+from pydantic import EmailStr
+
 from config.config import get_learnhouse_config
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ async def get_org_signup_base_url(
     org_slug: str,
     request: Request,
     db_session=None,
-    org_id: Optional[int] = None,
+    org_id: int | None = None,
 ) -> str:
     """
     Return the org-scoped frontend base URL for invitation / signup links.
@@ -131,17 +131,18 @@ async def get_org_signup_base_url(
     return f"{scheme}://{org_slug}.{base_domain}"
 
 
-async def _get_primary_verified_custom_domain(db_session, org_id: int) -> Optional[str]:
+async def _get_primary_verified_custom_domain(db_session, org_id: int) -> str | None:
     """Return the org's primary verified custom domain, or any verified one."""
     try:
         from sqlmodel import select
+
         from src.db.custom_domains import CustomDomain
 
         primary = (await db_session.execute(
             select(CustomDomain).where(
                 CustomDomain.org_id == org_id,
                 CustomDomain.status == "verified",
-                CustomDomain.primary == True,  # noqa: E712
+                CustomDomain.primary == True,
             )
         )).scalars().first()
         if primary:
@@ -159,7 +160,7 @@ async def _get_primary_verified_custom_domain(db_session, org_id: int) -> Option
         return None
 
 
-def get_trusted_base_url_from_request(request: Request) -> Optional[str]:
+def get_trusted_base_url_from_request(request: Request) -> str | None:
     """
     Return the request's Origin/Referer base URL **only if** it is an allowed
     origin, otherwise None.

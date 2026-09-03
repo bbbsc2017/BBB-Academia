@@ -1,12 +1,14 @@
+import importlib
 import logging
 import os
-import importlib
-from config.config import get_learnhouse_config
+
 from fastapi import FastAPI
-from sqlmodel import SQLModel, Session
 from sqlalchemy import event
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlmodel import Session, SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from config.config import get_learnhouse_config
 
 
 def import_all_models():
@@ -152,9 +154,11 @@ def _register_cache_invalidation_hooks():
     Slugs/ids are collected per-session, then the actual Redis invalidation
     runs after_commit (so we only invalidate on successful transactions).
     """
-    from sqlalchemy import event as sa_event, inspect as sa_inspect
-    from src.db.organizations import Organization
+    from sqlalchemy import event as sa_event
+    from sqlalchemy import inspect as sa_inspect
+
     from src.db.organization_config import OrganizationConfig
+    from src.db.organizations import Organization
 
     def _ensure_set(session):
         if not hasattr(session, '_org_slugs_to_invalidate'):
@@ -263,8 +267,8 @@ def _register_cache_invalidation_hooks():
 
     # ── Activity/Chapter/ChapterActivity changes also invalidate course meta ──
     from src.db.courses.activities import Activity
-    from src.db.courses.chapters import Chapter
     from src.db.courses.chapter_activities import ChapterActivity
+    from src.db.courses.chapters import Chapter
 
     def _course_child_changed(mapper, connection, target):
         session = Session.object_session(target)
@@ -306,8 +310,8 @@ def _register_cache_invalidation_hooks():
         org_config_ids = getattr(session, '_org_config_ids_to_invalidate', None)
         try:
             if slugs:
-                from src.services.orgs.cache import invalidate_org_cache
                 from src.services.courses.cache import invalidate_courses_cache
+                from src.services.orgs.cache import invalidate_org_cache
                 for slug in slugs:
                     invalidate_org_cache(slug)
                     invalidate_courses_cache(slug)

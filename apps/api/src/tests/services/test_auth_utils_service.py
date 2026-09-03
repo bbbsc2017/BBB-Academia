@@ -1,6 +1,6 @@
 """Tests for src/services/auth/utils.py."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -144,8 +144,8 @@ class TestAuthUtilsService:
             user_uuid="user_existing",
             email_verified=False,
             signup_method=None,
-            creation_date=str(datetime.now(timezone.utc)),
-            update_date=str(datetime.now(timezone.utc)),
+            creation_date=str(datetime.now(UTC)),
+            update_date=str(datetime.now(UTC)),
         )
         db_session = AsyncMock()
         _result = MagicMock()
@@ -229,16 +229,15 @@ class TestAuthUtilsService:
         with patch(
             "src.services.auth.utils.get_google_user_info",
             return_value={},
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await signWithGoogle(
-                    request=request,
-                    access_token="access-token",
-                    email="",
-                    org_id=None,
-                    current_user=current_user,
-                    db_session=db_session,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await signWithGoogle(
+                request=request,
+                access_token="access-token",
+                email="",
+                org_id=None,
+                current_user=current_user,
+                db_session=db_session,
+            )
 
         # After the F-03 fix, a missing or unverified Google email is a 401
         # (authentication failure) rather than a 400 (malformed request) — the

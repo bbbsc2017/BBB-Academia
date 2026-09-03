@@ -12,13 +12,15 @@ from src.db.courses.certifications import (
     CertificateUserRead,
     CertificationCreate,
     CertificationRead,
-    CertificationUpdate,
     Certifications,
+    CertificationUpdate,
 )
 from src.db.courses.courses import Course
 from src.db.trail_runs import StatusEnum, TrailRun
 from src.db.trail_steps import TrailStep
 from src.db.trails import Trail
+from src.security.rbac import AccessAction
+from src.services.analytics import events as analytics_events
 from src.services.courses.certifications import (
     check_course_completion_and_create_certificate,
     create_certificate_user,
@@ -31,8 +33,6 @@ from src.services.courses.certifications import (
     get_user_certificates_for_course,
     update_certification,
 )
-from src.security.rbac import AccessAction
-from src.services.analytics import events as analytics_events
 
 
 async def _create_certification(
@@ -189,14 +189,13 @@ class TestCreateCertification:
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=403, detail="denied"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_certification(
-                    mock_request,
-                    certification_object,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_certification(
+                mock_request,
+                certification_object,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -286,14 +285,13 @@ class TestGetCertification:
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=403, detail="denied"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_certification(
-                    mock_request,
-                    certification.certification_uuid,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_certification(
+                mock_request,
+                certification.certification_uuid,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -467,15 +465,14 @@ class TestUpdateCertification:
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=403, detail="denied"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_certification(
-                    mock_request,
-                    certification.certification_uuid,
-                    CertificationUpdate(config={"template": "new"}),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_certification(
+                mock_request,
+                certification.certification_uuid,
+                CertificationUpdate(config={"template": "new"}),
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -575,14 +572,13 @@ class TestDeleteCertification:
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=403, detail="denied"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await delete_certification(
-                    mock_request,
-                    certification.certification_uuid,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await delete_certification(
+                mock_request,
+                certification.certification_uuid,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -662,15 +658,14 @@ class TestCreateCertificateUser:
         ) as mock_track, patch(
             "src.services.courses.certifications.dispatch_webhooks",
             new_callable=AsyncMock,
-        ) as mock_webhooks:
-            with pytest.raises(HTTPException) as exc_info:
-                await create_certificate_user(
-                    mock_request,
-                    regular_user.id,
-                    certification.id,
-                    db,
-                    current_user=admin_user,
-                )
+        ) as mock_webhooks, pytest.raises(HTTPException) as exc_info:
+            await create_certificate_user(
+                mock_request,
+                regular_user.id,
+                certification.id,
+                db,
+                current_user=admin_user,
+            )
 
         assert exc_info.value.status_code == 400
         assert "already has a certificate" in exc_info.value.detail
@@ -686,15 +681,14 @@ class TestCreateCertificateUser:
         with patch(
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_certificate_user(
-                    mock_request,
-                    999,
-                    certification.id,
-                    db,
-                    current_user=admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_certificate_user(
+                mock_request,
+                999,
+                certification.id,
+                db,
+                current_user=admin_user,
+            )
 
         assert exc_info.value.status_code == 404
         assert "User not found" in exc_info.value.detail
@@ -723,15 +717,14 @@ class TestCreateCertificateUser:
         with patch(
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_certificate_user(
-                    mock_request,
-                    admin_user.id,
-                    certification.id,
-                    db,
-                    current_user=admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_certificate_user(
+                mock_request,
+                admin_user.id,
+                certification.id,
+                db,
+                current_user=admin_user,
+            )
 
         assert exc_info.value.status_code == 404
         assert "Course not found" in exc_info.value.detail
@@ -746,15 +739,14 @@ class TestCreateCertificateUser:
             "src.services.courses.certifications.check_resource_access",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=403, detail="denied"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_certificate_user(
-                    mock_request,
-                    regular_user.id,
-                    certification.id,
-                    db,
-                    current_user=admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_certificate_user(
+                mock_request,
+                regular_user.id,
+                certification.id,
+                db,
+                current_user=admin_user,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -1107,14 +1099,13 @@ class TestCompletionHelpers:
             "src.services.courses.certifications.create_certificate_user",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=500, detail="boom"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await check_course_completion_and_create_certificate(
-                    mock_request,
-                    regular_user.id,
-                    course.id,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await check_course_completion_and_create_certificate(
+                mock_request,
+                regular_user.id,
+                course.id,
+                db,
+            )
 
         assert exc_info.value.status_code == 500
 

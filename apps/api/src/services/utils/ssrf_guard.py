@@ -19,7 +19,6 @@ from urllib.parse import urlparse
 
 import httpx
 
-
 _BLOCKED_NETWORKS = [
     ipaddress.ip_network("0.0.0.0/8"),
     ipaddress.ip_network("10.0.0.0/8"),

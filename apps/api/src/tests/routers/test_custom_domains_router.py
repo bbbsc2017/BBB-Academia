@@ -16,6 +16,8 @@ from src.db.custom_domains import (
 from src.routers.orgs.custom_domains import (
     internal_router,
     public_router,
+)
+from src.routers.orgs.custom_domains import (
     router as custom_domains_router,
 )
 from src.security.auth import get_current_user

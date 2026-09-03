@@ -8,11 +8,13 @@ to protect against Cross-Site Request Forgery attacks.
 import logging
 import re
 import time
-from typing import Callable
+from collections.abc import Callable
 from urllib.parse import urlparse
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
+
 from config.config import get_learnhouse_config
 
 logger = logging.getLogger(__name__)
@@ -125,8 +127,9 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
         allowed = False
         try:
             from sqlmodel import select
-            from src.db.custom_domains import CustomDomain
+
             from src.core.events.database import _async_session_factory
+            from src.db.custom_domains import CustomDomain
 
             async with _async_session_factory() as session:
                 row = (await session.execute(

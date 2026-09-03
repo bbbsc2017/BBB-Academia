@@ -17,7 +17,6 @@ from src.services.orgs.cache import invalidate_org_cache, invalidate_org_config_
 from src.services.orgs.orgs import update_org_with_config_no_auth
 from src.services.orgs.usage import invalidate_usage_cache
 
-
 # ============================================================================
 # Internal router (cloud internal-key auth)
 # ============================================================================

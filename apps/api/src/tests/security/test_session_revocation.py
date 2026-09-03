@@ -7,7 +7,7 @@ These tests pin every branch: configured/unconfigured Redis, set/get roundtrip,
 transient Redis errors, and the ``iat``-absent pre-upgrade token path.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 from src.security import auth as auth_module
@@ -67,7 +67,7 @@ def test_revoke_user_sessions_returns_false_when_redis_unavailable():
 
 def test_revoke_user_sessions_writes_key_with_ttl():
     fake = _FakeRedis()
-    cutoff = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    cutoff = datetime(2026, 1, 1, tzinfo=UTC)
     with _patch_redis(fake):
         ok = auth_module.revoke_user_sessions_before(42, cutoff=cutoff)
     assert ok is True
@@ -81,10 +81,10 @@ def test_revoke_user_sessions_writes_key_with_ttl():
 
 def test_revoke_user_sessions_defaults_cutoff_to_now():
     fake = _FakeRedis()
-    before = int(datetime.now(timezone.utc).timestamp())
+    before = int(datetime.now(UTC).timestamp())
     with _patch_redis(fake):
         assert auth_module.revoke_user_sessions_before(7) is True
-    after = int(datetime.now(timezone.utc).timestamp())
+    after = int(datetime.now(UTC).timestamp())
     stored = int(fake.store["jwt_revoked_before:7"])
     assert before <= stored <= after + 1
 
@@ -104,7 +104,7 @@ def test_is_token_revoked_returns_false_when_redis_unavailable():
     with _patch_redis(None):
         assert (
             auth_module._is_token_revoked_for_user(
-                1, datetime.now(timezone.utc)
+                1, datetime.now(UTC)
             )
             is False
         )
@@ -115,7 +115,7 @@ def test_is_token_revoked_returns_false_when_no_key():
     with _patch_redis(fake):
         assert (
             auth_module._is_token_revoked_for_user(
-                1, datetime.now(timezone.utc)
+                1, datetime.now(UTC)
             )
             is False
         )
@@ -123,7 +123,7 @@ def test_is_token_revoked_returns_false_when_no_key():
 
 def test_is_token_revoked_true_when_iat_predates_cutoff():
     fake = _FakeRedis()
-    cutoff = datetime.now(timezone.utc)
+    cutoff = datetime.now(UTC)
     fake.setex("jwt_revoked_before:5", 3600, int(cutoff.timestamp()))
     # Token issued 10 minutes before revocation — must be rejected.
     old_iat = cutoff - timedelta(minutes=10)
@@ -133,7 +133,7 @@ def test_is_token_revoked_true_when_iat_predates_cutoff():
 
 def test_is_token_revoked_false_when_iat_postdates_cutoff():
     fake = _FakeRedis()
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
+    cutoff = datetime.now(UTC) - timedelta(hours=1)
     fake.setex("jwt_revoked_before:5", 3600, int(cutoff.timestamp()))
     # Token issued after revocation — must still be valid (user logged back in).
     new_iat = cutoff + timedelta(minutes=1)
@@ -147,7 +147,7 @@ def test_is_token_revoked_handles_garbage_cutoff_value():
     with _patch_redis(fake):
         assert (
             auth_module._is_token_revoked_for_user(
-                6, datetime.now(timezone.utc)
+                6, datetime.now(UTC)
             )
             is False
         )
@@ -159,7 +159,7 @@ def test_is_token_revoked_handles_get_raising():
     with _patch_redis(bad):
         assert (
             auth_module._is_token_revoked_for_user(
-                6, datetime.now(timezone.utc)
+                6, datetime.now(UTC)
             )
             is False
         )
@@ -185,7 +185,7 @@ def test_is_token_revoked_without_iat_true_when_key_exists():
     for any session minted before the fix shipped.
     """
     fake = _FakeRedis()
-    fake.setex("jwt_revoked_before:9", 3600, int(datetime.now(timezone.utc).timestamp()))
+    fake.setex("jwt_revoked_before:9", 3600, int(datetime.now(UTC).timestamp()))
     with _patch_redis(fake):
         assert auth_module._is_token_revoked_for_user(9, None) is True
 

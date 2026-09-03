@@ -11,12 +11,15 @@ from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.db.boards import Board, BoardMemberRead, BoardRead
-from src.routers.boards.boards import internal_router, router as boards_router
-from src.routers.boards.boards_playground import router as boards_playground_router
+from src.routers.boards.boards import internal_router
+from src.routers.boards.boards import router as boards_router
 from src.routers.boards.boards_playground import (
     event_generator as boards_event_generator,
+)
+from src.routers.boards.boards_playground import (
     get_org_ai_model as get_boards_org_ai_model,
 )
+from src.routers.boards.boards_playground import router as boards_playground_router
 from src.security.auth import get_authenticated_user, get_current_user
 from src.security.features_utils.dependencies import require_boards_feature
 

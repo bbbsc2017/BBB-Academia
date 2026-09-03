@@ -1,6 +1,6 @@
-from typing import Optional
+
 from pydantic import BaseModel
-from sqlalchemy import Column, ForeignKey, String, BigInteger
+from sqlalchemy import BigInteger, Column, ForeignKey, String
 from sqlmodel import Field, SQLModel
 
 
@@ -15,7 +15,7 @@ class CustomDomain(CustomDomainBase, table=True):
     __tablename__ = "customdomain"
     __table_args__ = {"extend_existing": True}
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     domain_uuid: str = Field(default="", unique=True, index=True, max_length=100)  # format: domain_{uuid4()}
     domain: str = Field(sa_column=Column(String(255), unique=True, nullable=False))
     org_id: int = Field(
@@ -25,9 +25,9 @@ class CustomDomain(CustomDomainBase, table=True):
     verification_token: str = Field(default="", max_length=100)  # Random token for TXT record
     creation_date: str = ""
     update_date: str = ""
-    verified_at: Optional[str] = None
-    last_check_at: Optional[str] = None
-    check_error: Optional[str] = None
+    verified_at: str | None = None
+    last_check_at: str | None = None
+    check_error: str | None = None
 
 
 class CustomDomainCreate(BaseModel):
@@ -46,9 +46,9 @@ class CustomDomainRead(BaseModel):
     verification_token: str
     creation_date: str
     update_date: str
-    verified_at: Optional[str] = None
-    last_check_at: Optional[str] = None
-    check_error: Optional[str] = None
+    verified_at: str | None = None
+    last_check_at: str | None = None
+    check_error: str | None = None
 
 
 class CustomDomainVerificationInfo(BaseModel):

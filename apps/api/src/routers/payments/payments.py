@@ -215,7 +215,7 @@ async def api_create_checkout(
         raise HTTPException(status_code=404, detail="Offer not found")
 
     config = (await db_session.execute(
-        select(PaymentsConfig).where(PaymentsConfig.id == offer.payments_config_id, PaymentsConfig.active == True)  # noqa: E712
+        select(PaymentsConfig).where(PaymentsConfig.id == offer.payments_config_id, PaymentsConfig.active == True)
     )).scalars().first()
     if not config:
         raise HTTPException(status_code=400, detail="This offer's payment provider is not active")

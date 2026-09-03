@@ -182,14 +182,13 @@ class TestOrgUsageHelpers:
         ), patch(
             "src.services.orgs.usage._get_cached_usage",
             return_value=None,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await org_usage.get_org_usage_and_limits(
-                    Mock(),
-                    10,
-                    admin_user,
-                    db_session,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await org_usage.get_org_usage_and_limits(
+                Mock(),
+                10,
+                admin_user,
+                db_session,
+            )
 
         assert exc_info.value.status_code == 404
 

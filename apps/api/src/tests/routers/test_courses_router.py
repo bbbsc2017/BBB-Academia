@@ -12,11 +12,16 @@ from httpx import ASGITransport, AsyncClient
 from src.core.events.database import get_db_session
 from src.db.courses.course_updates import CourseUpdateRead
 from src.db.courses.courses import CourseRead, FullCourseRead, ThumbnailType
-from src.routers.courses.courses import BatchExportRequest, ImportRequest, router as courses_router
+from src.routers.courses.courses import BatchExportRequest, ImportRequest
+from src.routers.courses.courses import router as courses_router
 from src.security.auth import get_current_user
 from src.security.features_utils.dependencies import require_courses_feature
-from src.services.courses.transfer.models import ImportAnalysisResponse, ImportCourseInfo, ImportCourseResult, ImportResult
-
+from src.services.courses.transfer.models import (
+    ImportAnalysisResponse,
+    ImportCourseInfo,
+    ImportCourseResult,
+    ImportResult,
+)
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -518,6 +523,7 @@ class TestContributorEndpoints:
         # The endpoint now honours the course's open_to_contributors flag, so a
         # course that is actually open to contributors must exist.
         from datetime import datetime
+
         from src.db.courses.courses import Course
         db.add(Course(
             id=777, name="Open Course", description="d", public=True, published=True,
@@ -547,6 +553,7 @@ class TestContributorEndpoints:
         # courses.py:728 - a course that is NOT open to contributors must reject
         # applications with 403 even for an authenticated user.
         from datetime import datetime
+
         from src.db.courses.courses import Course
 
         db.add(Course(

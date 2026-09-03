@@ -7,8 +7,9 @@ Rate limits:
 - Verification resend: 5 attempts per 5 minutes per email
 """
 import ipaddress
-from typing import Tuple
+
 from fastapi import HTTPException, Request
+
 from src.core.redis import get_redis_client as _get_redis_pool_client
 
 
@@ -92,7 +93,7 @@ def check_rate_limit(
     max_attempts: int,
     window_seconds: int,
     r=None
-) -> Tuple[bool, int, int]:
+) -> tuple[bool, int, int]:
     """
     Check if rate limit is exceeded for a given key.
 
@@ -136,7 +137,7 @@ def check_rate_limit(
     return True, new_count, ttl if ttl > 0 else window_seconds
 
 
-def check_login_rate_limit(request: Request) -> Tuple[bool, int]:
+def check_login_rate_limit(request: Request) -> tuple[bool, int]:
     """
     Check login rate limit: 30 attempts per 5 minutes per IP.
 
@@ -155,7 +156,7 @@ def check_login_rate_limit(request: Request) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_signup_rate_limit(request: Request) -> Tuple[bool, int]:
+def check_signup_rate_limit(request: Request) -> tuple[bool, int]:
     """
     Check signup rate limit: 10 attempts per hour per IP.
 
@@ -174,7 +175,7 @@ def check_signup_rate_limit(request: Request) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_verification_resend_rate_limit(email: str) -> Tuple[bool, int]:
+def check_verification_resend_rate_limit(email: str) -> tuple[bool, int]:
     """
     Check verification email resend rate limit: 5 attempts per 5 minutes per email.
 
@@ -192,7 +193,7 @@ def check_verification_resend_rate_limit(email: str) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_refresh_rate_limit(request: Request) -> Tuple[bool, int]:
+def check_refresh_rate_limit(request: Request) -> tuple[bool, int]:
     """
     Check token refresh rate limit: 60 attempts per minute per IP.
     This prevents brute-force attacks on the refresh endpoint.
@@ -212,7 +213,7 @@ def check_refresh_rate_limit(request: Request) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_api_token_rate_limit(request: Request) -> Tuple[bool, int]:
+def check_api_token_rate_limit(request: Request) -> tuple[bool, int]:
     """
     Check API token creation/regeneration rate limit: 10 per hour per IP.
 
@@ -231,7 +232,7 @@ def check_api_token_rate_limit(request: Request) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_password_reset_rate_limit(email: str) -> Tuple[bool, int]:
+def check_password_reset_rate_limit(email: str) -> tuple[bool, int]:
     """
     Check password reset verification rate limit: 5 attempts per 5 minutes per email.
 
@@ -252,7 +253,7 @@ def check_password_reset_rate_limit(email: str) -> Tuple[bool, int]:
 def check_webhook_mutation_rate_limit(
     org_id: int,
     action: str = "create",
-) -> Tuple[bool, int]:
+) -> tuple[bool, int]:
     """
     Rate limit webhook endpoint creation/update/test at 20/hour per org.
     Webhook endpoints are a fan-out primitive, so without a ceiling a
@@ -268,7 +269,7 @@ def check_webhook_mutation_rate_limit(
     return is_allowed, retry_after
 
 
-def check_invite_acceptance_rate_limit(request: Request, org_id: int) -> Tuple[bool, int]:
+def check_invite_acceptance_rate_limit(request: Request, org_id: int) -> tuple[bool, int]:
     """
     Rate limit invite-code acceptance at 20 attempts / 15 minutes per IP+org.
     Deters brute-force against 8-char alphanumeric invite codes.
@@ -320,7 +321,7 @@ INVITE_USER_MAX_PER_DAY = 100
 INVITE_RATE_LIMIT_WINDOW_SECONDS = 24 * 60 * 60
 
 
-def check_invite_rate_limit(org_id: int, user_id: int, count: int = 1) -> Tuple[bool, int]:
+def check_invite_rate_limit(org_id: int, user_id: int, count: int = 1) -> tuple[bool, int]:
     """Per-org AND per-user daily rate limit for outbound invite emails.
 
     Invites relay attacker-controlled content to arbitrary addresses through
@@ -369,7 +370,7 @@ def enforce_invite_rate_limit(org_id: int, user_id: int, count: int = 1) -> None
         )
 
 
-def check_search_rate_limit(user_id: int) -> Tuple[bool, int]:
+def check_search_rate_limit(user_id: int) -> tuple[bool, int]:
     """
     Rate limit search queries at 60/min per authenticated user. Search hits
     full-text indexes and scales poorly under sustained load from one session.
@@ -383,7 +384,7 @@ def check_search_rate_limit(user_id: int) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_admin_user_provision_rate_limit(api_token_id: int) -> Tuple[bool, int]:
+def check_admin_user_provision_rate_limit(api_token_id: int) -> tuple[bool, int]:
     """
     Rate limit admin-API user provisioning at 30/min per API token.
 
@@ -403,7 +404,7 @@ def check_admin_user_provision_rate_limit(api_token_id: int) -> Tuple[bool, int]
     return is_allowed, retry_after
 
 
-def check_admin_user_lookup_rate_limit(api_token_id: int) -> Tuple[bool, int]:
+def check_admin_user_lookup_rate_limit(api_token_id: int) -> tuple[bool, int]:
     """
     Rate limit admin-API user lookups by email at 60/min per API token.
 
@@ -423,7 +424,7 @@ def check_admin_user_lookup_rate_limit(api_token_id: int) -> Tuple[bool, int]:
     return is_allowed, retry_after
 
 
-def check_email_verification_rate_limit(email: str) -> Tuple[bool, int]:
+def check_email_verification_rate_limit(email: str) -> tuple[bool, int]:
     """
     Check email verification rate limit: 5 attempts per 5 minutes per email.
 
@@ -448,7 +449,7 @@ AI_ORG_MAX_REQUESTS_PER_MINUTE = 120
 AI_RATE_LIMIT_WINDOW_SECONDS = 60
 
 
-def check_ai_rate_limit(user_id: int, org_id: int) -> Tuple[bool, int]:
+def check_ai_rate_limit(user_id: int, org_id: int) -> tuple[bool, int]:
     """
     Per-user AND per-org sliding-window rate limit for AI endpoints.
 

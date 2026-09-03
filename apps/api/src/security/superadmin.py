@@ -1,7 +1,9 @@
 import logging
+
 from fastapi import Depends, HTTPException, Request, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.users import User
 

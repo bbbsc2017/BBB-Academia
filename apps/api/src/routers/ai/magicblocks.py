@@ -1,35 +1,39 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import StreamingResponse
-from sqlmodel import select
 import json
 import logging
 
-from src.db.organizations import Organization
-from src.db.courses.courses import Course
-from src.db.courses.activities import Activity
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
-from src.security.auth import get_current_user, get_authenticated_user, resolve_acting_user_id
-from src.security.org_auth import is_org_member
-from src.security.features_utils.usage import (
-    reserve_ai_credit,
-    refund_ai_credit,
+from src.db.courses.activities import Activity
+from src.db.courses.courses import Course
+from src.db.organizations import Organization
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.auth import (
+    get_authenticated_user,
+    get_current_user,
+    resolve_acting_user_id,
 )
+from src.security.features_utils.usage import (
+    refund_ai_credit,
+    reserve_ai_credit,
+)
+from src.security.org_auth import is_org_member
 from src.services.ai.llm import model_for_tier
 from src.services.ai.magicblocks import (
-    get_magicblock_session,
+    MAX_ITERATIONS,
     create_magicblock_session,
     generate_magicblock_stream,
-    MAX_ITERATIONS,
+    get_magicblock_session,
 )
 from src.services.ai.schemas.magicblocks import (
-    StartMagicBlockSession,
-    SendMagicBlockMessage,
-    MagicBlockSessionResponse,
     MagicBlockMessage,
+    MagicBlockSessionResponse,
+    SendMagicBlockMessage,
+    StartMagicBlockSession,
 )
-
 
 router = APIRouter()
 

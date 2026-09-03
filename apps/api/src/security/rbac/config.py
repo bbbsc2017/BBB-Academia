@@ -7,7 +7,6 @@ Adding a new resource type is as simple as adding a new entry to RESOURCE_CONFIG
 
 from src.security.rbac.types import ResourceConfig
 
-
 RESOURCE_CONFIGS: dict[str, ResourceConfig] = {
     # ============================================
     # PRIMARY RESOURCES (have their own access rules)

@@ -1,13 +1,13 @@
-from typing import Optional
+
 from fastapi import HTTPException, Request
+from sqlalchemy import String, cast, func, literal
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy import func, cast, String, literal
 
-from src.db.courses.courses import Course, CourseRead, AuthorWithRole
+from src.db.courses.courses import AuthorWithRole, Course, CourseRead
 from src.db.organizations import Organization, OrganizationRead
-from src.db.users import User, UserRead
 from src.db.resource_authors import ResourceAuthor
+from src.db.users import User, UserRead
 from src.services.search.normalization import (
     LIKE_ESCAPE_CHAR,
     build_like_pattern,
@@ -143,7 +143,7 @@ async def search_orgs_for_explore(
     request: Request,
     db_session: AsyncSession,
     search_query: str,
-    label: Optional[str] = None,
+    label: str | None = None,
     page: int = 1,
     limit: int = 10,
     salt: str = "",

@@ -108,14 +108,13 @@ class TestApplyCourseContributor:
             "src.services.courses.contributors.authorization_verify_if_user_is_anon",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=401, detail="Anonymous user"),
-        ) as mock_auth:
-            with pytest.raises(HTTPException) as exc_info:
-                await apply_course_contributor(
-                    mock_request,
-                    course.course_uuid,
-                    anonymous_user,
-                    db,
-                )
+        ) as mock_auth, pytest.raises(HTTPException) as exc_info:
+            await apply_course_contributor(
+                mock_request,
+                course.course_uuid,
+                anonymous_user,
+                db,
+            )
 
         mock_auth.assert_awaited_once_with(anonymous_user.id)
         assert exc_info.value.status_code == 401
@@ -127,14 +126,13 @@ class TestApplyCourseContributor:
         with patch(
             "src.services.courses.contributors.authorization_verify_if_user_is_anon",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await apply_course_contributor(
-                    mock_request,
-                    "missing-course",
-                    regular_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await apply_course_contributor(
+                mock_request,
+                "missing-course",
+                regular_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 404
 
@@ -147,14 +145,13 @@ class TestApplyCourseContributor:
         with patch(
             "src.services.courses.contributors.authorization_verify_if_user_is_anon",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await apply_course_contributor(
-                    mock_request,
-                    course.course_uuid,
-                    regular_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await apply_course_contributor(
+                mock_request,
+                course.course_uuid,
+                regular_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 400
 
@@ -213,17 +210,16 @@ class TestUpdateCourseContributor:
         ), patch(
             "src.services.courses.contributors.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_course_contributor(
-                    mock_request,
-                    "missing-course",
-                    999,
-                    ResourceAuthorshipEnum.CONTRIBUTOR,
-                    ResourceAuthorshipStatusEnum.ACTIVE,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_course_contributor(
+                mock_request,
+                "missing-course",
+                999,
+                ResourceAuthorshipEnum.CONTRIBUTOR,
+                ResourceAuthorshipStatusEnum.ACTIVE,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 404
 
@@ -237,17 +233,16 @@ class TestUpdateCourseContributor:
         ), patch(
             "src.services.courses.contributors.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_course_contributor(
-                    mock_request,
-                    course.course_uuid,
-                    999,
-                    ResourceAuthorshipEnum.CONTRIBUTOR,
-                    ResourceAuthorshipStatusEnum.ACTIVE,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_course_contributor(
+                mock_request,
+                course.course_uuid,
+                999,
+                ResourceAuthorshipEnum.CONTRIBUTOR,
+                ResourceAuthorshipStatusEnum.ACTIVE,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 404
 
@@ -269,17 +264,16 @@ class TestUpdateCourseContributor:
         ), patch(
             "src.services.courses.contributors.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_course_contributor(
-                    mock_request,
-                    course.course_uuid,
-                    creator_user.id,
-                    ResourceAuthorshipEnum.CONTRIBUTOR,
-                    ResourceAuthorshipStatusEnum.ACTIVE,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_course_contributor(
+                mock_request,
+                course.course_uuid,
+                creator_user.id,
+                ResourceAuthorshipEnum.CONTRIBUTOR,
+                ResourceAuthorshipStatusEnum.ACTIVE,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 400
 
@@ -337,15 +331,14 @@ class TestAddBulkCourseContributors:
         ), patch(
             "src.services.courses.contributors.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_bulk_course_contributors(
-                    mock_request,
-                    "missing-course-uuid",
-                    ["someuser"],
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_bulk_course_contributors(
+                mock_request,
+                "missing-course-uuid",
+                ["someuser"],
+                admin_user,
+                db,
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -471,15 +464,14 @@ class TestRemoveBulkCourseContributors:
         ), patch(
             "src.services.courses.contributors.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await remove_bulk_course_contributors(
-                    mock_request,
-                    "missing-course-uuid",
-                    ["someuser"],
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await remove_bulk_course_contributors(
+                mock_request,
+                "missing-course-uuid",
+                ["someuser"],
+                admin_user,
+                db,
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio

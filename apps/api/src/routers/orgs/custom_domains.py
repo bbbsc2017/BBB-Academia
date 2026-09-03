@@ -1,6 +1,6 @@
 import os
 import secrets
-from typing import List
+
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -8,21 +8,21 @@ from src.core.events.database import get_db_session
 from src.db.custom_domains import (
     CustomDomainCreate,
     CustomDomainRead,
-    CustomDomainVerificationInfo,
     CustomDomainResolveResponse,
+    CustomDomainVerificationInfo,
 )
 from src.db.users import PublicUser
 from src.security.auth import get_current_user
 from src.services.orgs.custom_domains import (
     add_custom_domain,
-    list_custom_domains,
-    list_all_verified_domains,
+    check_domain_ssl_status,
+    delete_custom_domain,
     get_custom_domain,
     get_domain_verification_info,
-    verify_custom_domain,
-    delete_custom_domain,
+    list_all_verified_domains,
+    list_custom_domains,
     resolve_org_by_domain,
-    check_domain_ssl_status,
+    verify_custom_domain,
 )
 
 # Router for authenticated endpoints (requires plan check)
@@ -71,14 +71,14 @@ async def api_add_custom_domain(
 
 @router.get(
     "/{org_id}/domains",
-    response_model=List[CustomDomainRead],
+    response_model=list[CustomDomainRead],
     summary="List custom domains",
     description=(
         "List all custom domains for an organization, including their "
         "verification status."
     ),
     responses={
-        200: {"description": "List of custom domains for the organization.", "model": List[CustomDomainRead]},
+        200: {"description": "List of custom domains for the organization.", "model": list[CustomDomainRead]},
         401: {"description": "Not authenticated"},
         403: {"description": "Caller is not a member of the organization"},
         404: {"description": "Organization not found"},
@@ -89,7 +89,7 @@ async def api_list_custom_domains(
     org_id: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[CustomDomainRead]:
+) -> list[CustomDomainRead]:
     """
     List all custom domains for an organization.
 
@@ -330,7 +330,7 @@ async def api_list_all_verified_domains(
     request: Request,
     x_internal_key: str = Header(...),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[dict]:
+) -> list[dict]:
     """
     List all verified custom domains across all organizations.
     Protected by internal API key - used by the domain sync CronJob.

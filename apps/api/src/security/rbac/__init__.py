@@ -33,13 +33,6 @@ FastAPI Dependencies:
 """
 
 # New unified RBAC system - Types
-from src.security.rbac.types import (
-    AccessAction,
-    AccessContext,
-    AccessDecision,
-    ResourceConfig,
-)
-
 # New unified RBAC system - Config
 from src.security.rbac.config import (
     RESOURCE_CONFIGS,
@@ -47,51 +40,57 @@ from src.security.rbac.config import (
     get_resource_type,
 )
 
+# Constants
+from src.security.rbac.constants import (
+    ADMIN_OR_MAINTAINER_ROLE_IDS,
+    ADMIN_ROLE_ID,
+    ADMIN_ROLE_IDS,
+    MAINTAINER_ROLE_ID,
+    has_elevated_privileges,
+    is_admin,
+    is_admin_or_maintainer,
+)
+
+# New unified RBAC system - FastAPI Dependencies
+from src.security.rbac.dependencies import (
+    CommunityAccess,
+    CourseAccess,
+    PodcastAccess,
+    require_create_access,
+    require_dashboard_access,
+    require_read_access,
+    require_resource_access,
+    require_write_access,
+)
+
+# Low-level RBAC functions (used internally, can be used directly if needed)
+from src.security.rbac.rbac import (
+    authorization_verify_api_token_permissions,
+    authorization_verify_based_on_org_admin_status,
+    authorization_verify_based_on_roles,
+    authorization_verify_based_on_roles_and_authorship,
+    authorization_verify_if_element_is_public,
+    authorization_verify_if_user_is_anon,
+    authorization_verify_if_user_is_author,
+    check_usergroup_access,
+)
+
 # New unified RBAC system - Checker
 from src.security.rbac.resource_access import (
     ResourceAccessChecker,
     check_resource_access,
 )
-
-# New unified RBAC system - FastAPI Dependencies
-from src.security.rbac.dependencies import (
-    require_resource_access,
-    require_read_access,
-    require_write_access,
-    require_create_access,
-    require_dashboard_access,
-    CourseAccess,
-    PodcastAccess,
-    CommunityAccess,
-)
-
-# Low-level RBAC functions (used internally, can be used directly if needed)
-from src.security.rbac.rbac import (
-    check_usergroup_access,
-    authorization_verify_if_element_is_public,
-    authorization_verify_if_user_is_author,
-    authorization_verify_based_on_roles,
-    authorization_verify_based_on_org_admin_status,
-    authorization_verify_based_on_roles_and_authorship,
-    authorization_verify_if_user_is_anon,
-    authorization_verify_api_token_permissions,
+from src.security.rbac.types import (
+    AccessAction,
+    AccessContext,
+    AccessDecision,
+    ResourceConfig,
 )
 
 # Utils
 from src.security.rbac.utils import (
     check_element_type,
     get_element_organization_id,
-)
-
-# Constants
-from src.security.rbac.constants import (
-    ADMIN_ROLE_ID,
-    MAINTAINER_ROLE_ID,
-    ADMIN_ROLE_IDS,
-    ADMIN_OR_MAINTAINER_ROLE_IDS,
-    is_admin,
-    is_admin_or_maintainer,
-    has_elevated_privileges,
 )
 
 __all__ = [

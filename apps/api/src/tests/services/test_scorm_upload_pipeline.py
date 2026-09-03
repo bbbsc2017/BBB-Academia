@@ -14,7 +14,7 @@ from fastapi import HTTPException
 
 scorm = pytest.importorskip("ee.services.scorm.scorm")
 
-import src.services.courses.transfer.storage_utils as storage_utils  # noqa: E402
+from src.services.courses.transfer import storage_utils
 
 MANIFEST_XML = (
     '<?xml version="1.0"?>'

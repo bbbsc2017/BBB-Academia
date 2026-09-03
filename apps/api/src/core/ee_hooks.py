@@ -1,5 +1,5 @@
-import logging
 import importlib.util
+import logging
 import os
 
 logger = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-from typing import List
+
 from pydantic import BaseModel
 
 
@@ -30,7 +30,7 @@ class StreamDoneResponse(BaseModel):
     type: str = "done"
     aichat_uuid: str
     activity_uuid: str
-    follow_up_suggestions: List[str] = []
+    follow_up_suggestions: list[str] = []
 
 
 class StreamErrorResponse(BaseModel):
@@ -44,4 +44,4 @@ class ActivityAIChatSessionStreamResponse(BaseModel):
     aichat_uuid: str
     activity_uuid: str
     message: str
-    follow_up_suggestions: List[str] = []
+    follow_up_suggestions: list[str] = []

@@ -32,7 +32,7 @@ raises a clear error if a subscription offer somehow reaches it.
 """
 import json
 import os
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -90,7 +90,7 @@ class OpenPayProvider(PaymentProvider):
         enrollment: PaymentsEnrollment,
         redirect_uri: str,
         buyer: PublicUser,
-        db_session: Optional[Any] = None,
+        db_session: Any | None = None,
     ) -> str:
         if not self._merchant_id or not self._private_key:
             raise PaymentProviderError("OpenPay is not configured: missing merchant_id/private_key")
@@ -151,8 +151,8 @@ class OpenPayProvider(PaymentProvider):
             raise WebhookVerificationError("OpenPay charge lookup returned a non-JSON response") from exc
 
     async def verify_and_parse_webhook(
-        self, raw_body: bytes, headers: dict[str, str], db_session: Optional[Any] = None
-    ) -> Optional[ProviderEvent]:
+        self, raw_body: bytes, headers: dict[str, str], db_session: Any | None = None
+    ) -> ProviderEvent | None:
         try:
             payload = json.loads(raw_body.decode("utf-8"))
         except Exception as exc:

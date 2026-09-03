@@ -1,11 +1,11 @@
-from typing import Union
+from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func
-from sqlmodel import select, col
-from uuid import uuid4
-
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.code_submissions import CodeSubmission, CodeSubmissionRead
 from src.db.users import AnonymousUser, PublicUser
@@ -40,7 +40,7 @@ async def get_submission_history(
     block_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ) -> dict:
     if isinstance(current_user, AnonymousUser):
@@ -92,7 +92,7 @@ async def get_submission_history(
 )
 async def save_submission(
     body: SaveSubmissionRequest,
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ) -> CodeSubmissionRead:
     if isinstance(current_user, AnonymousUser):

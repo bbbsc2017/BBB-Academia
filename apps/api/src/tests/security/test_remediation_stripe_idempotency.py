@@ -21,7 +21,7 @@ class _FakeEvent:
     def __init__(self, event_id, event_type="checkout.session.completed"):
         self.id = event_id
         self.type = event_type
-        self.data = SimpleNamespace(object=SimpleNamespace(to_dict=lambda: {}))
+        self.data = SimpleNamespace(object=SimpleNamespace(to_dict=dict))
         self.account = None  # Platform-level event → early-return branch.
 
 

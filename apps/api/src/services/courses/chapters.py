@@ -1,12 +1,11 @@
 from datetime import datetime
-from typing import List
 from uuid import uuid4
+
+from fastapi import HTTPException, Request, status
 from sqlalchemy import func
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.users import AnonymousUser, APITokenUser, PublicUser
-from src.security.auth import resolve_acting_user_id
-from src.db.courses.course_chapters import CourseChapter
+
 from src.db.courses.activities import Activity, ActivityRead
 from src.db.courses.chapter_activities import ChapterActivity
 from src.db.courses.chapters import (
@@ -16,15 +15,16 @@ from src.db.courses.chapters import (
     ChapterUpdate,
     ChapterUpdateOrder,
 )
+from src.db.courses.course_chapters import CourseChapter
 from src.db.courses.courses import Course
-from fastapi import HTTPException, status, Request
-from src.security.rbac import check_resource_access, AccessAction
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.auth import resolve_acting_user_id
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.courses.locks import (
     batch_accessible_restricted_uuids,
     is_locked_for_user,
     is_org_admin,
 )
-
 
 ####################################################
 # CRUD
@@ -234,8 +234,8 @@ async def get_course_chapters(
     page: int = 1,
     limit: int = 10,
     slim: bool = False,
-    course: "Course | None" = None,
-) -> List[ChapterRead]:
+    course: Course | None = None,
+) -> list[ChapterRead]:
 
     # Skip the duplicate Course lookup when the caller (e.g. get_course_meta)
     # already has the course in hand.
@@ -376,8 +376,8 @@ async def get_course_chapters(
 
 
 async def _apply_locks_to_chapters(
-    chapters: List[ChapterRead],
-    course: "Course | None",
+    chapters: list[ChapterRead],
+    course: Course | None,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ) -> None:

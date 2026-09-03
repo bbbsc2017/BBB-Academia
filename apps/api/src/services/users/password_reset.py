@@ -1,30 +1,32 @@
-from datetime import datetime, timezone
 import json
-import secrets
 import logging
-import redis
+import secrets
 import string
+from datetime import UTC, datetime
+
+import redis
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from config.config import get_learnhouse_config
 from src.db.organization_config import OrganizationConfig
 from src.db.organizations import Organization, OrganizationRead
-from src.services.orgs.orgs import get_org_default_language
-from src.security.security import security_hash_password
-from config.config import get_learnhouse_config
-from src.services.users.emails import (
-    send_password_reset_email,
-    send_password_reset_email_platform,
-)
-from src.services.email.utils import get_base_url_from_request
 from src.db.users import (
     AnonymousUser,
     PublicUser,
     User,
     UserRead,
 )
+from src.security.security import security_hash_password
+from src.services.email.utils import get_base_url_from_request
+from src.services.orgs.orgs import get_org_default_language
 from src.services.security.password_validation import validate_password_complexity
+from src.services.users.emails import (
+    send_password_reset_email,
+    send_password_reset_email_platform,
+)
 
 
 def _get_redis_connection():
@@ -295,7 +297,7 @@ async def change_password_with_reset_code(
 
     # Change password
     user.password = security_hash_password(new_password)
-    user.password_changed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    user.password_changed_at = datetime.now(UTC).replace(tzinfo=None)
     db_session.add(user)
 
     await db_session.commit()
@@ -440,7 +442,7 @@ async def change_password_with_reset_code_platform(
         )
 
     user.password = security_hash_password(new_password)
-    user.password_changed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    user.password_changed_at = datetime.now(UTC).replace(tzinfo=None)
     db_session.add(user)
 
     await db_session.commit()

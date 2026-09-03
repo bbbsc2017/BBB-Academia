@@ -1,7 +1,6 @@
 """Tests for src/services/users/users.py."""
 
 import json
-
 from datetime import datetime
 from io import BytesIO
 from unittest.mock import AsyncMock, Mock, patch
@@ -27,10 +26,11 @@ from src.security.security import security_hash_password
 from src.services.users.users import (
     authorize_user_action,
     create_user,
-    create_user_without_org,
     create_user_with_invite,
+    create_user_without_org,
     delete_user_by_id,
     get_user_session,
+    rbac_check,
     read_user_by_id,
     read_user_by_username,
     read_user_by_uuid,
@@ -38,7 +38,6 @@ from src.services.users.users import (
     update_user,
     update_user_avatar,
     update_user_password,
-    rbac_check,
 )
 
 
@@ -529,21 +528,20 @@ class TestCreateAndUpdateUser:
         with patch(
             "src.services.users.users.validate_password_complexity",
             return_value=weak_validation,
-        ):
-            with pytest.raises(HTTPException) as weak_exc:
-                await create_user(
-                    mock_request,
-                    db,
-                    admin_user,
-                    UserCreate(
-                        username="weak",
-                        first_name="Weak",
-                        last_name="User",
-                        email="weak@test.com",
-                        password="weak",
-                    ),
-                    999,
-                )
+        ), pytest.raises(HTTPException) as weak_exc:
+            await create_user(
+                mock_request,
+                db,
+                admin_user,
+                UserCreate(
+                    username="weak",
+                    first_name="Weak",
+                    last_name="User",
+                    email="weak@test.com",
+                    password="weak",
+                ),
+                999,
+            )
 
         assert weak_exc.value.status_code == 400
 
@@ -608,15 +606,14 @@ class TestUserPasswordAvatarSession:
         with patch(
             "src.services.users.users.validate_password_complexity",
             return_value=weak_validation,
-        ):
-            with pytest.raises(HTTPException) as weak_exc:
-                await update_user_password(
-                    mock_request,
-                    db,
-                    admin_user,
-                    admin_user.id,
-                    UserUpdatePassword(old_password="hashed_password", new_password="weak"),
-                )
+        ), pytest.raises(HTTPException) as weak_exc:
+            await update_user_password(
+                mock_request,
+                db,
+                admin_user,
+                admin_user.id,
+                UserUpdatePassword(old_password="hashed_password", new_password="weak"),
+            )
         assert weak_exc.value.status_code == 400
 
     @pytest.mark.asyncio
@@ -716,18 +713,17 @@ class TestUserPasswordAvatarSession:
         with patch(
             "src.services.users.users.validate_password_complexity",
             return_value=weak_validation,
-        ):
-            with pytest.raises(HTTPException) as weak_exc:
-                await create_user_without_org(
-                    mock_request,
-                    db,
-                    admin_user,
-                    _user_create(
-                        "weak-platform",
-                        "weak-platform@test.com",
-                        password="weak",
-                    ),
-                )
+        ), pytest.raises(HTTPException) as weak_exc:
+            await create_user_without_org(
+                mock_request,
+                db,
+                admin_user,
+                _user_create(
+                    "weak-platform",
+                    "weak-platform@test.com",
+                    password="weak",
+                ),
+            )
         assert weak_exc.value.status_code == 400
 
         with patch(
@@ -834,16 +830,15 @@ class TestUserPasswordAvatarSession:
             "src.services.users.users.get_invite_code",
             new_callable=AsyncMock,
             return_value=None,
-        ):
-            with pytest.raises(HTTPException) as missing_code_exc:
-                await create_user_with_invite(
-                    mock_request,
-                    db,
-                    admin_user,
-                    _user_create("invite-missing", "invite-missing@test.com"),
-                    org.id,
-                    "BADCODE",
-                )
+        ), pytest.raises(HTTPException) as missing_code_exc:
+            await create_user_with_invite(
+                mock_request,
+                db,
+                admin_user,
+                _user_create("invite-missing", "invite-missing@test.com"),
+                org.id,
+                "BADCODE",
+            )
 
         assert missing_code_exc.value.status_code == 400
 
@@ -976,18 +971,17 @@ class TestUserPasswordAvatarSession:
         with patch(
             "src.services.users.users.validate_password_complexity",
             return_value=Mock(is_valid=True),
-        ):
-            with pytest.raises(HTTPException) as password_exc:
-                await update_user_password(
-                    mock_request,
-                    db,
-                    admin_user,
-                    admin_user.id,
-                    UserUpdatePassword(
-                        old_password="old-password",
-                        new_password="NewPassword123!",
-                    ),
-                )
+        ), pytest.raises(HTTPException) as password_exc:
+            await update_user_password(
+                mock_request,
+                db,
+                admin_user,
+                admin_user.id,
+                UserUpdatePassword(
+                    old_password="old-password",
+                    new_password="NewPassword123!",
+                ),
+            )
 
         assert password_exc.value.status_code == 400
 

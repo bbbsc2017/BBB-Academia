@@ -14,11 +14,17 @@ from src.db.playground_reactions import PlaygroundReactionSummary, ReactionUser
 from src.db.playgrounds import Playground, PlaygroundRead
 from src.db.users import APITokenUser
 from src.routers.playgrounds.playgrounds import router as playgrounds_router
-from src.routers.playgrounds.playgrounds_generator import router as playgrounds_generator_router
 from src.routers.playgrounds.playgrounds_generator import (
     _get_course_context,
+)
+from src.routers.playgrounds.playgrounds_generator import (
     event_generator as playground_event_generator,
+)
+from src.routers.playgrounds.playgrounds_generator import (
     get_org_ai_model as get_playground_org_ai_model,
+)
+from src.routers.playgrounds.playgrounds_generator import (
+    router as playgrounds_generator_router,
 )
 from src.security.auth import get_current_user
 from src.security.features_utils.dependencies import require_playgrounds_feature

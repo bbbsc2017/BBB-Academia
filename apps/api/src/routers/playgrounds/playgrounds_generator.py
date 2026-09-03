@@ -1,31 +1,31 @@
-from typing import Optional
+import json
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-import json
-import logging
 
+from src.core.events.database import get_db_session
+from src.db.courses.courses import Course
 from src.db.organizations import Organization
 from src.db.playgrounds import Playground
-from src.db.courses.courses import Course
-from src.core.events.database import get_db_session
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user, resolve_acting_user_id
-from src.security.features_utils.usage import reserve_ai_credit
 from src.security.features_utils.dependencies import require_playgrounds_feature
+from src.security.features_utils.usage import reserve_ai_credit
 from src.services.ai.llm import model_for_tier
 from src.services.playgrounds.playgrounds_generator import (
-    get_playground_session,
+    MAX_ITERATIONS,
     create_playground_session,
     generate_playground_stream,
-    MAX_ITERATIONS,
+    get_playground_session,
 )
 from src.services.playgrounds.schemas.playgrounds_generator import (
-    StartPlaygroundSession,
-    SendPlaygroundMessage,
-    PlaygroundSessionResponse,
     PlaygroundMessage,
+    PlaygroundSessionResponse,
+    SendPlaygroundMessage,
+    StartPlaygroundSession,
 )
 
 router = APIRouter(dependencies=[Depends(require_playgrounds_feature)])
@@ -47,11 +47,11 @@ async def get_org_ai_model(org_id: int, db_session: AsyncSession) -> str:
 
 
 async def _get_course_context(
-    course_uuid: Optional[str],
+    course_uuid: str | None,
     org_id: int,
     db_session: AsyncSession,
     prompt: str,
-) -> tuple[Optional[str], Optional[int]]:
+) -> tuple[str | None, int | None]:
     """Return (course_context_str, course_id) or (None, None) if no course."""
     if not course_uuid:
         return None, None

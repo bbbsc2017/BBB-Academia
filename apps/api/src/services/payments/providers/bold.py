@@ -17,7 +17,7 @@ import hashlib
 import hmac
 import json
 import os
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from sqlmodel import select
@@ -27,7 +27,6 @@ from src.db.payments.config import PaymentProviderEnum, PaymentsConfig
 from src.db.payments.enrollments import PaymentsEnrollment
 from src.db.payments.offers import PaymentsOffer
 from src.db.users import PublicUser
-from src.services.webhooks.crypto import decrypt_secret
 from src.services.payments.providers.base import (
     PaymentProvider,
     PaymentProviderError,
@@ -35,6 +34,7 @@ from src.services.payments.providers.base import (
     WebhookOutcome,
     WebhookVerificationError,
 )
+from src.services.webhooks.crypto import decrypt_secret
 
 if TYPE_CHECKING:
     from sqlmodel.ext.asyncio.session import AsyncSession
@@ -80,8 +80,8 @@ class BoldProvider(PaymentProvider):
         self._client = httpx.AsyncClient(base_url=api_base, timeout=15.0)
 
     async def _resolve_credentials(
-        self, db_session: "Optional[AsyncSession]"
-    ) -> tuple[Optional[str], Optional[str]]:
+        self, db_session: AsyncSession | None
+    ) -> tuple[str | None, str | None]:
         """(api_key, webhook_secret), preferring credentials entered through
         the dashboard (encrypted in PaymentsConfig.provider_config — see
         services/payments/config.py::update_provider_credentials) over the
@@ -115,7 +115,7 @@ class BoldProvider(PaymentProvider):
         enrollment: PaymentsEnrollment,
         redirect_uri: str,
         buyer: PublicUser,
-        db_session: "Optional[AsyncSession]" = None,
+        db_session: AsyncSession | None = None,
     ) -> str:
         api_key, _ = await self._resolve_credentials(db_session)
         if not api_key:
@@ -170,7 +170,7 @@ class BoldProvider(PaymentProvider):
         return url
 
     async def verify_and_parse_webhook(
-        self, raw_body: bytes, headers: dict[str, str], db_session: "Optional[AsyncSession]" = None
+        self, raw_body: bytes, headers: dict[str, str], db_session: AsyncSession | None = None
     ) -> ProviderEvent:
         normalized = _normalize_headers(headers)
         signature = normalized.get("x-bold-signature")

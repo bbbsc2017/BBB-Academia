@@ -77,9 +77,8 @@ class TestUploadContentService:
         with patch(
             "src.services.utils.upload_content.get_learnhouse_config",
             return_value=fake_config,
-        ):
-            with patch("os.getcwd", return_value=str(cwd)):
-                pass
+        ), patch("os.getcwd", return_value=str(cwd)):
+            pass
         with patch(
             "src.services.utils.upload_content.get_learnhouse_config",
             return_value=fake_config,
@@ -149,15 +148,14 @@ class TestUploadContentService:
             ), patch(
                 "src.services.utils.upload_content.boto3.client",
                 return_value=s3_client,
-            ):
-                with pytest.raises(HTTPException) as exc:
-                    await upload_content(
-                        directory="logos",
-                        type_of_dir="orgs",
-                        uuid="org_uuid",
-                        file_binary=b"ok",
-                        file_and_format="logo.png",
-                    )
+            ), pytest.raises(HTTPException) as exc:
+                await upload_content(
+                    directory="logos",
+                    type_of_dir="orgs",
+                    uuid="org_uuid",
+                    file_binary=b"ok",
+                    file_and_format="logo.png",
+                )
         finally:
             os.chdir(old_cwd)
 
@@ -238,9 +236,8 @@ class TestUploadContentService:
         ), patch(
             "src.services.utils.upload_content.boto3.client",
             return_value=s3_client,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await read_content("ai_images", "orgs", "org_uuid", "img.png")
+        ), pytest.raises(HTTPException) as exc:
+            await read_content("ai_images", "orgs", "org_uuid", "img.png")
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio

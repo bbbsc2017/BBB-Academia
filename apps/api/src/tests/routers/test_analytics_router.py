@@ -20,6 +20,8 @@ from src.routers.analytics import (
     _validate_course_uuid,
     _verify_org_admin,
     _verify_org_membership,
+)
+from src.routers.analytics import (
     router as analytics_router,
 )
 from src.security.auth import get_current_user

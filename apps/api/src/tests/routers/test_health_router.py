@@ -5,8 +5,8 @@ Covers: GET /api/v1/health
 """
 
 import pytest
-from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.routers.health import router

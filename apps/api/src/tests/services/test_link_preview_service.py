@@ -163,9 +163,8 @@ async def test_fetch_link_preview_blocks_redirect_url_validation_errors():
     ) as mock_peer_allowed, patch(
         "src.services.utils.link_preview.httpx.AsyncClient",
         return_value=fake_client,
-    ):
-        with pytest.raises(HTTPException) as exc_info:
-            await fetch_link_preview("https://example.com/page")
+    ), pytest.raises(HTTPException) as exc_info:
+        await fetch_link_preview("https://example.com/page")
 
     assert exc_info.value.status_code == 400
     assert "blocked redirect URL" in exc_info.value.detail
@@ -210,9 +209,8 @@ async def test_fetch_link_preview_blocks_invalid_url_before_request():
         side_effect=SSRFBlockedError("Blocked hostname: localhost"),
     ), patch(
         "src.services.utils.link_preview.httpx.AsyncClient"
-    ) as mock_client:
-        with pytest.raises(HTTPException) as exc_info:
-            await fetch_link_preview("http://localhost/page")
+    ) as mock_client, pytest.raises(HTTPException) as exc_info:
+        await fetch_link_preview("http://localhost/page")
 
     assert exc_info.value.status_code == 400
     assert "Blocked hostname" in exc_info.value.detail
@@ -233,9 +231,8 @@ async def test_fetch_link_preview_blocks_peer_validation_errors():
     ), patch(
         "src.services.utils.link_preview.httpx.AsyncClient",
         return_value=fake_client,
-    ):
-        with pytest.raises(HTTPException) as exc_info:
-            await fetch_link_preview("https://example.com/page")
+    ), pytest.raises(HTTPException) as exc_info:
+        await fetch_link_preview("https://example.com/page")
 
     assert exc_info.value.status_code == 400
     assert "DNS rebinding detected" in exc_info.value.detail
@@ -257,9 +254,8 @@ async def test_fetch_link_preview_rejects_oversized_responses():
     ), patch(
         "src.services.utils.link_preview.httpx.AsyncClient",
         return_value=fake_client,
-    ):
-        with pytest.raises(HTTPException) as exc_info:
-            await fetch_link_preview("https://example.com/page")
+    ), pytest.raises(HTTPException) as exc_info:
+        await fetch_link_preview("https://example.com/page")
 
     assert exc_info.value.status_code == 400
     assert exc_info.value.detail == "Response too large"
@@ -292,9 +288,8 @@ async def test_fetch_link_preview_blocks_redirect_peer_validation_and_fallback_f
     ), patch(
         "src.services.utils.link_preview.httpx.AsyncClient",
         return_value=fake_client,
-    ):
-        with pytest.raises(HTTPException) as exc_info:
-            await fetch_link_preview("https://example.com/page")
+    ), pytest.raises(HTTPException) as exc_info:
+        await fetch_link_preview("https://example.com/page")
 
     assert exc_info.value.status_code == 400
     assert "blocked redirect peer" in exc_info.value.detail

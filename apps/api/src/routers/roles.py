@@ -1,13 +1,19 @@
+
 from fastapi import APIRouter, Depends, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.roles import RoleCreate, RoleRead, RoleUpdate
-from src.security.auth import get_current_user
-from src.services.roles.roles import create_role, delete_role, read_role, update_role, get_roles_by_organization
 from src.db.users import PublicUser
+from src.security.auth import get_current_user
 from src.security.features_utils.plan_check import require_plan
-from typing import List
-
+from src.services.roles.roles import (
+    create_role,
+    delete_role,
+    get_roles_by_organization,
+    read_role,
+    update_role,
+)
 
 router = APIRouter()
 
@@ -41,7 +47,7 @@ async def api_create_role(
 
 @router.get(
     "/org/{org_id}",
-    response_model=List[RoleRead],
+    response_model=list[RoleRead],
     summary="List roles for organization",
     description="Get all roles for a specific organization, including global roles available to every org.",
     responses={
@@ -54,7 +60,7 @@ async def api_get_roles_by_organization(
     org_id: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-)-> List[RoleRead]:
+)-> list[RoleRead]:
     """
     Get all roles for a specific organization, including global roles
     """
