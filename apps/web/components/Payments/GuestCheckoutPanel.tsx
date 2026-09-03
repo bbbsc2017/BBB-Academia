@@ -9,7 +9,7 @@ import { signup } from '@services/auth/auth'
 import { generateUsernameFromEmail } from '@services/auth/username'
 import { getErrorMessage } from '@services/utils/ts/errorMessage'
 import { PasswordStrengthIndicator, validatePasswordStrength } from '@components/Auth/PasswordStrengthIndicator'
-import TurnstileWidget, { useTurnstileRequired, verifyTurnstileToken, type TurnstileWidgetHandle } from '@components/Auth/TurnstileWidget'
+import TurnstileWidget, { useTurnstileRequired, type TurnstileWidgetHandle } from '@components/Auth/TurnstileWidget'
 import { checkRecaptcha, getRecaptchaToken } from '@services/security/recaptcha'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 

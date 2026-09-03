@@ -26,8 +26,8 @@ declare global {
   interface Window {
     grecaptcha?: {
       enterprise?: {
-        ready: (cb: () => void) => void
-        execute: (siteKey: string, opts: { action: string }) => Promise<string>
+        ready: (_cb: () => void) => void
+        execute: (_siteKey: string, _opts: { action: string }) => Promise<string>
       }
     }
   }
