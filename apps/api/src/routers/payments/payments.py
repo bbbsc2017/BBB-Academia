@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Path, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -19,7 +19,7 @@ from src.db.payments.offers import (
     PaymentsOfferRead,
     PaymentsOfferUpdate,
 )
-from src.db.users import AnonymousUser, PublicUser
+from src.db.users import PublicUser
 from src.security.auth import get_current_user
 from src.security.recaptcha import verify_recaptcha
 from src.security.superadmin import is_user_superadmin
