@@ -6,14 +6,12 @@ import os
 import re
 import zipfile
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, Form
-from pydantic import BaseModel
-
-from typing import Optional, Union
 import httpx
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
+from pydantic import BaseModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from config.config import get_learnhouse_config
-from sqlmodel.ext.asyncio.session import AsyncSession
 from src.core.events.database import get_db_session
 from src.db.users import APITokenUser, PublicUser
 from src.security.auth import get_authenticated_user
@@ -48,8 +46,8 @@ class ExecuteRequest(BaseModel):
     language_id: int
     source_code: str
     stdin: str = ""
-    sqlite_db_path: Optional[str] = None
-    additional_files: Optional[list[AdditionalFile]] = None
+    sqlite_db_path: str | None = None
+    additional_files: list[AdditionalFile] | None = None
 
 
 class TestCase(BaseModel):
@@ -63,8 +61,8 @@ class ExecuteBatchRequest(BaseModel):
     language_id: int
     source_code: str
     test_cases: list[TestCase]
-    sqlite_db_path: Optional[str] = None
-    additional_files: Optional[list[AdditionalFile]] = None
+    sqlite_db_path: str | None = None
+    additional_files: list[AdditionalFile] | None = None
 
 
 def _get_judge0_config():
@@ -155,7 +153,7 @@ def _course_uuid_from_sqlite_path(file_path: str) -> str:
 
 async def _require_course_access(
     request: Request,
-    current_user: Union[PublicUser, APITokenUser],
+    current_user: PublicUser | APITokenUser,
     course_uuid: str,
     action: str,
     db_session: AsyncSession,
@@ -186,7 +184,7 @@ def _read_storage_file(file_path: str) -> bytes:
         # Resolve to canonical absolute path and re-verify containment (CodeQL requires
         # the realpath check to be visible immediately before the file operation).
         base_real = os.path.realpath("content")
-        resolved = os.path.realpath(safe_path)  # noqa: S108
+        resolved = os.path.realpath(safe_path)
         try:
             if os.path.commonpath([base_real, resolved]) != base_real:
                 raise HTTPException(status_code=400, detail="Invalid file path")
@@ -234,7 +232,7 @@ async def _submit_single(
     language_id: int,
     source_code: str,
     stdin: str,
-    additional_files: Optional[str] = None,
+    additional_files: str | None = None,
 ) -> dict:
     """Single submission with wait=true."""
     url = f"{judge0_cfg.api_url}/submissions?wait=true"
@@ -272,7 +270,7 @@ async def _submit_single(
 async def execute_code(
     request: Request,
     body: ExecuteRequest,
-    current_user: Union[PublicUser, APITokenUser] = Depends(get_authenticated_user),
+    current_user: PublicUser | APITokenUser = Depends(get_authenticated_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     judge0_cfg = _get_judge0_config()
@@ -319,7 +317,7 @@ async def execute_code(
 async def execute_batch(
     request: Request,
     body: ExecuteBatchRequest,
-    current_user: Union[PublicUser, APITokenUser] = Depends(get_authenticated_user),
+    current_user: PublicUser | APITokenUser = Depends(get_authenticated_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     judge0_cfg = _get_judge0_config()
@@ -415,7 +413,7 @@ async def upload_sqlite_db(
     block_id: str = Form(),
     org_uuid: str = Form(),
     course_uuid: str = Form(),
-    current_user: Union[PublicUser, APITokenUser] = Depends(get_authenticated_user),
+    current_user: PublicUser | APITokenUser = Depends(get_authenticated_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     """Upload a SQLite database file for a code playground block.
@@ -438,6 +436,7 @@ async def upload_sqlite_db(
     await _require_course_access(request, current_user, course_uuid, "update", db_session)
 
     from sqlmodel import select
+
     from src.db.courses.courses import Course
     from src.db.organizations import Organization
 

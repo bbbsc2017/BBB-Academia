@@ -1,8 +1,8 @@
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.services.health.health import check_health
-from src.core.events.database import get_db_session
 
+from src.core.events.database import get_db_session
+from src.services.health.health import check_health
 
 router = APIRouter()
 

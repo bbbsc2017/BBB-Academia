@@ -25,16 +25,16 @@ from src.services.ai.llm.tiers import (
 )
 
 __all__ = [
-    "generate",
-    "generate_stream",
-    "to_message_history",
+    "AINotConfiguredError",
     "attachments_to_parts",
-    "build_model",
     "build_embedding_model",
+    "build_model",
     "embed_documents",
     "embed_query",
     "embedding_dimensions",
-    "AINotConfiguredError",
+    "generate",
+    "generate_stream",
     "model_for_tier",
     "resolve_model_for_org",
+    "to_message_history",
 ]

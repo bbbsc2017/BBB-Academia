@@ -9,9 +9,12 @@ from datetime import datetime
 import pytest
 
 rt = pytest.importorskip("ee.services.scorm.scorm_runtime")
-from ee.db.scorm import CompletionStatusEnum  # noqa: E402,F401
-from src.db.courses.activities import (  # noqa: E402
-    Activity, ActivitySubTypeEnum, ActivityTypeEnum,
+from ee.db.scorm import CompletionStatusEnum  # noqa: F401
+
+from src.db.courses.activities import (
+    Activity,
+    ActivitySubTypeEnum,
+    ActivityTypeEnum,
 )
 
 

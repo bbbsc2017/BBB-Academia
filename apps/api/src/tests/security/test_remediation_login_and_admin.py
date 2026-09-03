@@ -16,7 +16,6 @@ from src.routers.admin import router as admin_router
 from src.routers.auth import router as auth_router
 from src.security.auth import get_current_user
 
-
 # ---------------------------------------------------------------------------
 # F-18: login no longer pre-fetches the user row
 # ---------------------------------------------------------------------------

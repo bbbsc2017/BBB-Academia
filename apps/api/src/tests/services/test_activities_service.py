@@ -5,9 +5,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.db.courses.activities import ActivityCreate, ActivityRead, ActivityTypeEnum, ActivitySubTypeEnum, ActivityUpdate
+from src.db.courses.activities import (
+    ActivityCreate,
+    ActivityRead,
+    ActivitySubTypeEnum,
+    ActivityTypeEnum,
+    ActivityUpdate,
+)
 from src.db.organizations import OrganizationRead
 from src.services.courses.activities.activities import (
+    EditorBootstrapResponse,
     _apply_activity_lock,
     _trigger_course_embedding,
     create_activity,
@@ -17,7 +24,6 @@ from src.services.courses.activities.activities import (
     get_activityby_id,
     get_editor_bootstrap,
     update_activity,
-    EditorBootstrapResponse,
 )
 
 
@@ -38,9 +44,8 @@ class TestCreateActivity:
         with patch(
             "src.services.courses.activities.activities.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await create_activity(mock_request, activity_obj, admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await create_activity(mock_request, activity_obj, admin_user, db)
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -81,9 +86,8 @@ class TestGetEditorBootstrap:
         ), patch(
             "src.services.courses.activities.activities._apply_activity_lock",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_editor_bootstrap(mock_request, "nonexistent-uuid", admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await get_editor_bootstrap(mock_request, "nonexistent-uuid", admin_user, db)
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -156,9 +160,8 @@ class TestGetActivity:
         ), patch(
             "src.services.courses.activities.activities._apply_activity_lock",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_activity(mock_request, "nonexistent-uuid", admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await get_activity(mock_request, "nonexistent-uuid", admin_user, db)
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -247,9 +250,8 @@ class TestDeleteActivity:
         with patch(
             "src.services.courses.activities.activities.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await delete_activity(mock_request, "nonexistent-uuid", admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await delete_activity(mock_request, "nonexistent-uuid", admin_user, db)
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -277,9 +279,8 @@ class TestGetActivityById:
         with patch(
             "src.services.courses.activities.activities.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_activityby_id(mock_request, 99999, admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await get_activityby_id(mock_request, 99999, admin_user, db)
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -396,9 +397,8 @@ class TestGetActivities:
         with patch(
             "src.services.courses.activities.activities.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_activities(mock_request, chapter.id, admin_user, db)
+        ), pytest.raises(HTTPException) as exc:
+            await get_activities(mock_request, chapter.id, admin_user, db)
         assert exc.value.status_code == 404
 
     @pytest.mark.asyncio

@@ -4,14 +4,15 @@ Revision ID: s8t9u0v1w2x3
 Revises: r7s8t9u0v1w2
 Create Date: 2026-03-27 00:00:00.000000
 """
-from typing import Sequence, Union
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
+from alembic import op
 
 revision: str = 's8t9u0v1w2x3'
-down_revision: Union[str, None] = 'r7s8t9u0v1w2'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'r7s8t9u0v1w2'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

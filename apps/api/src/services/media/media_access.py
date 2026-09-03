@@ -28,7 +28,7 @@ async def media_in_any_private_folder(db_session: AsyncSession, media_uuid: str)
         await db_session.execute(
             select(Folder.id).where(
                 Folder.id.in_(folder_ids),
-                Folder.public == False,  # noqa: E712
+                Folder.public == False,
             )
         )
     ).scalars().first()

@@ -16,9 +16,11 @@ from src.routers.auth import (
     get_cookie_domain_for_request,
     get_token_expiry_ms,
     is_request_secure,
-    router as auth_router,
     set_auth_cookies,
     unset_auth_cookies,
+)
+from src.routers.auth import (
+    router as auth_router,
 )
 from src.security.auth import get_current_user
 

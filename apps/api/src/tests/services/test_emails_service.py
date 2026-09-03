@@ -136,7 +136,11 @@ class TestEmailsService:
         invite_body = send_email.call_args.kwargs["body"]
         assert "Click the button below" in invite_body
 
-    def test_send_emails_in_french_when_lang_is_fr(self):
+    def test_send_emails_in_spanish_when_lang_is_es(self):
+        # French isn't a supported locale in this fork (only en/es have
+        # translation bundles — see SUPPORTED_LANGUAGES in
+        # src/services/email/translations.py), so lang="fr" would just fall
+        # back to English. Exercise the actually-supported second language.
         with patch("src.services.users.emails.send_email", return_value=True) as send_email:
             send_invitation_email(
                 "invitee@test.com",
@@ -144,7 +148,7 @@ class TestEmailsService:
                 "owner",
                 "https://app.test/signup",
                 invite_code="INV-123",
-                lang="fr",
+                lang="es",
             )
             send_password_reset_email(
                 "abcd1234",
@@ -152,25 +156,25 @@ class TestEmailsService:
                 _org(),
                 "user@test.com",
                 "https://app.test",
-                lang="fr",
+                lang="es",
             )
             send_role_changed_email(
                 "user@test.com",
                 "member",
                 "Org & Co",
                 "Admin",
-                lang="fr",
+                lang="es",
             )
 
         invite_call = send_email.call_args_list[0].kwargs
         reset_call = send_email.call_args_list[1].kwargs
         role_call = send_email.call_args_list[2].kwargs
 
-        assert "Vous êtes invité" in invite_call["body"]
-        assert "Vous êtes invité à rejoindre Org &amp; Co" == invite_call["subject"]
-        assert "Réinitialisez votre mot de passe" in reset_call["body"]
-        assert "Réinitialisez votre mot de passe" == reset_call["subject"]
-        assert "Votre rôle a été mis à jour" in role_call["body"]
+        assert "te ha invitado" in invite_call["body"]
+        assert "Te han invitado a unirte a Org &amp; Co" == invite_call["subject"]
+        assert "Restablece tu contraseña" in reset_call["body"]
+        assert "Restablece tu contraseña" == reset_call["subject"]
+        assert "Tu rol ha sido actualizado" in role_call["body"]
 
     def test_send_emails_falls_back_to_english_for_unknown_lang(self):
         with patch("src.services.users.emails.send_email", return_value=True) as send_email:

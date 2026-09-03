@@ -2,15 +2,20 @@
 
 from datetime import datetime
 from types import SimpleNamespace
-from uuid import uuid4
 from unittest.mock import AsyncMock, patch
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException, UploadFile
 from sqlmodel import select
 
 from src.db.courses.courses import Course
-from src.db.playgrounds import Playground, PlaygroundAccessType, PlaygroundCreate, PlaygroundUpdate
+from src.db.playgrounds import (
+    Playground,
+    PlaygroundAccessType,
+    PlaygroundCreate,
+    PlaygroundUpdate,
+)
 from src.db.roles import Role, RoleTypeEnum
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser

@@ -12,18 +12,21 @@ of the security functionality including:
 - Authorization utilities
 """
 
-from src.tests.security.test_security import TestSecurity
 from src.tests.security.test_auth import TestAuth
-from src.tests.security.test_rbac import TestRBAC
-from src.tests.security.test_rbac_utils import TestRBACUtils
-from src.tests.security.test_rbac_constants import TestRoleConstants, TestRoleHelperFunctions
-from src.tests.security.test_resource_access import (
-    TestResourceConfig,
-    TestAccessDecision,
-    TestResourceAccessChecker,
-    TestParentResourceResolution,
-)
 from src.tests.security.test_features_utils import TestFeaturesUtils
+from src.tests.security.test_rbac import TestRBAC
+from src.tests.security.test_rbac_constants import (
+    TestRoleConstants,
+    TestRoleHelperFunctions,
+)
+from src.tests.security.test_rbac_utils import TestRBACUtils
+from src.tests.security.test_resource_access import (
+    TestAccessDecision,
+    TestParentResourceResolution,
+    TestResourceAccessChecker,
+    TestResourceConfig,
+)
+from src.tests.security.test_security import TestSecurity
 
 
 class TestSecurityComprehensive:
@@ -46,7 +49,11 @@ class TestSecurityComprehensive:
 
     def test_security_constants(self):
         """Test that security constants are properly defined"""
-        from src.security.security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+        from src.security.security import (
+            ACCESS_TOKEN_EXPIRE_MINUTES,
+            ALGORITHM,
+            SECRET_KEY,
+        )
         
         assert ACCESS_TOKEN_EXPIRE_MINUTES == 30
         assert ALGORITHM == "HS256"
@@ -71,16 +78,16 @@ class TestSecurityComprehensive:
         """Test that the security module has the expected structure"""
         import src.security
         import src.security.auth
-        import src.security.security
-        import src.security.rbac
-        import src.security.rbac.rbac
-        import src.security.rbac.utils
-        import src.security.rbac.constants
-        import src.security.rbac.config
-        import src.security.rbac.types
-        import src.security.rbac.resource_access
         import src.security.features_utils
         import src.security.features_utils.usage
+        import src.security.rbac
+        import src.security.rbac.config
+        import src.security.rbac.constants
+        import src.security.rbac.rbac
+        import src.security.rbac.resource_access
+        import src.security.rbac.types
+        import src.security.rbac.utils
+        import src.security.security
 
         # Verify all modules can be imported
         assert src.security is not None
@@ -99,9 +106,9 @@ class TestSecurityComprehensive:
     def test_rbac_constants_are_exported(self):
         """Test that RBAC constants are properly exported."""
         from src.security.rbac import (
+            ADMIN_OR_MAINTAINER_ROLE_IDS,
             ADMIN_ROLE_ID,
             MAINTAINER_ROLE_ID,
-            ADMIN_OR_MAINTAINER_ROLE_IDS,
             is_admin,
             is_admin_or_maintainer,
         )
@@ -116,10 +123,10 @@ class TestSecurityComprehensive:
     def test_resource_access_checker_is_exported(self):
         """Test that ResourceAccessChecker is properly exported."""
         from src.security.rbac import (
-            ResourceAccessChecker,
-            check_resource_access,
             AccessAction,
             AccessContext,
+            ResourceAccessChecker,
+            check_resource_access,
         )
 
         assert ResourceAccessChecker is not None

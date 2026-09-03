@@ -1,12 +1,12 @@
+
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 class PlaygroundContext(BaseModel):
     playground_name: str
     playground_description: str
-    course_uuid: Optional[str] = None
-    course_name: Optional[str] = None
+    course_uuid: str | None = None
+    course_name: str | None = None
 
 
 class StartPlaygroundSession(BaseModel):
@@ -19,7 +19,7 @@ class SendPlaygroundMessage(BaseModel):
     session_uuid: str
     playground_uuid: str
     message: str
-    current_html: Optional[str] = None
+    current_html: str | None = None
 
 
 class PlaygroundMessage(BaseModel):
@@ -31,8 +31,8 @@ class PlaygroundSessionResponse(BaseModel):
     session_uuid: str
     iteration_count: int
     max_iterations: int
-    html_content: Optional[str]
-    message_history: List[PlaygroundMessage]
+    html_content: str | None
+    message_history: list[PlaygroundMessage]
 
 
 class PlaygroundSessionData(BaseModel):
@@ -40,6 +40,6 @@ class PlaygroundSessionData(BaseModel):
     playground_uuid: str
     iteration_count: int
     max_iterations: int
-    message_history: List[PlaygroundMessage]
-    current_html: Optional[str]
+    message_history: list[PlaygroundMessage]
+    current_html: str | None
     context: PlaygroundContext

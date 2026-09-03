@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 import src.services.utils.upload_content as upload_content_mod
-from src.services.utils.upload_content import upload_content, _safe_content_path
+from src.services.utils.upload_content import _safe_content_path, upload_content
 
 
 def test_safe_content_path_contains_within_root(tmp_path, monkeypatch):

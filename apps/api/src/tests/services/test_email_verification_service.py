@@ -2,7 +2,7 @@
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -61,9 +61,8 @@ class TestEmailVerificationService:
             return_value=SimpleNamespace(
                 redis_config=SimpleNamespace(redis_connection_string="")
             ),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                get_redis_connection()
+        ), pytest.raises(HTTPException) as exc_info:
+            get_redis_connection()
         assert exc_info.value.status_code == 500
 
         fake_redis = MagicMock()
@@ -78,9 +77,8 @@ class TestEmailVerificationService:
         ), patch(
             "src.services.users.email_verification.redis.Redis.from_url",
             return_value=fake_redis,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                get_redis_connection()
+        ), pytest.raises(HTTPException) as exc_info:
+            get_redis_connection()
         assert exc_info.value.status_code == 500
 
     @pytest.mark.asyncio
@@ -136,7 +134,7 @@ class TestEmailVerificationService:
         assert payload["email"] == user.email
         assert payload["token"] == "verification-token"
         assert payload["created_at"]
-        assert payload["expires_at"] > datetime.now(timezone.utc).timestamp()
+        assert payload["expires_at"] > datetime.now(UTC).timestamp()
         assert fake_redis.setex.call_args_list[1].args[0].startswith(
             f"email_verification:{user.user_uuid}:org:{NO_ORG_UUID}:token:"
         )
@@ -175,9 +173,8 @@ class TestEmailVerificationService:
         ), patch(
             "src.services.users.email_verification.send_email_verification_email",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as send_exc:
-                await send_verification_email(mock_request, db, user, org.id)
+        ), pytest.raises(HTTPException) as send_exc:
+            await send_verification_email(mock_request, db, user, org.id)
         assert send_exc.value.status_code == 500
 
     @pytest.mark.asyncio
@@ -236,8 +233,8 @@ class TestEmailVerificationService:
             "user_uuid": user.user_uuid,
             "org_uuid": org.org_uuid,
             "email": user.email,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "expires_at": datetime.now(timezone.utc).timestamp() + TOKEN_TTL_SECONDS,
+            "created_at": datetime.now(UTC).isoformat(),
+            "expires_at": datetime.now(UTC).timestamp() + TOKEN_TTL_SECONDS,
         }
 
         fake_redis = Mock()
@@ -247,15 +244,14 @@ class TestEmailVerificationService:
         with patch(
             "src.services.users.email_verification.get_redis_connection",
             return_value=fake_redis,
-        ):
-            with pytest.raises(HTTPException) as missing_exc:
-                await verify_email_token(
-                    mock_request,
-                    db,
-                    base_token,
-                    "wrong-user",
-                    org.org_uuid,
-                )
+        ), pytest.raises(HTTPException) as missing_exc:
+            await verify_email_token(
+                mock_request,
+                db,
+                base_token,
+                "wrong-user",
+                org.org_uuid,
+            )
         assert missing_exc.value.status_code == 400
 
         fake_redis.get.return_value = json.dumps(
@@ -264,15 +260,14 @@ class TestEmailVerificationService:
         with patch(
             "src.services.users.email_verification.get_redis_connection",
             return_value=fake_redis,
-        ):
-            with pytest.raises(HTTPException) as user_missing_exc:
-                await verify_email_token(
-                    mock_request,
-                    db,
-                    base_token,
-                    "missing-user",
-                    org.org_uuid,
-                )
+        ), pytest.raises(HTTPException) as user_missing_exc:
+            await verify_email_token(
+                mock_request,
+                db,
+                base_token,
+                "missing-user",
+                org.org_uuid,
+            )
         assert user_missing_exc.value.status_code == 400
 
         fake_redis.get.return_value = json.dumps(
@@ -281,15 +276,14 @@ class TestEmailVerificationService:
         with patch(
             "src.services.users.email_verification.get_redis_connection",
             return_value=fake_redis,
-        ):
-            with pytest.raises(HTTPException) as expired_exc:
-                await verify_email_token(
-                    mock_request,
-                    db,
-                    base_token,
-                    user.user_uuid,
-                    org.org_uuid,
-                )
+        ), pytest.raises(HTTPException) as expired_exc:
+            await verify_email_token(
+                mock_request,
+                db,
+                base_token,
+                user.user_uuid,
+                org.org_uuid,
+            )
         assert expired_exc.value.status_code == 400
         fake_redis.delete.assert_called_with(redis_key)
 
@@ -326,7 +320,7 @@ class TestEmailVerificationService:
             email="verified@test.com",
             user_uuid="user_verified",
             email_verified=True,
-            email_verified_at=datetime.now(timezone.utc).isoformat(),
+            email_verified_at=datetime.now(UTC).isoformat(),
         )
         token = "verified-token"
         redis_key = (
@@ -339,8 +333,8 @@ class TestEmailVerificationService:
                 "user_uuid": verified_user.user_uuid,
                 "org_uuid": org.org_uuid,
                 "email": verified_user.email,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "expires_at": datetime.now(timezone.utc).timestamp()
+                "created_at": datetime.now(UTC).isoformat(),
+                "expires_at": datetime.now(UTC).timestamp()
                 + TOKEN_TTL_SECONDS,
             }
         )
@@ -364,15 +358,14 @@ class TestEmailVerificationService:
         with patch(
             "src.services.users.email_verification.get_redis_connection",
             return_value=fake_redis,
-        ):
-            with pytest.raises(HTTPException) as invalid_exc:
-                await verify_email_token(
-                    mock_request,
-                    db,
-                    token,
-                    verified_user.user_uuid,
-                    org.org_uuid,
-                )
+        ), pytest.raises(HTTPException) as invalid_exc:
+            await verify_email_token(
+                mock_request,
+                db,
+                token,
+                verified_user.user_uuid,
+                org.org_uuid,
+            )
         assert invalid_exc.value.status_code == 400
         assert fake_redis.get.call_count >= 2
 
@@ -382,8 +375,8 @@ class TestEmailVerificationService:
                 "user_uuid": verified_user.user_uuid,
                 "org_uuid": org.org_uuid,
                 "email": verified_user.email,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "expires_at": datetime.now(timezone.utc).timestamp()
+                "created_at": datetime.now(UTC).isoformat(),
+                "expires_at": datetime.now(UTC).timestamp()
                 + TOKEN_TTL_SECONDS,
             }
         )

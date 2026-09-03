@@ -1,7 +1,8 @@
-from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, Request, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel
+
+from src.core.events.database import get_db_session
 from src.db.courses.assignments import (
     AssignmentCreate,
     AssignmentRead,
@@ -12,7 +13,6 @@ from src.db.courses.assignments import (
     AssignmentUserSubmissionCreate,
 )
 from src.db.users import PublicUser
-from src.core.events.database import get_db_session
 from src.security.auth import get_current_user
 from src.services.courses.activities.assignments import (
     create_assignment,
@@ -52,7 +52,7 @@ class GradeSubmissionBody(BaseModel):
     """Optional body for the final-grade endpoint. Lets the instructor leave
     an overall feedback note at the same time they finalize the grade."""
 
-    overall_feedback: Optional[str] = None
+    overall_feedback: str | None = None
 
 
 router = APIRouter()
@@ -773,7 +773,7 @@ async def api_final_grade_submission(
     request: Request,
     assignment_uuid: str,
     user_id: int,
-    body: Optional[GradeSubmissionBody] = None,
+    body: GradeSubmissionBody | None = None,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
 ):

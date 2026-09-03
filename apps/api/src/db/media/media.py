@@ -1,6 +1,6 @@
-from typing import Optional
 from enum import Enum
-from sqlalchemy import Column, ForeignKey, Integer, BigInteger
+
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer
 from sqlmodel import Field, SQLModel
 
 
@@ -12,16 +12,16 @@ class MediaTypeEnum(str, Enum):
 
 class MediaBase(SQLModel):
     name: str
-    description: Optional[str] = ""
+    description: str | None = ""
     media_type: MediaTypeEnum = Field(default=MediaTypeEnum.UPLOAD)
     # For EMBED
-    url: Optional[str] = ""
-    thumbnail_image: Optional[str] = ""
+    url: str | None = ""
+    thumbnail_image: str | None = ""
     public: bool = True
 
 
 class Media(MediaBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(
             BigInteger, ForeignKey("organization.id", ondelete="CASCADE"), index=True
@@ -29,14 +29,14 @@ class Media(MediaBase, table=True):
     )
     media_uuid: str = Field(default="", index=True)
     # For UPLOAD — file metadata (mirrors BlockFile shape)
-    file_id: Optional[str] = ""
+    file_id: str | None = ""
     # Randomized, server-only relative storage key (under content/). New uploads
     # set this; it is NEVER returned to clients, so the storage path cannot be
     # derived from public identifiers. Legacy rows leave it empty (reconstructed).
-    storage_key: Optional[str] = ""
-    file_format: Optional[str] = ""
-    file_size: Optional[int] = Field(default=None, sa_column=Column(Integer, nullable=True))
-    file_mime: Optional[str] = ""
+    storage_key: str | None = ""
+    file_format: str | None = ""
+    file_size: int | None = Field(default=None, sa_column=Column(Integer, nullable=True))
+    file_mime: str | None = ""
     creation_date: str = ""
     update_date: str = ""
 
@@ -44,15 +44,15 @@ class Media(MediaBase, table=True):
 class MediaCreate(MediaBase):
     org_id: int = Field(default=None, foreign_key="organization.id")
     # Optional: place into a folder right away
-    folder_uuid: Optional[str] = None
+    folder_uuid: str | None = None
 
 
 class MediaUpdate(SQLModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    url: Optional[str] = None
-    thumbnail_image: Optional[str] = None
-    public: Optional[bool] = None
+    name: str | None = None
+    description: str | None = None
+    url: str | None = None
+    thumbnail_image: str | None = None
+    public: bool | None = None
 
 
 class MediaRead(MediaBase):
@@ -63,8 +63,8 @@ class MediaRead(MediaBase):
     # NOT exposed — clients load bytes via GET /media/{media_uuid}/file only, so
     # the storage path is never derivable. file_format/size/mime are safe metadata
     # the UI needs to pick the right preview.
-    file_format: Optional[str] = ""
-    file_size: Optional[int] = None
-    file_mime: Optional[str] = ""
+    file_format: str | None = ""
+    file_size: int | None = None
+    file_mime: str | None = ""
     creation_date: str
     update_date: str

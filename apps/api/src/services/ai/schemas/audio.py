@@ -1,6 +1,6 @@
 """Request schemas for AI audio / podcast generation (Gemini TTS)."""
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -20,13 +20,13 @@ class GenerateAudioRequest(BaseModel):
     # The text (tts) or dialogue script (podcast) to synthesize.
     text: str
     # Single-speaker voice (tts mode).
-    voice: Optional[str] = None
+    voice: str | None = None
     # Named speaker → voice bindings (podcast mode; max 2).
-    speakers: Optional[list[GenerateAudioSpeaker]] = Field(default=None)
+    speakers: list[GenerateAudioSpeaker] | None = Field(default=None)
     # Optional natural-language tone/style directive (e.g. "calm and reassuring").
-    style: Optional[str] = None
+    style: str | None = None
     # Optional target language label/BCP-47 (Gemini otherwise auto-detects it).
-    language: Optional[str] = None
+    language: str | None = None
 
 
 class GenerateScriptRequest(BaseModel):
@@ -38,10 +38,10 @@ class GenerateScriptRequest(BaseModel):
     # The topic, question, or source material to turn into a script.
     text: str
     # Named speakers for the dialogue (podcast mode; their names anchor script lines).
-    speakers: Optional[list[GenerateAudioSpeaker]] = Field(default=None)
+    speakers: list[GenerateAudioSpeaker] | None = Field(default=None)
     # Optional tone/style and target language for the generated script.
-    style: Optional[str] = None
-    language: Optional[str] = None
+    style: str | None = None
+    language: str | None = None
     # Approximate spoken length in minutes (clamped server-side).
     minutes: int = Field(default=2, ge=1, le=60)
 

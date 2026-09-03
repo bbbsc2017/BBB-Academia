@@ -18,6 +18,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
+from sqlmodel import select
 
 from src.db.courses.assignments import (
     Assignment,
@@ -25,14 +26,14 @@ from src.db.courses.assignments import (
     AssignmentRead,
     AssignmentTask,
     AssignmentTaskSubmission,
+    AssignmentTaskSubmissionUpdate,
     AssignmentTaskTypeEnum,
     AssignmentUserSubmission,
     AssignmentUserSubmissionStatus,
     GradingTypeEnum,
 )
-from src.db.courses.assignments import AssignmentTaskSubmissionUpdate
-from src.db.users import APITokenUser, User
 from src.db.trails import Trail
+from src.db.users import APITokenUser, User
 from src.services.courses.activities.assignments import (
     create_assignment,
     create_assignment_submission,
@@ -42,7 +43,6 @@ from src.services.courses.activities.assignments import (
     read_assignment_submissions,
     retry_assignment_submission,
 )
-from sqlmodel import select
 
 _PATCH_TRAIL_PRESENCE = "src.services.courses.activities.assignments.check_trail_presence"
 _PATCH_CERT_CHECK = (

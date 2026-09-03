@@ -1,13 +1,14 @@
-from typing import Union
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user, resolve_acting_user_id
-from src.services.search.search import search_across_org, SearchResult
+from src.services.search.search import SearchResult, search_across_org
 from src.services.security.rate_limiting import (
-    check_search_rate_limit,
     check_rate_limit,
+    check_search_rate_limit,
     get_client_ip,
 )
 
@@ -32,7 +33,7 @@ async def api_search_across_org(
     page: int = Query(default=1, ge=1, description="Page number"),
     limit: int = Query(default=10, ge=1, le=50, description="Items per page (max 50)"),
     db_session: AsyncSession = Depends(get_db_session),
-    current_user: Union[PublicUser, APITokenUser] = Depends(get_current_user),
+    current_user: PublicUser | APITokenUser = Depends(get_current_user),
 ) -> SearchResult:
     """
     Search across courses, folders and users within an organization.

@@ -21,7 +21,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.db.users import APITokenUser, AnonymousUser, PublicUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.api_token_utils import get_authenticated_non_api_token_user
 
 

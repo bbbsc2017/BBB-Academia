@@ -2,7 +2,6 @@
 
 import secrets
 from datetime import datetime
-from typing import List, Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, status
@@ -21,7 +20,6 @@ from src.security.security import (
     security_token_needs_rehash,
     security_verify_token,
 )
-
 
 TOKEN_PREFIX = "lh_sa_"
 TOKEN_BYTES = 32  # 256 bits of entropy
@@ -67,7 +65,7 @@ async def create_superadmin_token(
         select(SuperadminAPIToken).where(
             SuperadminAPIToken.name == name,
             SuperadminAPIToken.created_by_user_id == created_by_user_id,
-            SuperadminAPIToken.is_active == True,  # noqa: E712
+            SuperadminAPIToken.is_active == True,
         )
     )).scalars().first()
     if existing:
@@ -106,7 +104,7 @@ async def create_superadmin_token(
     )
 
 
-async def list_superadmin_tokens(db_session: AsyncSession) -> List[SuperadminAPITokenRead]:
+async def list_superadmin_tokens(db_session: AsyncSession) -> list[SuperadminAPITokenRead]:
     """List all superadmin tokens platform-wide (every superadmin is a peer)."""
     statement = select(SuperadminAPIToken).order_by(SuperadminAPIToken.creation_date.desc())  # type: ignore
     tokens = (await db_session.execute(statement)).scalars().all()
@@ -182,7 +180,7 @@ async def revoke_superadmin_token(
 async def validate_superadmin_token_for_auth(
     token: str,
     db_session: AsyncSession,
-) -> Optional[SuperadminAPIToken]:
+) -> SuperadminAPIToken | None:
     """Validate a presented token. Updates last_used_at on success. Returns None on any failure."""
     if not token.startswith(TOKEN_PREFIX):
         return None
@@ -190,7 +188,7 @@ async def validate_superadmin_token_for_auth(
     candidates = (await db_session.execute(
         select(SuperadminAPIToken).where(
             SuperadminAPIToken.token_prefix == token[:15],
-            SuperadminAPIToken.is_active == True,  # noqa: E712
+            SuperadminAPIToken.is_active == True,
         )
     )).scalars().all()
     api_token = next(

@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
 from fastapi import HTTPException
 
-from src.services.health.health import check_health, check_database_health
+from src.services.health.health import check_database_health, check_health
 
 
 class TestHealthService:

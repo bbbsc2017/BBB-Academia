@@ -1,5 +1,6 @@
-from typing import List
+
 from fastapi import APIRouter, Depends, Request
+
 from src.core.events.database import get_db_session
 from src.db.courses.chapters import (
     ChapterCreate,
@@ -7,6 +8,7 @@ from src.db.courses.chapters import (
     ChapterUpdate,
     ChapterUpdateOrder,
 )
+from src.security.auth import get_current_user
 from src.services.courses.chapters import (
     DEPRECEATED_get_course_chapters,
     create_chapter,
@@ -21,9 +23,7 @@ from src.services.courses.lock_usergroups import (
     get_chapter_usergroups,
     remove_usergroup_from_chapter,
 )
-
 from src.services.users.users import PublicUser
-from src.security.auth import get_current_user
 
 router = APIRouter()
 
@@ -130,11 +130,11 @@ async def api_update_chapter_meta(
 
 @router.get(
     "/course/{course_id}/page/{page}/limit/{limit}",
-    response_model=List[ChapterRead],
+    response_model=list[ChapterRead],
     summary="List course chapters",
     description="Paginated list of chapters for the specified course.",
     responses={
-        200: {"description": "Paginated list of chapters", "model": List[ChapterRead]},
+        200: {"description": "Paginated list of chapters", "model": list[ChapterRead]},
         403: {"description": "User lacks read access to the course"},
         404: {"description": "Course not found"},
     },
@@ -146,7 +146,7 @@ async def api_get_chapter_by(
     limit: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> List[ChapterRead]:
+) -> list[ChapterRead]:
     """
     Get Course Chapters by page and limit
     """

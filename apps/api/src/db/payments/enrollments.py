@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import Optional, Dict, Any
+from typing import Any
+
 from sqlalchemy import JSON, Column, ForeignKey, Integer
 from sqlmodel import Field, SQLModel
 
@@ -17,13 +18,13 @@ class EnrollmentStatusEnum(str, Enum):
 class PaymentsEnrollmentBase(SQLModel):
     status: EnrollmentStatusEnum = EnrollmentStatusEnum.pending
     provider: PaymentProviderEnum
-    provider_specific_data: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON, nullable=True))
+    provider_specific_data: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON, nullable=True))
 
 
 class PaymentsEnrollment(PaymentsEnrollmentBase, table=True):
     __tablename__ = "paymentsenrollment"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     offer_id: int = Field(
         sa_column=Column(Integer, ForeignKey("paymentsoffer.id", ondelete="CASCADE"), nullable=False)
     )

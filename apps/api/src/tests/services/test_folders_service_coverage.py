@@ -13,8 +13,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.db.folders.folders import Folder, FolderCreate, FolderUpdate
 from src.db.folders.folder_content import FolderContent
+from src.db.folders.folders import Folder, FolderCreate, FolderUpdate
 from src.services.folders.folders import (
     _build_breadcrumbs,
     _would_create_cycle,
@@ -167,18 +167,17 @@ class TestFoldersServiceCoverage:
     ):
         other_parent = await _mk_folder(db, other_org, "OtherParent")
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await create_folder(
-                    mock_request,
-                    FolderCreate(
-                        name="X",
-                        org_id=org.id,
-                        parent_folder_uuid=other_parent.folder_uuid,
-                    ),
-                    admin_user,
-                    db,
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await create_folder(
+                mock_request,
+                FolderCreate(
+                    name="X",
+                    org_id=org.id,
+                    parent_folder_uuid=other_parent.folder_uuid,
+                ),
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 400
         assert exc.value.detail == "Parent folder is in another organization"
 
@@ -186,15 +185,14 @@ class TestFoldersServiceCoverage:
     @pytest.mark.asyncio
     async def test_update_folder_missing(self, db, org, admin_user, mock_request):
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await update_folder(
-                    mock_request,
-                    FolderUpdate(name="New"),
-                    "folder_missing",
-                    admin_user,
-                    db,
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await update_folder(
+                mock_request,
+                FolderUpdate(name="New"),
+                "folder_missing",
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Folder does not exist"
 
@@ -205,39 +203,36 @@ class TestFoldersServiceCoverage:
         with rbac, webhooks, patch(
             "src.services.utils.upload_content.upload_file",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await upload_folder_thumbnail(
-                    mock_request,
-                    "folder_missing",
-                    object(),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await upload_folder_thumbnail(
+                mock_request,
+                "folder_missing",
+                object(),
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
 
     # --- line 372 (read code): get_folder missing folder -> 404 "Folder does not exist" ---
     @pytest.mark.asyncio
     async def test_get_folder_missing(self, db, org, admin_user, mock_request):
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await get_folder(mock_request, "folder_missing", admin_user, db)
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await get_folder(mock_request, "folder_missing", admin_user, db)
         assert exc.value.status_code == 404
 
     # --- line 419: get_folders parent not found ---
     @pytest.mark.asyncio
     async def test_get_folders_parent_not_found(self, db, org, admin_user, mock_request):
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await get_folders(
-                    mock_request,
-                    str(org.id),
-                    admin_user,
-                    db,
-                    parent_folder_uuid="folder_missing",
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await get_folders(
+                mock_request,
+                str(org.id),
+                admin_user,
+                db,
+                parent_folder_uuid="folder_missing",
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Parent folder not found"
 
@@ -261,15 +256,14 @@ class TestFoldersServiceCoverage:
         self, db, org, course, admin_user, mock_request
     ):
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await add_folder_content(
-                    mock_request,
-                    "folder_missing",
-                    course.course_uuid,
-                    admin_user,
-                    db,
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await add_folder_content(
+                mock_request,
+                "folder_missing",
+                course.course_uuid,
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Folder not found"
 
@@ -279,15 +273,14 @@ class TestFoldersServiceCoverage:
         self, db, org, course, admin_user, mock_request
     ):
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await remove_folder_content(
-                    mock_request,
-                    "folder_missing",
-                    course.course_uuid,
-                    admin_user,
-                    db,
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await remove_folder_content(
+                mock_request,
+                "folder_missing",
+                course.course_uuid,
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Folder not found"
 
@@ -298,16 +291,15 @@ class TestFoldersServiceCoverage:
     ):
         source = await _mk_folder(db, org, "Src")
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await move_folder_content(
-                    mock_request,
-                    source.folder_uuid,
-                    "folder_missing_target",
-                    course.course_uuid,
-                    admin_user,
-                    db,
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await move_folder_content(
+                mock_request,
+                source.folder_uuid,
+                "folder_missing_target",
+                course.course_uuid,
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Folder not found"
 
@@ -319,16 +311,15 @@ class TestFoldersServiceCoverage:
         source = await _mk_folder(db, org, "Src")
         target = await _mk_folder(db, org, "Tgt")
         rbac, webhooks = _bypass()
-        with rbac, webhooks:
-            with pytest.raises(HTTPException) as exc:
-                await move_folder_content(
-                    mock_request,
-                    source.folder_uuid,
-                    target.folder_uuid,
-                    course.course_uuid,
-                    admin_user,
-                    db,
-                )
+        with rbac, webhooks, pytest.raises(HTTPException) as exc:
+            await move_folder_content(
+                mock_request,
+                source.folder_uuid,
+                target.folder_uuid,
+                course.course_uuid,
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Item not found in source folder"
 

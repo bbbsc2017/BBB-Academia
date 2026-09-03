@@ -14,7 +14,6 @@ Two entry points:
   time (defense in depth for values already stored, e.g. via OAuth import).
 """
 import re
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -46,29 +45,29 @@ _URL_PATTERNS = [
 class ProfileValidationResult(BaseModel):
     """Result of validating one or more profile fields."""
     is_valid: bool
-    errors: List[str]
-    invalid_fields: List[str]
+    errors: list[str]
+    invalid_fields: list[str]
 
 
-def contains_url(value: Optional[str]) -> bool:
+def contains_url(value: str | None) -> bool:
     """Return True if the value looks like it contains a URL or link."""
     if not value:
         return False
     return any(p.search(value) for p in _URL_PATTERNS)
 
 
-def validate_display_name(value: Optional[str]) -> bool:
+def validate_display_name(value: str | None) -> bool:
     """Return True if a single display-name value is acceptable (no links)."""
     return not contains_url(value)
 
 
-def validate_profile_fields(fields: Dict[str, Optional[str]]) -> ProfileValidationResult:
+def validate_profile_fields(fields: dict[str, str | None]) -> ProfileValidationResult:
     """Validate a mapping of ``field_name -> value`` (e.g. username,
     first_name, last_name, org name). Fields set to ``None`` are skipped so
     this is safe for partial updates.
     """
-    errors: List[str] = []
-    invalid_fields: List[str] = []
+    errors: list[str] = []
+    invalid_fields: list[str] = []
     for name, value in fields.items():
         if value is None:
             continue
@@ -82,7 +81,7 @@ def validate_profile_fields(fields: Dict[str, Optional[str]]) -> ProfileValidati
     )
 
 
-def strip_urls(value: Optional[str]) -> str:
+def strip_urls(value: str | None) -> str:
     """Remove URL/link-like substrings and control characters from a value.
     Best-effort scrub used at render time; collapses leftover whitespace."""
     if not value:
@@ -93,7 +92,7 @@ def strip_urls(value: Optional[str]) -> str:
     return re.sub(r"\s+", " ", cleaned).strip()
 
 
-def sanitize_display_name(value: Optional[str], *, fallback: str = "A LearnHouse user") -> str:
+def sanitize_display_name(value: str | None, *, fallback: str = "A LearnHouse user") -> str:
     """Return a link-free display name suitable for rendering into emails.
     Falls back to a neutral label if stripping leaves nothing meaningful."""
     cleaned = strip_urls(value)

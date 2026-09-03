@@ -11,7 +11,7 @@ Task-type source of truth: ``src/db/courses/assignments.py`` +
 ``src/services/courses/activities/assignments.py`` (the graders).
 """
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -32,41 +32,41 @@ class AIQuizOption(BaseModel):
 
 class AIQuizQuestion(BaseModel):
     question_text: str
-    options: List[AIQuizOption] = Field(default_factory=list)
+    options: list[AIQuizOption] = Field(default_factory=list)
 
 
 class AIQuizContents(BaseModel):
-    questions: List[AIQuizQuestion] = Field(default_factory=list)
+    questions: list[AIQuizQuestion] = Field(default_factory=list)
 
 
 class AIFormBlank(BaseModel):
     placeholder: str
     correct_answer: str
-    hint: Optional[str] = None
+    hint: str | None = None
 
 
 class AIFormQuestion(BaseModel):
     question_text: str
-    blanks: List[AIFormBlank] = Field(default_factory=list)
+    blanks: list[AIFormBlank] = Field(default_factory=list)
 
 
 class AIFormContents(BaseModel):
-    questions: List[AIFormQuestion] = Field(default_factory=list)
+    questions: list[AIFormQuestion] = Field(default_factory=list)
 
 
 class AIShortAnswerContents(BaseModel):
     prompt: str
-    correct_answers: List[str] = Field(default_factory=list)
+    correct_answers: list[str] = Field(default_factory=list)
     match_mode: Literal["exact", "case_insensitive", "contains", "regex"] = "case_insensitive"
-    explanation: Optional[str] = None
+    explanation: str | None = None
 
 
 class AINumberAnswerContents(BaseModel):
     prompt: str
     correct_value: float
     tolerance: float = 0
-    unit: Optional[str] = None
-    explanation: Optional[str] = None
+    unit: str | None = None
+    explanation: str | None = None
 
 
 class AITask(BaseModel):
@@ -76,10 +76,10 @@ class AITask(BaseModel):
     assignment_type: AIGeneratableTaskType
     # Exactly one of these should be populated, matching assignment_type. For
     # FILE_SUBMISSION all are null (contents is empty).
-    quiz: Optional[AIQuizContents] = None
-    form: Optional[AIFormContents] = None
-    short_answer: Optional[AIShortAnswerContents] = None
-    number_answer: Optional[AINumberAnswerContents] = None
+    quiz: AIQuizContents | None = None
+    form: AIFormContents | None = None
+    short_answer: AIShortAnswerContents | None = None
+    number_answer: AINumberAnswerContents | None = None
 
 
 class AIAssignmentPlan(BaseModel):
@@ -88,7 +88,7 @@ class AIAssignmentPlan(BaseModel):
     grading_type: Literal[
         "ALPHABET", "NUMERIC", "PERCENTAGE", "PASS_FAIL", "GPA_SCALE"
     ] = "PERCENTAGE"
-    tasks: List[AITask] = Field(default_factory=list)
+    tasks: list[AITask] = Field(default_factory=list)
 
 
 # --- Request / response ---
@@ -97,9 +97,9 @@ class GenerateAssignmentRequest(BaseModel):
     org_id: int
     course_uuid: str
     prompt: str
-    session_uuid: Optional[str] = None
+    session_uuid: str | None = None
     num_tasks: int = 3
-    allowed_task_types: Optional[List[AIGeneratableTaskType]] = None
+    allowed_task_types: list[AIGeneratableTaskType] | None = None
 
 
 class GeneratedTask(BaseModel):
@@ -117,7 +117,7 @@ class GeneratedAssignmentPlan(BaseModel):
     title: str
     description: str
     grading_type: str
-    tasks: List[GeneratedTask] = Field(default_factory=list)
+    tasks: list[GeneratedTask] = Field(default_factory=list)
 
 
 class GenerateAssignmentResponse(BaseModel):
@@ -128,7 +128,7 @@ class GenerateAssignmentResponse(BaseModel):
 
 class AIAssignmentHistoryItem(BaseModel):
     ai_generation_uuid: str
-    session_uuid: Optional[str] = None
+    session_uuid: str | None = None
     prompt: str
     plan: dict
-    creation_date: Optional[str] = None
+    creation_date: str | None = None

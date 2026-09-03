@@ -4,31 +4,30 @@ Tests for src/services/courses/lock_usergroups.py
 Covers all private helpers and all 6 public async functions.
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi import HTTPException
 
-from src.db.usergroups import UserGroup
-from src.db.usergroup_resources import UserGroupResource
-from src.db.courses.chapters import Chapter
 from src.db.courses.activities import Activity
+from src.db.courses.chapters import Chapter
+from src.db.usergroup_resources import UserGroupResource
+from src.db.usergroups import UserGroup
 from src.services.courses.lock_usergroups import (
-    _load_chapter_and_course,
-    _load_activity_and_course,
-    _load_usergroup,
     _attach_usergroup,
     _detach_usergroup,
     _list_usergroups_for_resource,
-    add_usergroup_to_chapter,
-    remove_usergroup_from_chapter,
-    get_chapter_usergroups,
+    _load_activity_and_course,
+    _load_chapter_and_course,
+    _load_usergroup,
     add_usergroup_to_activity,
-    remove_usergroup_from_activity,
+    add_usergroup_to_chapter,
     get_activity_usergroups,
+    get_chapter_usergroups,
+    remove_usergroup_from_activity,
+    remove_usergroup_from_chapter,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -122,7 +121,7 @@ class TestLoadActivityAndCourse:
 
     async def test_course_not_found_when_activity_has_no_course(self, db, org, chapter):
         """Activity exists but its course_id points to a non-existent course."""
-        from src.db.courses.activities import ActivityTypeEnum, ActivitySubTypeEnum
+        from src.db.courses.activities import ActivitySubTypeEnum, ActivityTypeEnum
 
         orphan_activity = Activity(
             id=99,
@@ -244,11 +243,10 @@ class TestAddUsergroupToChapter:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_usergroup_to_chapter(
-                    mock_request, "bad_chapter", "ug_test", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_usergroup_to_chapter(
+                mock_request, "bad_chapter", "ug_test", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -256,11 +254,10 @@ class TestAddUsergroupToChapter:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_usergroup_to_chapter(
-                    mock_request, "chapter_test", "bad_ug", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_usergroup_to_chapter(
+                mock_request, "chapter_test", "bad_ug", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
 
@@ -284,11 +281,10 @@ class TestRemoveUsergroupFromChapter:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await remove_usergroup_from_chapter(
-                    mock_request, "chapter_test", "ug_test", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await remove_usergroup_from_chapter(
+                mock_request, "chapter_test", "ug_test", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -296,11 +292,10 @@ class TestRemoveUsergroupFromChapter:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await remove_usergroup_from_chapter(
-                    mock_request, "bad_chapter", "ug_test", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await remove_usergroup_from_chapter(
+                mock_request, "bad_chapter", "ug_test", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
 
@@ -335,11 +330,10 @@ class TestGetChapterUsergroups:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_chapter_usergroups(
-                    mock_request, "bad_chapter", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_chapter_usergroups(
+                mock_request, "bad_chapter", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
 
@@ -365,11 +359,10 @@ class TestAddUsergroupToActivity:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_usergroup_to_activity(
-                    mock_request, "bad_activity", "ug_test", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_usergroup_to_activity(
+                mock_request, "bad_activity", "ug_test", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -377,11 +370,10 @@ class TestAddUsergroupToActivity:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_usergroup_to_activity(
-                    mock_request, "activity_test", "bad_ug", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_usergroup_to_activity(
+                mock_request, "activity_test", "bad_ug", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
 
@@ -405,11 +397,10 @@ class TestRemoveUsergroupFromActivity:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await remove_usergroup_from_activity(
-                    mock_request, "activity_test", "ug_test", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await remove_usergroup_from_activity(
+                mock_request, "activity_test", "ug_test", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -417,11 +408,10 @@ class TestRemoveUsergroupFromActivity:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await remove_usergroup_from_activity(
-                    mock_request, "bad_activity", "ug_test", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await remove_usergroup_from_activity(
+                mock_request, "bad_activity", "ug_test", admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
 
@@ -456,9 +446,8 @@ class TestGetActivityUsergroups:
         with patch(
             "src.services.courses.lock_usergroups.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_activity_usergroups(
-                    mock_request, "bad_activity", admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_activity_usergroups(
+                mock_request, "bad_activity", admin_user, db
+            )
         assert exc_info.value.status_code == 404

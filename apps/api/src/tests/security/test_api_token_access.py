@@ -7,8 +7,12 @@ from accessing certain endpoints while allowing access to others.
 
 import pytest
 from fastapi import HTTPException
-from src.security.api_token_utils import require_non_api_token_user, reject_api_token_access
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
+
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.api_token_utils import (
+    reject_api_token_access,
+    require_non_api_token_user,
+)
 
 
 class TestAPITokenAccessControl:
@@ -396,6 +400,7 @@ class TestRequireAuthenticatedUserOrApiToken:
     @pytest.mark.asyncio
     async def test_admits_api_token(self):
         from unittest.mock import AsyncMock, patch
+
         from src.security.api_token_utils import require_authenticated_user_or_api_token
 
         token = APITokenUser(id=1, org_id=1)
@@ -411,15 +416,15 @@ class TestRequireAuthenticatedUserOrApiToken:
     @pytest.mark.asyncio
     async def test_rejects_anonymous(self):
         from unittest.mock import AsyncMock, patch
+
         from src.security.api_token_utils import require_authenticated_user_or_api_token
 
         # get_authenticated_user raises 401 for anonymous; the dependency propagates it.
         with patch(
             "src.security.auth.get_authenticated_user",
             new=AsyncMock(side_effect=HTTPException(status_code=401, detail="unauth")),
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await require_authenticated_user_or_api_token(request=None, db_session=None)
+        ), pytest.raises(HTTPException) as exc:
+            await require_authenticated_user_or_api_token(request=None, db_session=None)
         assert exc.value.status_code == 401
 
 

@@ -1,30 +1,32 @@
-from typing import List, Optional
-from sqlalchemy import Column, Enum as SAEnum, ForeignKey, Index, Integer
+from enum import Enum
+
+from pydantic import BaseModel
+from sqlalchemy import Column, ForeignKey, Index, Integer
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
-from enum import Enum
-from pydantic import BaseModel
-from src.db.users import UserRead
-from src.db.trails import TrailRead
+
 from src.db.courses.chapters import ChapterRead
 from src.db.resource_authors import ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
+from src.db.trails import TrailRead
+from src.db.users import UserRead
 
 
 class CourseSEO(BaseModel):
     """SEO configuration for a course stored as JSON"""
     # Basic SEO
-    title: Optional[str] = None
-    description: Optional[str] = None
-    keywords: Optional[str] = None
-    canonical_url: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
+    keywords: str | None = None
+    canonical_url: str | None = None
     # Open Graph
-    og_title: Optional[str] = None
-    og_description: Optional[str] = None
-    og_image: Optional[str] = None
+    og_title: str | None = None
+    og_description: str | None = None
+    og_image: str | None = None
     # Twitter Card
-    twitter_card: Optional[str] = None  # 'summary' | 'summary_large_image'
-    twitter_title: Optional[str] = None
-    twitter_description: Optional[str] = None
+    twitter_card: str | None = None  # 'summary' | 'summary_large_image'
+    twitter_title: str | None = None
+    twitter_description: str | None = None
     # Robots & Structured Data
     robots_noindex: bool = False
     robots_nofollow: bool = False
@@ -47,13 +49,13 @@ class AuthorWithRole(SQLModel):
 
 class CourseBase(SQLModel):
     name: str
-    description: Optional[str] = None
-    about: Optional[str] = None
-    learnings: Optional[str] = None
-    tags: Optional[str] = None
-    thumbnail_type: Optional[ThumbnailType] = Field(default=ThumbnailType.IMAGE)
-    thumbnail_image: Optional[str] = Field(default="")
-    thumbnail_video: Optional[str] = Field(default="")
+    description: str | None = None
+    about: str | None = None
+    learnings: str | None = None
+    tags: str | None = None
+    thumbnail_type: ThumbnailType | None = Field(default=ThumbnailType.IMAGE)
+    thumbnail_image: str | None = Field(default="")
+    thumbnail_video: str | None = Field(default="")
     public: bool
     published: bool = Field(default=False)
     open_to_contributors: bool
@@ -64,8 +66,8 @@ class Course(CourseBase, table=True):
         Index("ix_course_org_public_published_created", "org_id", "public", "published", "creation_date"),
         {"extend_existing": True},
     )
-    id: Optional[int] = Field(default=None, primary_key=True)
-    thumbnail_type: Optional[ThumbnailType] = Field(
+    id: int | None = Field(default=None, primary_key=True)
+    thumbnail_type: ThumbnailType | None = Field(
         default=ThumbnailType.IMAGE,
         sa_column=Column(SAEnum(ThumbnailType, name="thumbnail_type"), nullable=True),
     )
@@ -75,78 +77,75 @@ class Course(CourseBase, table=True):
     course_uuid: str = Field(default="", index=True)
     creation_date: str = ""
     update_date: str = ""
-    seo: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
-    extra_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
+    seo: dict | None = Field(default=None, sa_column=Column(JSONB))
+    extra_metadata: dict | None = Field(default=None, sa_column=Column(JSONB))
 
 
 class CourseCreate(CourseBase):
     org_id: int = Field(default=None, foreign_key="organization.id")
-    thumbnail_type: Optional[ThumbnailType] = Field(default=ThumbnailType.IMAGE)
-    thumbnail_image: Optional[str] = Field(default="")
-    thumbnail_video: Optional[str] = Field(default="")
-    extra_metadata: Optional[dict] = None
-    pass
+    thumbnail_type: ThumbnailType | None = Field(default=ThumbnailType.IMAGE)
+    thumbnail_image: str | None = Field(default="")
+    thumbnail_video: str | None = Field(default="")
+    extra_metadata: dict | None = None
 
 
 class CourseUpdate(SQLModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    about: Optional[str] = None
-    learnings: Optional[str] = None
-    tags: Optional[str] = None
-    thumbnail_type: Optional[ThumbnailType] = None
-    thumbnail_image: Optional[str] = None
-    thumbnail_video: Optional[str] = None
-    public: Optional[bool] = None
-    published: Optional[bool] = None
-    open_to_contributors: Optional[bool] = None
-    seo: Optional[dict] = None
-    extra_metadata: Optional[dict] = None
+    name: str | None = None
+    description: str | None = None
+    about: str | None = None
+    learnings: str | None = None
+    tags: str | None = None
+    thumbnail_type: ThumbnailType | None = None
+    thumbnail_image: str | None = None
+    thumbnail_video: str | None = None
+    public: bool | None = None
+    published: bool | None = None
+    open_to_contributors: bool | None = None
+    seo: dict | None = None
+    extra_metadata: dict | None = None
 
 
 class CourseRead(CourseBase):
     id: int
     org_id: int = Field(default=None, foreign_key="organization.id")
-    authors: List[AuthorWithRole]
+    authors: list[AuthorWithRole]
     course_uuid: str
     creation_date: str
     update_date: str
-    thumbnail_type: Optional[ThumbnailType] = Field(default=ThumbnailType.IMAGE)
-    thumbnail_image: Optional[str] = Field(default="")
-    thumbnail_video: Optional[str] = Field(default="")
-    seo: Optional[dict] = None
-    extra_metadata: Optional[dict] = None
+    thumbnail_type: ThumbnailType | None = Field(default=ThumbnailType.IMAGE)
+    thumbnail_image: str | None = Field(default="")
+    thumbnail_video: str | None = Field(default="")
+    seo: dict | None = None
+    extra_metadata: dict | None = None
 
 
 class FullCourseRead(CourseBase):
     id: int
     org_id: int
-    org_uuid: Optional[str] = None
-    course_uuid: Optional[str] = None
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
-    thumbnail_type: Optional[ThumbnailType] = Field(default=ThumbnailType.IMAGE)
-    thumbnail_image: Optional[str] = Field(default="")
-    thumbnail_video: Optional[str] = Field(default="")
-    seo: Optional[dict] = None
-    extra_metadata: Optional[dict] = None
+    org_uuid: str | None = None
+    course_uuid: str | None = None
+    creation_date: str | None = None
+    update_date: str | None = None
+    thumbnail_type: ThumbnailType | None = Field(default=ThumbnailType.IMAGE)
+    thumbnail_image: str | None = Field(default="")
+    thumbnail_video: str | None = Field(default="")
+    seo: dict | None = None
+    extra_metadata: dict | None = None
     # Chapters, Activities
-    chapters: List[ChapterRead]
-    authors: List[AuthorWithRole]
-    pass
+    chapters: list[ChapterRead]
+    authors: list[AuthorWithRole]
 
 
 class FullCourseReadWithTrail(CourseBase):
     id: int
-    course_uuid: Optional[str] = None
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
+    course_uuid: str | None = None
+    creation_date: str | None = None
+    update_date: str | None = None
     org_id: int = Field(default=None, foreign_key="organization.id")
-    seo: Optional[dict] = None
-    extra_metadata: Optional[dict] = None
-    authors: List[AuthorWithRole]
+    seo: dict | None = None
+    extra_metadata: dict | None = None
+    authors: list[AuthorWithRole]
     # Chapters, Activities
-    chapters: List[ChapterRead]
+    chapters: list[ChapterRead]
     # Trail
     trail: TrailRead | None = None
-    pass

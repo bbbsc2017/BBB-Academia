@@ -1,7 +1,7 @@
+from urllib.parse import urljoin, urlparse
+
 import httpx
 from bs4 import BeautifulSoup, Tag
-from typing import Optional, Dict
-from urllib.parse import urljoin, urlparse
 from fastapi import HTTPException
 
 from src.services.utils.ssrf_guard import (
@@ -13,7 +13,7 @@ from src.services.utils.ssrf_guard import (
 _MAX_RESPONSE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
-async def fetch_link_preview(url: str) -> Dict[str, Optional[str]]:
+async def fetch_link_preview(url: str) -> dict[str, str | None]:
     try:
         validated_ips = resolve_and_validate_url(url)
     except SSRFBlockedError as exc:
@@ -58,7 +58,7 @@ async def fetch_link_preview(url: str) -> Dict[str, Optional[str]]:
 
     soup = BeautifulSoup(html, 'html.parser')
 
-    def get_meta(property_name: str, attr: str = 'property') -> Optional[str]:
+    def get_meta(property_name: str, attr: str = 'property') -> str | None:
         tag = soup.find('meta', attrs={attr: property_name})
         if tag and isinstance(tag, Tag) and tag.has_attr('content'):
             content = tag['content']

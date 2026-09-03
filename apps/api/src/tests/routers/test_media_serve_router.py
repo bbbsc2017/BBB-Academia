@@ -17,8 +17,8 @@ from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.db.media.media import Media, MediaTypeEnum
-from src.security.auth import get_current_user
 from src.routers.media.media import router
+from src.security.auth import get_current_user
 
 PDF_BYTES = b"%PDF-1.4 hello world this is a test file " * 50  # ~2KB
 

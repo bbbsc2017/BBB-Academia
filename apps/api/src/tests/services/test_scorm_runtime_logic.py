@@ -17,13 +17,13 @@ from sqlmodel import select
 from src.db.courses.courses import Course
 
 rt = pytest.importorskip("ee.services.scorm.scorm_runtime")
-from ee.db.scorm import (  # noqa: E402
-    ScormRuntimeData,  # noqa: F401  (imported so its table registers on metadata)
+from ee.db.scorm import (
     CompletionStatusEnum,
+    ScormRuntimeData,  # noqa: F401  (imported so its table registers on metadata)
     SuccessStatusEnum,
 )
 
-from src.db.courses.activities import (  # noqa: E402
+from src.db.courses.activities import (
     Activity,
     ActivitySubTypeEnum,
     ActivityTypeEnum,

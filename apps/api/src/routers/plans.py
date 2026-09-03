@@ -1,7 +1,8 @@
 from fastapi import APIRouter
+
 from src.security.features_utils.plans import (
-    PLAN_FEATURE_CONFIGS,
     AI_CREDIT_LIMITS,
+    PLAN_FEATURE_CONFIGS,
 )
 
 router = APIRouter()

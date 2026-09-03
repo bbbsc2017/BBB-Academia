@@ -1,16 +1,11 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
+
 from fastapi import HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.security.org_auth import require_org_membership, require_org_role_permission
-from src.security.rbac.rbac import authorization_verify_if_user_is_anon
-from src.security.superadmin import is_user_superadmin
 from src.db.organizations import Organization
-from src.db.usergroups import UserGroupCreate
-from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser
-from src.services.users.usergroups import add_resources_to_usergroup, create_usergroup, remove_resources_from_usergroup
 from src.db.payments.config import PaymentsConfig
 from src.db.payments.groups import PaymentsGroup
 from src.db.payments.offers import (
@@ -19,6 +14,16 @@ from src.db.payments.offers import (
     PaymentsOfferRead,
     PaymentsOfferResource,
     PaymentsOfferUpdate,
+)
+from src.db.usergroups import UserGroupCreate
+from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser
+from src.security.org_auth import require_org_membership, require_org_role_permission
+from src.security.rbac.rbac import authorization_verify_if_user_is_anon
+from src.security.superadmin import is_user_superadmin
+from src.services.users.usergroups import (
+    add_resources_to_usergroup,
+    create_usergroup,
+    remove_resources_from_usergroup,
 )
 
 _ACTION_PERMISSION_MAP: dict[str, str] = {
@@ -75,7 +80,7 @@ async def get_offers(
     await rbac_check(org_id, current_user, "read", db_session)
     statement = (
         select(PaymentsOffer)
-        .where(PaymentsOffer.org_id == org_id, PaymentsOffer.is_archived == False)  # noqa: E712
+        .where(PaymentsOffer.org_id == org_id, PaymentsOffer.is_archived == False)
         .order_by(PaymentsOffer.creation_date.desc())
         .offset((page - 1) * limit)
         .limit(limit)
@@ -102,7 +107,7 @@ async def create_offer(
     offer_create: PaymentsOfferCreate,
     current_user: PublicUser | AnonymousUser | InternalUser | APITokenUser,
     db_session: AsyncSession,
-    payments_config_id: Optional[int] = None,
+    payments_config_id: int | None = None,
 ) -> PaymentsOfferRead:
     await rbac_check(org_id, current_user, "create", db_session)
     await require_org_membership(
@@ -124,7 +129,7 @@ async def create_offer(
     else:
         config = (await db_session.execute(
             select(PaymentsConfig)
-            .where(PaymentsConfig.org_id == org_id, PaymentsConfig.active == True)  # noqa: E712
+            .where(PaymentsConfig.org_id == org_id, PaymentsConfig.active == True)
             .order_by(PaymentsConfig.creation_date.desc())
         )).scalars().first()
     if not config:
@@ -291,8 +296,8 @@ async def get_public_offer(org_id: int, offer_id_or_uuid: str, db_session: Async
 async def get_public_offers_listing(org_id: int, db_session: AsyncSession) -> list[PaymentsOfferRead]:
     statement = select(PaymentsOffer).where(
         PaymentsOffer.org_id == org_id,
-        PaymentsOffer.is_archived == False,  # noqa: E712
-        PaymentsOffer.is_publicly_listed == True,  # noqa: E712
+        PaymentsOffer.is_archived == False,
+        PaymentsOffer.is_publicly_listed == True,
     ).order_by(PaymentsOffer.creation_date.desc())
     offers = (await db_session.execute(statement)).scalars().all()
     return [await _to_offer_read(o, db_session) for o in offers]
@@ -310,7 +315,7 @@ async def get_offers_by_resource(org_id: int, resource_uuid: str, db_session: As
         .join(PaymentsOfferResource, PaymentsOfferResource.offer_id == PaymentsOffer.id)
         .where(
             PaymentsOffer.org_id == org_id,
-            PaymentsOffer.is_archived == False,  # noqa: E712
+            PaymentsOffer.is_archived == False,
             PaymentsOfferResource.resource_uuid == resource_uuid,
         )
     )
@@ -319,7 +324,7 @@ async def get_offers_by_resource(org_id: int, resource_uuid: str, db_session: As
         .join(PaymentsGroupResource, PaymentsGroupResource.group_id == PaymentsOffer.payments_group_id)
         .where(
             PaymentsOffer.org_id == org_id,
-            PaymentsOffer.is_archived == False,  # noqa: E712
+            PaymentsOffer.is_archived == False,
             PaymentsGroupResource.resource_uuid == resource_uuid,
         )
     )

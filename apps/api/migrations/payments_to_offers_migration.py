@@ -16,8 +16,8 @@ What it does:
 Old tables are left in place; they can be dropped once the migration is verified.
 """
 
-import sys
 import os
+import sys
 
 # Adjust path so we can import from the api package
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -25,18 +25,21 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from datetime import datetime
 from uuid import uuid4
 
-from sqlmodel import Session, select, create_engine
-from config.config import get_learnhouse_config
-
-from src.db.usergroups import UserGroup
-from src.db.usergroup_resources import UserGroupResource
-
-from ee.db.payments.payments_products import PaymentsProduct
 from ee.db.payments.payments_courses import PaymentsCourse
-from ee.db.payments.payments_users import PaymentsUser, PaymentStatusEnum
-from ee.db.payments.payments_offers import PaymentsOffer, OfferTypeEnum, OfferPriceTypeEnum
-from ee.db.payments.payments_enrollments import PaymentsEnrollment, EnrollmentStatusEnum
+from ee.db.payments.payments_enrollments import EnrollmentStatusEnum, PaymentsEnrollment
+from ee.db.payments.payments_offers import (
+    OfferPriceTypeEnum,
+    OfferTypeEnum,
+    PaymentsOffer,
+)
+from ee.db.payments.payments_products import PaymentsProduct
+from ee.db.payments.payments_users import PaymentStatusEnum, PaymentsUser
+from sqlmodel import Session, create_engine, select
+
+from config.config import get_learnhouse_config
 from src.db.courses.courses import Course
+from src.db.usergroup_resources import UserGroupResource
+from src.db.usergroups import UserGroup
 
 
 def _status_map(old_status: PaymentStatusEnum) -> EnrollmentStatusEnum:

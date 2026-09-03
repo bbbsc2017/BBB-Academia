@@ -13,7 +13,6 @@ import pytest
 
 from src.services.ai.rag import content_extraction as ce
 
-
 # --- direct unit tests of the helper -------------------------------------
 
 def test_rejects_none():

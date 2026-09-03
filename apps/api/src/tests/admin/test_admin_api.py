@@ -5,39 +5,39 @@ Tests the headless admin API functions that operate via API token authentication
 Uses an in-memory SQLite database with real SQLModel tables.
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
-from sqlmodel import SQLModel, select
-from sqlalchemy import JSON
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel.ext.asyncio.session import AsyncSession
+
+import pytest
 from fastapi import HTTPException
+from sqlalchemy import JSON
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel, select
+from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.requests import Request
 
-from src.db.users import APITokenUser, User
-from src.db.organizations import Organization
-from src.db.user_organizations import UserOrganization
-from src.db.courses.courses import Course
+from src.db.api_tokens import APIToken
+from src.db.courses.activities import Activity, ActivitySubTypeEnum, ActivityTypeEnum
 from src.db.courses.certifications import CertificateUser, Certifications
-from src.db.courses.chapters import Chapter
-from src.db.courses.activities import Activity, ActivityTypeEnum, ActivitySubTypeEnum
 from src.db.courses.chapter_activities import ChapterActivity
-from src.db.trails import Trail
+from src.db.courses.chapters import Chapter
+from src.db.courses.courses import Course
+from src.db.organizations import Organization
+from src.db.roles import Role, RoleTypeEnum
 from src.db.trail_runs import TrailRun
 from src.db.trail_steps import TrailStep
-from src.db.api_tokens import APIToken
-from src.db.roles import Role, RoleTypeEnum
+from src.db.trails import Trail
+from src.db.user_organizations import UserOrganization
 from src.db.usergroup_resources import UserGroupResource
-from src.db.usergroups import UserGroup
 from src.db.usergroup_user import UserGroupUser
-
+from src.db.usergroups import UserGroup
+from src.db.users import APITokenUser, User
 from src.services.admin.admin import (
+    _get_user_in_org,
     _require_api_token,
     _resolve_org_slug,
-    _get_user_in_org,
     add_course_to_usergroup,
     add_usergroup_member,
     anonymize_user,
@@ -46,36 +46,35 @@ from src.services.admin.admin import (
     bulk_unenroll_users,
     change_user_role,
     check_course_access,
+    complete_activity,
+    complete_course,
     consume_magic_link_token,
     create_usergroup,
     delete_usergroup,
     enroll_user,
     export_user_data,
+    get_all_user_progress,
     get_course_analytics,
     get_user_by_email,
+    get_user_certificates,
     get_user_enrollments,
     get_user_groups,
     get_user_progress,
     get_user_trail_detail,
     issue_magic_link,
-    complete_activity,
-    uncomplete_activity,
-    complete_course,
-    get_all_user_progress,
-    get_user_certificates,
     issue_user_token,
     list_course_enrollments,
     list_usergroup_members,
     provision_user,
     remove_course_from_usergroup,
-    remove_usergroup_member,
     remove_user_from_org_admin,
+    remove_usergroup_member,
     reset_user_progress,
     revoke_certificate,
+    uncomplete_activity,
     unenroll_user,
     update_user_profile,
 )
-
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 

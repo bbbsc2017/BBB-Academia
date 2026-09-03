@@ -39,16 +39,15 @@ async def test_rejects_when_google_omits_email(db, mock_request):
     with patch(
         "src.services.auth.utils.get_google_user_info",
         new=AsyncMock(return_value={"sub": "attacker_sub", "name": "Attacker"}),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            await signWithGoogle(
-                mock_request,
-                access_token="attacker_token",
-                email="victim@company.com",
-                org_id=None,
-                current_user=None,
-                db_session=db,
-            )
+    ), pytest.raises(HTTPException) as excinfo:
+        await signWithGoogle(
+            mock_request,
+            access_token="attacker_token",
+            email="victim@company.com",
+            org_id=None,
+            current_user=None,
+            db_session=db,
+        )
     assert excinfo.value.status_code == 401
     assert "verified email" in excinfo.value.detail.lower()
 
@@ -65,16 +64,15 @@ async def test_rejects_when_google_email_not_verified(db, mock_request):
                 "email_verified": False,
             }
         ),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            await signWithGoogle(
-                mock_request,
-                access_token="attacker_token",
-                email="victim@company.com",
-                org_id=None,
-                current_user=None,
-                db_session=db,
-            )
+    ), pytest.raises(HTTPException) as excinfo:
+        await signWithGoogle(
+            mock_request,
+            access_token="attacker_token",
+            email="victim@company.com",
+            org_id=None,
+            current_user=None,
+            db_session=db,
+        )
     assert excinfo.value.status_code == 401
 
 
@@ -148,16 +146,15 @@ async def test_email_verified_string_false_is_rejected(db, mock_request, admin_u
     with patch(
         "src.services.auth.utils.get_google_user_info",
         new=AsyncMock(return_value=google_payload),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            await signWithGoogle(
-                mock_request,
-                access_token="legit_google_token",
-                email=admin_user.email,
-                org_id=None,
-                current_user=None,
-                db_session=db,
-            )
+    ), pytest.raises(HTTPException) as excinfo:
+        await signWithGoogle(
+            mock_request,
+            access_token="legit_google_token",
+            email=admin_user.email,
+            org_id=None,
+            current_user=None,
+            db_session=db,
+        )
     assert excinfo.value.status_code == 401
 
 

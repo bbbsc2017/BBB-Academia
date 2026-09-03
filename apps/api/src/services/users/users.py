@@ -1,32 +1,20 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 from uuid import uuid4
-from fastapi import HTTPException, Request, UploadFile, status
+
 import redis
-from sqlmodel import select, func
+from fastapi import HTTPException, Request, UploadFile, status
+from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from config.config import get_learnhouse_config
-from src.security.features_utils.usage import (
-    check_limits_with_usage,
-    increase_feature_usage,
-)
 from src.core.deployment_mode import get_deployment_mode
-from src.services.users.usergroups import add_users_to_usergroup
-from src.services.users.emails import (
-    send_account_creation_email,
-)
-from src.services.orgs.invites import get_invite_code
-from src.services.users.avatars import upload_avatar
-from src.db.roles import Role, RoleRead
-from src.security.rbac.rbac import (
-    authorization_verify_based_on_roles_and_authorship,
-    authorization_verify_if_user_is_anon,
-)
 from src.db.organization_config import OrganizationConfig
 from src.db.organizations import Organization, OrganizationRead
-from src.services.orgs.orgs import get_org_default_language
+from src.db.roles import Role, RoleRead
+from src.db.user_organizations import UserOrganization
 from src.db.users import (
     AnonymousUser,
     InternalUser,
@@ -40,13 +28,27 @@ from src.db.users import (
     UserUpdate,
     UserUpdatePassword,
 )
-from src.db.user_organizations import UserOrganization
+from src.security.features_utils.usage import (
+    check_limits_with_usage,
+    increase_feature_usage,
+)
 from src.security.rbac.constants import ADMIN_ROLE_ID
+from src.security.rbac.rbac import (
+    authorization_verify_based_on_roles_and_authorship,
+    authorization_verify_if_user_is_anon,
+)
 from src.security.security import security_hash_password, security_verify_password
+from src.services.analytics import events as analytics_events
+from src.services.analytics.analytics import track
+from src.services.orgs.invites import get_invite_code
+from src.services.orgs.orgs import get_org_default_language
 from src.services.security.password_validation import validate_password_complexity
 from src.services.security.profile_validation import validate_profile_fields
-from src.services.analytics.analytics import track
-from src.services.analytics import events as analytics_events
+from src.services.users.avatars import upload_avatar
+from src.services.users.emails import (
+    send_account_creation_email,
+)
+from src.services.users.usergroups import add_users_to_usergroup
 from src.services.webhooks.dispatch import dispatch_webhooks
 
 
@@ -112,7 +114,7 @@ async def create_user(
     # OAuth users and OSS mode get auto-verified email
     if is_oauth or get_deployment_mode() != 'saas':
         user.email_verified = True
-        user.email_verified_at = datetime.now(timezone.utc).isoformat()
+        user.email_verified_at = datetime.now(UTC).isoformat()
         user.signup_method = signup_provider if is_oauth else "email"
     else:
         user.email_verified = False
@@ -331,7 +333,7 @@ async def create_user_without_org(
     # OAuth users and OSS mode get auto-verified email
     if is_oauth or get_deployment_mode() != 'saas':
         user.email_verified = True
-        user.email_verified_at = datetime.now(timezone.utc).isoformat()
+        user.email_verified_at = datetime.now(UTC).isoformat()
         user.signup_method = signup_provider if is_oauth else "email"
     else:
         user.email_verified = False
@@ -488,7 +490,7 @@ async def update_user_avatar(
         except Exception as e:
             raise HTTPException(
                 status_code=400,
-                detail=f"Avatar upload failed: {str(e)}",
+                detail=f"Avatar upload failed: {e!s}",
             )
 
     # Update user in database

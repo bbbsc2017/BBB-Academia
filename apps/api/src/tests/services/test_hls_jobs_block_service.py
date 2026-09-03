@@ -7,7 +7,6 @@ routing, transcode_block, and the reconciler's block pass.
 
 from datetime import datetime
 
-
 from src.db.courses.blocks import Block, BlockTypeEnum
 from src.services.utils import hls_jobs
 

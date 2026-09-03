@@ -6,10 +6,13 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
 from src.db.communities.communities import Community
-from src.db.communities.discussion_comments import DiscussionComment, DiscussionCommentUpdate
-from src.db.communities.discussions import Discussion
 from src.db.communities.discussion_comment_votes import DiscussionCommentVote
+from src.db.communities.discussion_comments import (
+    DiscussionComment,
+    DiscussionCommentUpdate,
+)
 from src.db.communities.discussion_votes import DiscussionVote
+from src.db.communities.discussions import Discussion
 from src.services.communities.comment_votes import (
     get_user_votes_for_comments,
     remove_comment_upvote,
@@ -218,11 +221,10 @@ class TestCommunityCommentsAndVotes:
                 "src.services.communities.comments.check_resource_access",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(status_code=403, detail="forbidden"),
-            ):
-                with pytest.raises(HTTPException) as forbidden_delete_exc:
-                    await delete_comment(
-                        mock_request, comment.comment_uuid, admin_user, db
-                    )
+            ), pytest.raises(HTTPException) as forbidden_delete_exc:
+                await delete_comment(
+                    mock_request, comment.comment_uuid, admin_user, db
+                )
 
             deleted = await delete_comment(
                 mock_request, comment.comment_uuid, regular_user, db
@@ -540,11 +542,10 @@ class TestCommunityCommentsAndVotes:
             db, "commit", side_effect=failing_commit
         ), patch.object(
             db, "rollback", side_effect=tracking_rollback
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await upvote_discussion(
-                    mock_request, discussion.discussion_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await upvote_discussion(
+                mock_request, discussion.discussion_uuid, regular_user, db
+            )
 
         assert exc.value.status_code == 400
         assert "already upvoted" in exc.value.detail
@@ -626,11 +627,10 @@ class TestCommunityCommentsAndVotes:
         with patch(
             "src.services.communities.comments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await get_comment_count(
-                    mock_request, discussion.discussion_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await get_comment_count(
+                mock_request, discussion.discussion_uuid, regular_user, db
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Community not found"
 
@@ -756,11 +756,10 @@ class TestCommunityCommentsAndVotes:
                 "src.services.communities.comments.check_resource_access",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(status_code=403, detail="forbidden"),
-            ):
-                with pytest.raises(HTTPException) as forbidden_delete_discussion_exc:
-                    await delete_comment(
-                        mock_request, comment.comment_uuid, regular_user, db
-                    )
+            ), pytest.raises(HTTPException) as forbidden_delete_discussion_exc:
+                await delete_comment(
+                    mock_request, comment.comment_uuid, regular_user, db
+                )
 
             orphan_delete_comment = DiscussionComment(
                 id=3001,

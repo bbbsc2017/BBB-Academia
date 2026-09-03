@@ -5,8 +5,7 @@ so locked chapters and activities share the same association table as
 playgrounds. Only users with course UPDATE permission can manage these.
 """
 
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, Request, status
 from sqlmodel import select
@@ -66,7 +65,7 @@ async def _attach_usergroup(resource_uuid, org_id, usergroup_id, db_session):
     if existing:
         return {"detail": "User group already has access"}
 
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = datetime.now(UTC).replace(tzinfo=None).isoformat()
     ugr = UserGroupResource(
         usergroup_id=usergroup_id,
         resource_uuid=resource_uuid,
@@ -157,7 +156,7 @@ async def get_chapter_usergroups(
     chapter_uuid: str,
     current_user: PublicUser,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     _, course = await _load_chapter_and_course(chapter_uuid, db_session)
     await check_resource_access(
         request, db_session, current_user, course.course_uuid, AccessAction.READ
@@ -205,7 +204,7 @@ async def get_activity_usergroups(
     activity_uuid: str,
     current_user: PublicUser,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     _, course = await _load_activity_and_course(activity_uuid, db_session)
     await check_resource_access(
         request, db_session, current_user, course.course_uuid, AccessAction.READ

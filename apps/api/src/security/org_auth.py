@@ -6,20 +6,20 @@ Superadmin bypass is baked in — superadmins pass every check automatically.
 """
 
 import logging
-from typing import Optional
+
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.user_organizations import UserOrganization
 from src.db.roles import Role
-from src.security.superadmin import is_user_superadmin
+from src.db.user_organizations import UserOrganization
 from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
+from src.security.superadmin import is_user_superadmin
 
 logger = logging.getLogger(__name__)
 
 
-async def get_user_org(user_id: int, org_id: int, db_session: AsyncSession) -> Optional[UserOrganization]:
+async def get_user_org(user_id: int, org_id: int, db_session: AsyncSession) -> UserOrganization | None:
     """Return the UserOrganization row, or None. Does NOT check superadmin."""
     _cache = getattr(db_session, '_user_org_cache', None)
     if _cache is None:
@@ -60,7 +60,7 @@ async def is_org_admin(user_id: int, org_id: int, db_session: AsyncSession) -> b
     return user_org is not None and user_org.role_id in ADMIN_OR_MAINTAINER_ROLE_IDS
 
 
-async def get_user_org_role(user_id: int, org_id: int, db_session: AsyncSession) -> Optional[Role]:
+async def get_user_org_role(user_id: int, org_id: int, db_session: AsyncSession) -> Role | None:
     """Return the user's Role in the org, or None. Does NOT check superadmin."""
     user_org = await get_user_org(user_id, org_id, db_session)
     if not user_org:

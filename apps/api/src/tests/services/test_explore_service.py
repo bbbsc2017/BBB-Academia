@@ -20,8 +20,9 @@ class TestGetOrgsForExplore:
 
     @pytest.mark.asyncio
     async def test_returns_explore_orgs(self, mock_request, db, org):
-        from src.db.organizations import Organization
         from sqlmodel import select
+
+        from src.db.organizations import Organization
 
         org_row = (await db.execute(select(Organization).where(Organization.id == org.id))).scalars().first()
         org_row.explore = True
@@ -34,8 +35,9 @@ class TestGetOrgsForExplore:
 
     @pytest.mark.asyncio
     async def test_label_filter(self, mock_request, db, org):
-        from src.db.organizations import Organization
         from sqlmodel import select
+
+        from src.db.organizations import Organization
 
         org_row = (await db.execute(select(Organization).where(Organization.id == org.id))).scalars().first()
         org_row.explore = True
@@ -115,8 +117,9 @@ class TestSearchOrgsForExplore:
 
     @pytest.mark.asyncio
     async def test_returns_matching_explore_orgs(self, mock_request, db, org):
-        from src.db.organizations import Organization
         from sqlmodel import select
+
+        from src.db.organizations import Organization
 
         org_row = (await db.execute(select(Organization).where(Organization.id == org.id))).scalars().first()
         org_row.explore = True

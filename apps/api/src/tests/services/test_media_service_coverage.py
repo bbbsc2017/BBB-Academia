@@ -71,19 +71,18 @@ class TestMediaServiceCoverage:
         # Line 47: _get_org_uuid raises 404 for a non-existent org. upload_file is
         # patched so it is not the failure point.
         upload = UploadFile(filename="f.pdf", file=_BadFile())
-        with _bypass():
-            with pytest.raises(HTTPException) as exc:
-                await create_media(
-                    mock_request,
-                    MediaCreate(
-                        name="x",
-                        media_type=MediaTypeEnum.UPLOAD,
-                        org_id=99999,
-                    ),
-                    admin_user,
-                    db,
-                    file=upload,
-                )
+        with _bypass(), pytest.raises(HTTPException) as exc:
+            await create_media(
+                mock_request,
+                MediaCreate(
+                    name="x",
+                    media_type=MediaTypeEnum.UPLOAD,
+                    org_id=99999,
+                ),
+                admin_user,
+                db,
+                file=upload,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Organization not found"
 
@@ -111,35 +110,32 @@ class TestMediaServiceCoverage:
     @pytest.mark.asyncio
     async def test_get_media_missing_404(self, db, admin_user, mock_request):
         # Line 167 lives in get_media at line 148 — missing media -> 404.
-        with _bypass():
-            with pytest.raises(HTTPException) as exc:
-                await get_media(mock_request, "media_does_not_exist", admin_user, db)
+        with _bypass(), pytest.raises(HTTPException) as exc:
+            await get_media(mock_request, "media_does_not_exist", admin_user, db)
         assert exc.value.status_code == 404
         assert exc.value.detail == "Media not found"
 
     @pytest.mark.asyncio
     async def test_update_media_missing_404(self, db, admin_user, mock_request):
         # Line 167/194: update_media on missing media -> 404.
-        with _bypass():
-            with pytest.raises(HTTPException) as exc:
-                await update_media(
-                    mock_request,
-                    MediaUpdate(name="new"),
-                    "media_does_not_exist",
-                    admin_user,
-                    db,
-                )
+        with _bypass(), pytest.raises(HTTPException) as exc:
+            await update_media(
+                mock_request,
+                MediaUpdate(name="new"),
+                "media_does_not_exist",
+                admin_user,
+                db,
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Media not found"
 
     @pytest.mark.asyncio
     async def test_delete_media_missing_404(self, db, admin_user, mock_request):
         # Line 194: delete_media on missing media -> 404 "Media not found".
-        with _bypass():
-            with pytest.raises(HTTPException) as exc:
-                await delete_media(
-                    mock_request, "media_does_not_exist", admin_user, db
-                )
+        with _bypass(), pytest.raises(HTTPException) as exc:
+            await delete_media(
+                mock_request, "media_does_not_exist", admin_user, db
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Media not found"
 

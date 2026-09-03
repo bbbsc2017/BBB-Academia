@@ -1,25 +1,26 @@
 import time
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
 
+import jwt
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
 from fastapi import HTTPException, Request
 from sqlmodel import Session
+
+from src.db.users import AnonymousUser, PublicUser, User
 from src.security.auth import (
+    JWT_COOKIE_NAME,
+    Token,
+    TokenData,
     authenticate_user,
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
+    extract_jwt_from_request,
     get_current_user,
     non_public_endpoint,
-    extract_jwt_from_request,
-    Token,
-    TokenData,
-    JWT_COOKIE_NAME,
 )
-from src.db.users import User, AnonymousUser, PublicUser
-from datetime import datetime, timedelta, timezone
-import jwt
-from src.security.security import SECRET_KEY, ALGORITHM
+from src.security.security import ALGORITHM, SECRET_KEY
 
 
 class TestAuth:
@@ -173,8 +174,8 @@ class TestAuth:
         
         # Check that expiry time exists and is in the future
         assert "exp" in decoded
-        exp_time = datetime.fromtimestamp(decoded["exp"], tz=timezone.utc)
-        now = datetime.now(timezone.utc)
+        exp_time = datetime.fromtimestamp(decoded["exp"], tz=UTC)
+        now = datetime.now(UTC)
         
         # Verify the token expires in the future
         assert exp_time > now
@@ -302,8 +303,8 @@ class TestAuth:
 
         # Check that expiry time exists and is in the future
         assert "exp" in decoded
-        exp_time = datetime.fromtimestamp(decoded["exp"], tz=timezone.utc)
-        now = datetime.now(timezone.utc)
+        exp_time = datetime.fromtimestamp(decoded["exp"], tz=UTC)
+        now = datetime.now(UTC)
 
         # Verify the token expires in the future
         assert exp_time > now
@@ -367,7 +368,7 @@ class TestAuth:
         token = create_access_token({"sub": "test@example.com", "iat": past_iat})
 
         # Set password_changed_at after the token iat (aware datetime)
-        mock_user.password_changed_at = datetime.now(timezone.utc)
+        mock_user.password_changed_at = datetime.now(UTC)
 
         mock_request.headers = Mock()
         mock_request.headers.get = Mock(return_value="")
@@ -389,8 +390,12 @@ class TestAuth:
         past_iat = int(time.time()) - 10
         token = create_access_token({"sub": "test@example.com", "iat": past_iat})
 
-        # Set password_changed_at as a naive datetime after the token iat
-        mock_user.password_changed_at = datetime.now()
+        # Set password_changed_at as a naive datetime after the token iat.
+        # Must be naive-UTC (not naive-local): the app treats a tzinfo-less
+        # value as UTC (server runs UTC in production), so building this from
+        # local wall-clock time makes the test's pass/fail depend on the
+        # machine's timezone offset instead of the actual staleness logic.
+        mock_user.password_changed_at = datetime.now(UTC).replace(tzinfo=None)
 
         mock_request.headers = Mock()
         mock_request.headers.get = Mock(return_value="")

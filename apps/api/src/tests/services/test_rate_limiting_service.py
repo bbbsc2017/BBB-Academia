@@ -57,9 +57,8 @@ def test_get_redis_connection_success_and_missing_config():
     with patch(
         "src.services.security.rate_limiting._get_redis_pool_client",
         return_value=None,
-    ):
-        with pytest.raises(HTTPException) as exc_info:
-            get_redis_connection()
+    ), pytest.raises(HTTPException) as exc_info:
+        get_redis_connection()
 
     assert exc_info.value.status_code == 500
     assert exc_info.value.detail == "Redis connection string not found"

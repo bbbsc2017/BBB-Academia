@@ -1,4 +1,4 @@
-from typing import Optional
+
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -111,7 +111,7 @@ async def get_id_identifier_of_element(element_uuid):
 async def get_element_organization_id(
     element_uuid: str,
     db_session: AsyncSession,
-) -> Optional[int]:
+) -> int | None:
     """
     Get the organization ID that an element belongs to.
 
@@ -126,9 +126,9 @@ async def get_element_organization_id(
         Optional[int]: The organization ID, or None if not applicable
     """
     # Import models here to avoid circular imports
-    from src.db.courses.courses import Course
-    from src.db.courses.chapters import Chapter
     from src.db.courses.activities import Activity
+    from src.db.courses.chapters import Chapter
+    from src.db.courses.courses import Course
     from src.db.organizations import Organization
     from src.db.roles import Role
     from src.db.usergroups import UserGroup
@@ -163,10 +163,7 @@ async def get_element_organization_id(
     elif element_type == "usergroups":
         return (await db_session.execute(select(UserGroup.org_id).where(UserGroup.usergroup_uuid == element_uuid))).scalars().first()
 
-    elif element_type == "users":
-        return None
-
-    elif element_type == "houses":
+    elif element_type == "users" or element_type == "houses":
         return None
 
     elif element_type == "communities":

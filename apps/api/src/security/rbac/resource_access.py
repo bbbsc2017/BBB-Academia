@@ -17,20 +17,29 @@ Access Rules:
 """
 
 import logging
-from typing import Union, Optional
+
 from fastapi import HTTPException, Request, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
-from src.security.rbac.types import AccessAction, AccessContext, AccessDecision, ResourceConfig
-from src.security.rbac.config import get_resource_config, RESOURCE_CONFIGS
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.rbac.config import RESOURCE_CONFIGS, get_resource_config
 from src.security.rbac.rbac import (
-    authorization_verify_based_on_roles,
     authorization_verify_based_on_org_admin_status,
+    authorization_verify_based_on_roles,
+)
+from src.security.rbac.types import (
+    AccessAction,
+    AccessContext,
+    AccessDecision,
+    ResourceConfig,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,7 +65,7 @@ class ResourceAccessChecker:
         self,
         request: Request,
         db_session: AsyncSession,
-        current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+        current_user: PublicUser | AnonymousUser | APITokenUser,
     ):
         self.request = request
         self.db_session = db_session
@@ -69,7 +78,7 @@ class ResourceAccessChecker:
         self._admin_cache: dict[str, bool] = {}
         self._public_published_cache: dict[str, tuple[bool, bool]] = {}
         self._usergroup_cache: dict[tuple[str, bool], bool] = {}
-        self._parent_uuid_cache: dict[str, Optional[str]] = {}
+        self._parent_uuid_cache: dict[str, str | None] = {}
 
     async def check_access(
         self,
@@ -638,7 +647,7 @@ class ResourceAccessChecker:
         self,
         resource_uuid: str,
         config: ResourceConfig,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Resolve the parent resource UUID for child resources.
 
@@ -687,7 +696,7 @@ class ResourceAccessChecker:
         self,
         parent_id: int,
         parent_config: ResourceConfig,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Look up parent resource UUID by its ID."""
         if parent_config.resource_type == "courses":
             from src.db.courses.courses import Course
@@ -906,8 +915,8 @@ class ResourceAccessChecker:
 def _get_request_checker(
     request: Request,
     db_session: AsyncSession,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
-) -> "ResourceAccessChecker":
+    current_user: PublicUser | AnonymousUser | APITokenUser,
+) -> ResourceAccessChecker:
     """
     Return a ResourceAccessChecker scoped to the current request, reusing the
     same instance (and its memoization caches) across every RBAC call within
@@ -934,7 +943,7 @@ def _get_request_checker(
 async def check_resource_access(
     request: Request,
     db_session: AsyncSession,
-    current_user: Union[PublicUser, AnonymousUser, APITokenUser],
+    current_user: PublicUser | AnonymousUser | APITokenUser,
     resource_uuid: str,
     action: AccessAction,
     context: AccessContext = AccessContext.PUBLIC_VIEW,

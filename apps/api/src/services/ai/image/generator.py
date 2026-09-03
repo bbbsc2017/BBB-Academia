@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional
 
 from config.config import get_learnhouse_config
 from src.services.ai.llm import AINotConfiguredError
@@ -92,7 +91,7 @@ def _resolve_image_config() -> tuple[str, str]:
     return api_key, model
 
 
-def _extract_image_bytes(response) -> Optional[bytes]:
+def _extract_image_bytes(response) -> bytes | None:
     """Pull the first inline image payload out of a GenAI response."""
     candidates = getattr(response, "candidates", None) or []
     for candidate in candidates:
@@ -109,7 +108,7 @@ def _extract_image_bytes(response) -> Optional[bytes]:
 async def generate_image(
     prompt: str,
     *,
-    input_images: Optional[list[bytes]] = None,
+    input_images: list[bytes] | None = None,
 ) -> bytes:
     """Generate (or edit) an image with the nano banana model. Returns PNG bytes.
 
@@ -162,7 +161,7 @@ async def generate_image(
                 config=config,
             )
             break
-        except Exception as e:  # noqa: BLE001 — surface a clean error to the router
+        except Exception as e:
             # Log only the exception type: the underlying SDK error can embed the
             # API key (request URL/headers), so never log the message or traceback.
             if _is_retryable(e) and attempt < _MAX_ATTEMPTS:

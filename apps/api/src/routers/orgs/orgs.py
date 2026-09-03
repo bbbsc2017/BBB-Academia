@@ -1,6 +1,22 @@
-from typing import List, Literal, Optional, Union
-from fastapi import APIRouter, Depends, Request, UploadFile, Query, Path, HTTPException
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.core.events.database import get_db_session
+from src.db.organization_config import (
+    AuthBrandingConfig,
+    OrganizationConfigBase,
+    SeoOrgConfig,
+)
+from src.db.organizations import (
+    OrganizationCreate,
+    OrganizationRead,
+    OrganizationUpdate,
+)
+from src.db.users import AnonymousUser, PublicUser
+from src.security.auth import get_authenticated_user, get_current_user
+from src.security.features_utils.dependencies import require_org_admin
 from src.services.orgs.invites import (
     create_invite_code,
     delete_invite_code,
@@ -8,6 +24,43 @@ from src.services.orgs.invites import (
     get_invite_codes,
 )
 from src.services.orgs.join import JoinOrg, join_org
+from src.services.orgs.orgs import (
+    create_org,
+    create_org_with_config,
+    delete_org,
+    get_organization_by_slug,
+    get_organization_by_uuid,
+    get_orgs_by_user,
+    get_orgs_by_user_admin,
+    update_org,
+    update_org_ai_config,
+    update_org_auth_branding_config,
+    update_org_boards_config,
+    update_org_color_config,
+    update_org_communities_config,
+    update_org_courses_config,
+    update_org_default_language_config,
+    update_org_favicon,
+    update_org_folders_config,
+    update_org_folders_sort_config,
+    update_org_font_config,
+    update_org_footer_text_config,
+    update_org_landing,
+    update_org_logo,
+    update_org_menu_config,
+    update_org_payments_config,
+    update_org_playgrounds_config,
+    update_org_podcasts_config,
+    update_org_preview,
+    update_org_seo_config,
+    update_org_signup_mechanism,
+    update_org_thumbnail,
+    update_org_watermark_config,
+    upload_org_auth_background_service,
+    upload_org_landing_content_service,
+    upload_org_og_image_service,
+    wipe_org_content,
+)
 from src.services.orgs.users import (
     export_organization_users_csv,
     get_list_of_invited_users,
@@ -20,55 +73,6 @@ from src.services.orgs.users import (
     remove_user_from_org,
     update_user_role,
 )
-from src.db.organization_config import OrganizationConfigBase
-from src.db.users import AnonymousUser, PublicUser
-from src.db.organizations import (
-    OrganizationCreate,
-    OrganizationRead,
-    OrganizationUpdate,
-)
-from src.core.events.database import get_db_session
-from src.security.auth import get_current_user, get_authenticated_user
-from src.security.features_utils.dependencies import require_org_admin
-from src.services.orgs.orgs import (
-    create_org,
-    create_org_with_config,
-    delete_org,
-    wipe_org_content,
-    get_organization_by_uuid,
-    get_organization_by_slug,
-    get_orgs_by_user,
-    get_orgs_by_user_admin,
-    update_org,
-    update_org_logo,
-    update_org_preview,
-    update_org_signup_mechanism,
-    update_org_ai_config,
-    update_org_communities_config,
-    update_org_payments_config,
-    update_org_folders_config,
-    update_org_folders_sort_config,
-    update_org_courses_config,
-    update_org_podcasts_config,
-    update_org_boards_config,
-    update_org_playgrounds_config,
-    update_org_color_config,
-    update_org_font_config,
-    update_org_footer_text_config,
-    update_org_default_language_config,
-    update_org_watermark_config,
-    update_org_thumbnail,
-    update_org_landing,
-    upload_org_landing_content_service,
-    update_org_auth_branding_config,
-    update_org_menu_config,
-    upload_org_auth_background_service,
-    update_org_seo_config,
-    upload_org_og_image_service,
-    update_org_favicon,
-)
-from src.db.organization_config import AuthBrandingConfig, SeoOrgConfig
-
 
 router = APIRouter()
 
@@ -176,11 +180,11 @@ async def api_export_org_users(
     request: Request,
     org_id: int,
     search: str = "",
-    usergroup_id: Optional[int] = Query(default=None),
-    usergroup_filter: Optional[Literal["in_group", "not_in_group"]] = Query(default=None),
-    sort_order: Optional[Literal["asc", "desc"]] = Query(default="desc"),
-    role_id: Optional[int] = Query(default=None),
-    status: Optional[Literal["verified", "unverified"]] = Query(default=None),
+    usergroup_id: int | None = Query(default=None),
+    usergroup_filter: Literal["in_group", "not_in_group"] | None = Query(default=None),
+    sort_order: Literal["asc", "desc"] | None = Query(default="desc"),
+    role_id: int | None = Query(default=None),
+    status: Literal["verified", "unverified"] | None = Query(default=None),
     current_user: PublicUser = Depends(get_authenticated_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -214,11 +218,11 @@ async def api_get_org_users(
     page: int = Query(default=1, ge=1, description="Page number"),
     limit: int = Query(default=20, ge=1, le=100, description="Items per page (max 100)"),
     search: str = "",
-    usergroup_id: Optional[int] = Query(default=None, description="Filter by usergroup membership"),
-    usergroup_filter: Optional[Literal["in_group", "not_in_group"]] = Query(default=None, description="Membership filter: 'in_group' or 'not_in_group'"),
-    sort_order: Optional[Literal["asc", "desc"]] = Query(default="desc", description="Sort order for join date"),
-    role_id: Optional[int] = Query(default=None, description="Filter by role ID"),
-    status: Optional[Literal["verified", "unverified"]] = Query(default=None, description="Filter by verification status"),
+    usergroup_id: int | None = Query(default=None, description="Filter by usergroup membership"),
+    usergroup_filter: Literal["in_group", "not_in_group"] | None = Query(default=None, description="Membership filter: 'in_group' or 'not_in_group'"),
+    sort_order: Literal["asc", "desc"] | None = Query(default="desc", description="Sort order for join date"),
+    role_id: int | None = Query(default=None, description="Filter by role ID"),
+    status: Literal["verified", "unverified"] | None = Query(default=None, description="Filter by verification status"),
     current_user: PublicUser = Depends(get_authenticated_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -312,7 +316,7 @@ async def api_update_user_role(
 async def api_remove_batch_users_from_org(
     request: Request,
     org_id: int,
-    user_ids: List[int] = Query(..., description="List of user IDs to remove"),
+    user_ids: list[int] = Query(..., description="List of user IDs to remove"),
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -474,8 +478,8 @@ async def api_get_org_signup_mechanism(
 async def api_update_org_ai_config(
     request: Request,
     org_id: int,
-    ai_enabled: Optional[bool] = None,
-    copilot_enabled: Optional[bool] = None,
+    ai_enabled: bool | None = None,
+    copilot_enabled: bool | None = None,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -981,7 +985,7 @@ async def api_upload_org_og_image(
 async def api_create_invite_code(
     request: Request,
     org_id: int,
-    usergroup_id: Optional[int] = None,
+    usergroup_id: int | None = None,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -1079,7 +1083,7 @@ async def api_invite_batch_users(
     request: Request,
     org_id: int,
     emails: str,
-    invite_code_uuid: Optional[str] = None,
+    invite_code_uuid: str | None = None,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -1281,20 +1285,20 @@ async def api_update_org_preview(
 
 @router.get(
     "/user/page/{page}/limit/{limit}",
-    response_model=List[OrganizationRead],
+    response_model=list[OrganizationRead],
     summary="List organizations for current user",
     description="Return a paginated list of organizations the current user belongs to.",
     responses={
-        200: {"description": "Paginated organizations for the current user.", "model": List[OrganizationRead]},
+        200: {"description": "Paginated organizations for the current user.", "model": list[OrganizationRead]},
     },
 )
 async def api_user_orgs(
     request: Request,
     page: int = Path(..., ge=1, description="Page number (1-based)"),
     limit: int = Path(..., ge=1, le=100, description="Items per page (max 100)"),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[OrganizationRead]:
+) -> list[OrganizationRead]:
     """
     Get orgs by page and limit by current user
     """
@@ -1306,20 +1310,20 @@ async def api_user_orgs(
 
 @router.get(
     "/user_admin/page/{page}/limit/{limit}",
-    response_model=List[OrganizationRead],
+    response_model=list[OrganizationRead],
     summary="List organizations the user administers",
     description="Return a paginated list of organizations where the current user has admin rights.",
     responses={
-        200: {"description": "Paginated organizations the current user administers.", "model": List[OrganizationRead]},
+        200: {"description": "Paginated organizations the current user administers.", "model": list[OrganizationRead]},
     },
 )
 async def api_user_orgs_admin(
     request: Request,
     page: int = Path(..., ge=1, description="Page number (1-based)"),
     limit: int = Path(..., ge=1, le=100, description="Items per page (max 100)"),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[OrganizationRead]:
+) -> list[OrganizationRead]:
     """
     Get orgs by page and limit by current user
     """

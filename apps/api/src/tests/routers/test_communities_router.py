@@ -8,8 +8,7 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
-from src.db.communities.communities import Community
-from src.db.communities.communities import CommunityRead
+from src.db.communities.communities import Community, CommunityRead
 from src.db.users import UserRead
 from src.routers.communities.communities import router as communities_router
 from src.routers.communities.discussions import router as discussions_router

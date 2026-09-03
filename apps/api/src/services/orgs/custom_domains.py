@@ -1,28 +1,28 @@
+import logging
 import os
 import re
-import ssl
-import socket
 import secrets
-import logging
-from typing import List, Optional, Tuple
-from uuid import uuid4
+import socket
+import ssl
 from datetime import datetime
+from uuid import uuid4
+
+from fastapi import HTTPException, Request, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import HTTPException, Request, status
 
 from src.db.custom_domains import (
     CustomDomain,
     CustomDomainCreate,
     CustomDomainRead,
-    CustomDomainVerificationInfo,
     CustomDomainResolveResponse,
+    CustomDomainVerificationInfo,
 )
 from src.db.organizations import Organization
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import resolve_acting_user_id
+from src.security.org_auth import require_org_admin, require_org_membership
 from src.security.rbac.rbac import authorization_verify_if_user_is_anon
-from src.security.org_auth import require_org_membership, require_org_admin
 from src.services.utils.ssrf_guard import SSRFBlockedError, resolve_and_validate_url
 
 logger = logging.getLogger(__name__)
@@ -140,7 +140,7 @@ DNS propagation may take up to 48 hours, but usually completes within a few minu
     )
 
 
-async def verify_domain_dns(domain: CustomDomain, db_session: AsyncSession, org_slug: str) -> Tuple[bool, str]:
+async def verify_domain_dns(domain: CustomDomain, db_session: AsyncSession, org_slug: str) -> tuple[bool, str]:
     """
     Verify DNS configuration for a custom domain.
     Returns (success, message) tuple.
@@ -227,13 +227,13 @@ async def verify_domain_dns(domain: CustomDomain, db_session: AsyncSession, org_
         await db_session.commit()
         return False, "DNS verification is temporarily unavailable. Please try again later."
     except Exception as e:
-        logger.error(f"DNS verification error for {domain.domain}: {str(e)}")
+        logger.error(f"DNS verification error for {domain.domain}: {e!s}")
         domain.status = "pending"
         domain.last_check_at = str(datetime.now())
         domain.check_error = str(e)
         db_session.add(domain)
         await db_session.commit()
-        return False, f"DNS verification failed: {str(e)}"
+        return False, f"DNS verification failed: {e!s}"
 
 
 async def add_custom_domain(
@@ -275,10 +275,8 @@ async def add_custom_domain(
     domain = domain_data.domain.lower().strip()
 
     # Remove protocol if present
-    if domain.startswith('http://'):
-        domain = domain[7:]
-    if domain.startswith('https://'):
-        domain = domain[8:]
+    domain = domain.removeprefix('http://')
+    domain = domain.removeprefix('https://')
 
     # Remove trailing slash and path
     domain = domain.split('/')[0]
@@ -340,7 +338,7 @@ async def list_custom_domains(
     db_session: AsyncSession,
     org_id: int,
     current_user: PublicUser | AnonymousUser | APITokenUser,
-) -> List[CustomDomainRead]:
+) -> list[CustomDomainRead]:
     """List all custom domains for an organization."""
     acting_user_id = resolve_acting_user_id(current_user)
     # VERIFICATION 1: User must be authenticated
@@ -530,7 +528,7 @@ async def delete_custom_domain(
 
 async def list_all_verified_domains(
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """
     List all verified custom domains across all organizations.
     Used internally by the domain sync controller for Kubernetes ingress provisioning.
@@ -619,16 +617,16 @@ async def check_domain_ssl_status(
         return {
             "has_ssl": False,
             "status": "invalid",
-            "message": f"SSL certificate exists but is invalid: {str(e)}",
+            "message": f"SSL certificate exists but is invalid: {e!s}",
         }
-    except (socket.timeout, socket.gaierror, ConnectionRefusedError, OSError):
+    except (TimeoutError, socket.gaierror, ConnectionRefusedError, OSError):
         return {
             "has_ssl": False,
             "status": "provisioning",
             "message": "SSL certificate is being provisioned. This usually takes a few minutes after domain verification.",
         }
     except Exception as e:
-        logger.error(f"SSL check error for {domain.domain}: {str(e)}")
+        logger.error(f"SSL check error for {domain.domain}: {e!s}")
         return {
             "has_ssl": False,
             "status": "unknown",
@@ -639,7 +637,7 @@ async def check_domain_ssl_status(
 async def resolve_org_by_domain(
     db_session: AsyncSession,
     domain: str,
-) -> Optional[CustomDomainResolveResponse]:
+) -> CustomDomainResolveResponse | None:
     """
     Resolve an organization by custom domain.
     This is a public endpoint that doesn't require authentication.

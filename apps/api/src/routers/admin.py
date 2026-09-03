@@ -5,11 +5,13 @@ All endpoints are scoped by org_slug and require API token authentication
 (Bearer lh_...). The token's organization must match the org_slug in the URL.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.trails import TrailRead
 from src.db.users import UserRead
@@ -47,15 +49,14 @@ from src.services.admin.admin import (
     list_usergroup_members,
     provision_user,
     remove_course_from_usergroup,
-    remove_usergroup_member,
     remove_user_from_org_admin,
+    remove_usergroup_member,
     reset_user_progress,
     revoke_certificate,
     uncomplete_activity,
     unenroll_user,
     update_user_profile,
 )
-
 
 router = APIRouter()
 
@@ -86,7 +87,7 @@ class ProgressResponse(BaseModel):
     total_activities: int = Field(description="Total number of activities in the course")
     completed_activities: int = Field(description="Number of activities the user has completed")
     completion_percentage: float = Field(description="Completion percentage (0-100)")
-    completed_activity_ids: List[int] = Field(description="IDs of completed activities")
+    completed_activity_ids: list[int] = Field(description="IDs of completed activities")
 
 
 class ProgressSummaryItem(BaseModel):
@@ -132,11 +133,11 @@ class UnenrollResponse(BaseModel):
 
 
 class CertificateCourseInfo(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     course_uuid: str
     name: str
-    description: Optional[str] = None
-    thumbnail_image: Optional[str] = None
+    description: str | None = None
+    thumbnail_image: str | None = None
 
 
 class CertificateItem(BaseModel):
@@ -157,9 +158,9 @@ class ProvisionUserRequest(BaseModel):
     username: str = Field(min_length=1, max_length=150)
     first_name: str = Field(default="", max_length=150)
     last_name: str = Field(default="", max_length=150)
-    password: Optional[str] = Field(default=None, max_length=256, description="Optional — if omitted, treated as SSO user with empty password")
+    password: str | None = Field(default=None, max_length=256, description="Optional — if omitted, treated as SSO user with empty password")
     role_id: int = Field(default=4, ge=1, description="Role id for the org membership (default 4 = student)")
-    extra_metadata: Optional[dict] = Field(default=None, description="Optional arbitrary JSON metadata attached to the user for headless integrations")
+    extra_metadata: dict | None = Field(default=None, description="Optional arbitrary JSON metadata attached to the user for headless integrations")
 
 
 class RemoveUserResponse(BaseModel):
@@ -169,7 +170,7 @@ class RemoveUserResponse(BaseModel):
 class MagicLinkRequest(BaseModel):
     """Request body for issuing a magic sign-in link."""
     user_id: int
-    redirect_to: Optional[str] = Field(default=None, description="Path to redirect to after the user lands on the consume endpoint")
+    redirect_to: str | None = Field(default=None, description="Path to redirect to after the user lands on the consume endpoint")
     ttl_seconds: int = Field(default=300, ge=60, le=900, description="Token lifetime in seconds (60–900)")
 
 
@@ -182,18 +183,18 @@ class MagicLinkResponse(BaseModel):
 class BulkEnrollRequest(BaseModel):
     """Request body for bulk enrolling users into a course."""
     course_uuid: str
-    user_ids: List[int] = Field(max_length=500, description="List of user ids to enroll (max 500)")
+    user_ids: list[int] = Field(max_length=500, description="List of user ids to enroll (max 500)")
 
 
 class BulkEnrollResponse(BaseModel):
-    enrolled: List[int] = Field(description="User ids that were newly enrolled")
-    already_enrolled: List[int] = Field(description="User ids that already had an enrollment")
-    skipped: List[int] = Field(description="User ids that were not members of the org")
+    enrolled: list[int] = Field(description="User ids that were newly enrolled")
+    already_enrolled: list[int] = Field(description="User ids that already had an enrollment")
+    skipped: list[int] = Field(description="User ids that were not members of the org")
 
 
 class CourseEnrollmentItem(BaseModel):
     """A single row in a course enrollment listing."""
-    user: Dict[str, Any]
+    user: dict[str, Any]
     enrolled_at: str
     status: str
 
@@ -223,14 +224,14 @@ class UserGroupMemberResponse(BaseModel):
 
 class UpdateUserRequest(BaseModel):
     """Fields that can be updated via the admin profile PATCH."""
-    username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    avatar_image: Optional[str] = None
-    bio: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
-    profile: Optional[Dict[str, Any]] = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: EmailStr | None = None
+    avatar_image: str | None = None
+    bio: str | None = None
+    details: dict[str, Any] | None = None
+    profile: dict[str, Any] | None = None
 
 
 class ChangeRoleRequest(BaseModel):
@@ -253,12 +254,12 @@ class DeleteUserGroupResponse(BaseModel):
 
 
 class UserGroupMemberListItem(BaseModel):
-    user: Dict[str, Any]
+    user: dict[str, Any]
     added_at: str
 
 
 class UserUserGroupItem(BaseModel):
-    usergroup: Dict[str, Any]
+    usergroup: dict[str, Any]
     added_at: str
 
 
@@ -270,12 +271,12 @@ class UserGroupCourseResponse(BaseModel):
 
 class BulkUnenrollRequest(BaseModel):
     course_uuid: str
-    user_ids: List[int] = Field(max_length=500)
+    user_ids: list[int] = Field(max_length=500)
 
 
 class BulkUnenrollResponse(BaseModel):
-    unenrolled: List[int]
-    not_enrolled: List[int]
+    unenrolled: list[int]
+    not_enrolled: list[int]
 
 
 class AnonymizeUserResponse(BaseModel):
@@ -308,13 +309,13 @@ class UserGroupResponse(BaseModel):
 
 class UserDataExportResponse(BaseModel):
     """Full GDPR data export bundle."""
-    profile: Dict[str, Any] = Field(description="The user's profile (scrubbed of sensitive fields)")
-    memberships: List[Dict[str, Any]] = Field(description="Org memberships scoped to the caller's org")
-    trails: List[Dict[str, Any]] = Field(description="Learning trails in the caller's org")
-    trail_runs: List[Dict[str, Any]] = Field(description="Course enrollments / trail runs")
-    trail_steps: List[Dict[str, Any]] = Field(description="Activity completions")
-    certificates: List[Dict[str, Any]] = Field(description="Certificates awarded in the caller's org")
-    user_groups: List[Dict[str, Any]] = Field(description="Cohort memberships in the caller's org")
+    profile: dict[str, Any] = Field(description="The user's profile (scrubbed of sensitive fields)")
+    memberships: list[dict[str, Any]] = Field(description="Org memberships scoped to the caller's org")
+    trails: list[dict[str, Any]] = Field(description="Learning trails in the caller's org")
+    trail_runs: list[dict[str, Any]] = Field(description="Course enrollments / trail runs")
+    trail_steps: list[dict[str, Any]] = Field(description="Activity completions")
+    certificates: list[dict[str, Any]] = Field(description="Certificates awarded in the caller's org")
+    user_groups: list[dict[str, Any]] = Field(description="Cohort memberships in the caller's org")
     exported_at: str = Field(description="ISO8601 timestamp when the export was generated")
 
 
@@ -330,7 +331,7 @@ class TrailActivityProgress(BaseModel):
     completed: bool
     teacher_verified: bool = Field(default=False, description="Whether a teacher has verified the completion (assignments)")
     grade: str = Field(default="", description="Grade/feedback recorded on the trail step, when set")
-    completed_at: Optional[str] = Field(default=None, description="ISO timestamp when the activity was marked complete; null if not completed")
+    completed_at: str | None = Field(default=None, description="ISO timestamp when the activity was marked complete; null if not completed")
 
 
 class TrailChapterProgress(BaseModel):
@@ -341,7 +342,7 @@ class TrailChapterProgress(BaseModel):
     order: int
     total_activities: int
     completed_activities: int
-    activities: List[TrailActivityProgress]
+    activities: list[TrailActivityProgress]
 
 
 class TrailCourseProgress(BaseModel):
@@ -349,22 +350,22 @@ class TrailCourseProgress(BaseModel):
     course_uuid: str
     course_id: int
     course_name: str
-    status: Optional[str] = Field(default=None, description="TrailRun status (STATUS_IN_PROGRESS, STATUS_COMPLETED, …); null when there is no enrollment row")
-    enrolled_at: Optional[str] = Field(default=None, description="ISO timestamp the user was enrolled; null when there is no enrollment row")
+    status: str | None = Field(default=None, description="TrailRun status (STATUS_IN_PROGRESS, STATUS_COMPLETED, …); null when there is no enrollment row")
+    enrolled_at: str | None = Field(default=None, description="ISO timestamp the user was enrolled; null when there is no enrollment row")
     total_activities: int
     completed_activities: int
     completion_percentage: float
-    chapters: List[TrailChapterProgress]
+    chapters: list[TrailChapterProgress]
 
 
 class UserTrailDetail(BaseModel):
     """Full breakdown of a user's trail across courses in the org."""
-    trail_uuid: Optional[str] = Field(default=None, description="Null if the user has never started a trail in this org")
+    trail_uuid: str | None = Field(default=None, description="Null if the user has never started a trail in this org")
     user_id: int
     org_id: int
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
-    courses: List[TrailCourseProgress]
+    creation_date: str | None = None
+    update_date: str | None = None
+    courses: list[TrailCourseProgress]
 
 
 # ── Auth endpoints ───────────────────────────────────────────────────────────
@@ -649,7 +650,7 @@ async def api_admin_complete_course(
 
 @router.get(
     "/{org_slug}/progress/{user_id}",
-    response_model=List[ProgressSummaryItem],
+    response_model=list[ProgressSummaryItem],
     summary="Get all user progress",
     description=(
         "Get a progress summary across all courses a user is enrolled in. "
@@ -666,7 +667,7 @@ async def api_admin_get_all_user_progress(
     user_id: int,
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[ProgressSummaryItem]:
+) -> list[ProgressSummaryItem]:
     token_user = _require_api_token(current_user)
     await _resolve_org_slug(org_slug, token_user, db_session)
     results = await get_all_user_progress(token_user, user_id, db_session)
@@ -741,7 +742,7 @@ async def api_admin_get_user_course_trail_detail(
 
 @router.get(
     "/{org_slug}/certifications/{user_id}",
-    response_model=List[CertificateItem],
+    response_model=list[CertificateItem],
     summary="Get user certificates",
     description=(
         "Get all certificates awarded to a user in the organization. "
@@ -758,7 +759,7 @@ async def api_admin_get_user_certificates(
     user_id: int,
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[CertificateItem]:
+) -> list[CertificateItem]:
     token_user = _require_api_token(current_user)
     await _resolve_org_slug(org_slug, token_user, db_session)
     results = await get_user_certificates(token_user, user_id, db_session)
@@ -797,7 +798,9 @@ async def api_admin_provision_user(
     token_user = _require_api_token(current_user)
     await _resolve_org_slug(org_slug, token_user, db_session)
 
-    from src.services.security.rate_limiting import check_admin_user_provision_rate_limit
+    from src.services.security.rate_limiting import (
+        check_admin_user_provision_rate_limit,
+    )
     is_allowed, retry_after = check_admin_user_provision_rate_limit(token_user.id)
     if not is_allowed:
         raise HTTPException(
@@ -1048,7 +1051,7 @@ async def api_admin_bulk_enroll(
 
 @router.get(
     "/{org_slug}/courses/{course_uuid}/enrollments",
-    response_model=List[CourseEnrollmentItem],
+    response_model=list[CourseEnrollmentItem],
     summary="List users enrolled in a course",
     description=(
         "Reverse lookup: get all users currently enrolled in a course, with "
@@ -1066,7 +1069,7 @@ async def api_admin_list_course_enrollments(
     limit: int = Query(25, ge=1, le=100),
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[CourseEnrollmentItem]:
+) -> list[CourseEnrollmentItem]:
     token_user = _require_api_token(current_user)
     await _resolve_org_slug(org_slug, token_user, db_session)
     results = await list_course_enrollments(
@@ -1327,7 +1330,7 @@ async def api_admin_delete_usergroup(
 
 @router.get(
     "/{org_slug}/usergroups/{usergroup_uuid}/members",
-    response_model=List[UserGroupMemberListItem],
+    response_model=list[UserGroupMemberListItem],
     summary="List members of a user group",
     description="Reverse lookup: list users belonging to a cohort, with pagination.",
     responses={
@@ -1342,7 +1345,7 @@ async def api_admin_list_usergroup_members(
     limit: int = Query(25, ge=1, le=100),
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[UserGroupMemberListItem]:
+) -> list[UserGroupMemberListItem]:
     token_user = _require_api_token(current_user)
     await _resolve_org_slug(org_slug, token_user, db_session)
     results = await list_usergroup_members(
@@ -1353,7 +1356,7 @@ async def api_admin_list_usergroup_members(
 
 @router.get(
     "/{org_slug}/users/{user_id}/groups",
-    response_model=List[UserUserGroupItem],
+    response_model=list[UserUserGroupItem],
     summary="List user groups a user belongs to",
     description="Reverse lookup: which cohorts is this user a member of?",
     responses={
@@ -1366,7 +1369,7 @@ async def api_admin_get_user_groups(
     user_id: int,
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[UserUserGroupItem]:
+) -> list[UserUserGroupItem]:
     token_user = _require_api_token(current_user)
     await _resolve_org_slug(org_slug, token_user, db_session)
     results = await get_user_groups(token_user, user_id, db_session)

@@ -4,13 +4,12 @@ main router/service tests. Each test pins one small code path; they exist
 so that these branches keep working and so that coverage stays honest.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, Request
-
 
 # ---------------------------------------------------------------------------
 # src/security/auth.py::_mark_refresh_jti_used
@@ -79,7 +78,7 @@ async def test_get_current_user_tolerates_bad_iat_claim(db):
 
     # Real, decodable token so extract_jwt + decode_jwt succeed. We override
     # the payload at decode time to inject a bad iat value.
-    now = int(datetime.now(tz=timezone.utc).timestamp())
+    now = int(datetime.now(tz=UTC).timestamp())
     token = pyjwt.encode(
         {"sub": "user@test.com", "iat": now, "exp": now + 60},
         auth_module.JWT_SECRET_KEY,
@@ -123,12 +122,13 @@ async def test_get_current_user_tolerates_bad_iat_claim(db):
 @pytest.mark.asyncio
 async def test_get_current_user_rejects_revoked_token(db):
     """If ``_is_token_revoked_for_user`` returns True, raise 401."""
-    import jwt as pyjwt
     from unittest.mock import AsyncMock
+
+    import jwt as pyjwt
 
     from src.security import auth as auth_module
 
-    now = int(datetime.now(tz=timezone.utc).timestamp())
+    now = int(datetime.now(tz=UTC).timestamp())
     payload = {"sub": "user@test.com", "iat": now, "exp": now + 60}
     token = pyjwt.encode(payload, auth_module.JWT_SECRET_KEY, algorithm=auth_module.ALGORITHM)
 
@@ -221,8 +221,7 @@ async def test_analyze_import_package_rejects_oversized_uncompressed(
     with patch(
         "src.services.courses.transfer.import_service.check_resource_access",
         new_callable=AsyncMock,
-    ):
-        with pytest.raises(HTTPException) as exc:
-            await analyze_import_package(mock_request, upload, org.id, admin_user, db)
+    ), pytest.raises(HTTPException) as exc:
+        await analyze_import_package(mock_request, upload, org.id, admin_user, db)
     assert exc.value.status_code == 400
     assert "uncompressed size" in exc.value.detail

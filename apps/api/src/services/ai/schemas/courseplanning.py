@@ -1,14 +1,15 @@
+from typing import Literal
+
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Literal
 
 
 class AttachmentData(BaseModel):
     """Attachment data sent with a message"""
     type: Literal['image', 'video', 'file', 'youtube']
     name: str
-    url: Optional[str] = None  # For YouTube links
-    content_base64: Optional[str] = None  # For uploaded files
-    mime_type: Optional[str] = None  # MIME type for uploaded files
+    url: str | None = None  # For YouTube links
+    content_base64: str | None = None  # For uploaded files
+    mime_type: str | None = None  # MIME type for uploaded files
 
 
 class ActivityPlan(BaseModel):
@@ -16,14 +17,14 @@ class ActivityPlan(BaseModel):
     name: str
     type: str = "TYPE_DYNAMIC"  # Default activity type
     description: str
-    suggested_blocks: List[str] = []  # e.g., ['heading1', 'paragraph', 'quiz']
+    suggested_blocks: list[str] = []  # e.g., ['heading1', 'paragraph', 'quiz']
 
 
 class ChapterPlan(BaseModel):
     """Plan for a single chapter within a course"""
     name: str
     description: str
-    activities: List[ActivityPlan] = []
+    activities: list[ActivityPlan] = []
 
 
 class CoursePlan(BaseModel):
@@ -32,7 +33,7 @@ class CoursePlan(BaseModel):
     description: str
     learnings: str = ""
     tags: str = ""
-    chapters: List[ChapterPlan] = []
+    chapters: list[ChapterPlan] = []
 
 
 class CoursePlanningMessage(BaseModel):
@@ -48,11 +49,11 @@ class CoursePlanningSessionData(BaseModel):
     language: str = "en"  # Language code for content generation
     planning_iteration_count: int = 0
     max_planning_iterations: int = 10
-    activity_iteration_counts: Dict[str, int] = {}  # activity_uuid -> iteration count
+    activity_iteration_counts: dict[str, int] = {}  # activity_uuid -> iteration count
     max_activity_iterations: int = 6
-    message_history: List[CoursePlanningMessage] = []
-    current_plan: Optional[CoursePlan] = None
-    course_id: Optional[int] = None  # Set after finalization
+    message_history: list[CoursePlanningMessage] = []
+    current_plan: CoursePlan | None = None
+    course_id: int | None = None  # Set after finalization
 
 
 class StartCoursePlanningSession(BaseModel):
@@ -60,15 +61,15 @@ class StartCoursePlanningSession(BaseModel):
     org_id: int
     prompt: str  # Initial course description from user
     language: str = "en"  # Language code for content generation (e.g., "en", "fr", "de")
-    attachments: Optional[List[AttachmentData]] = None  # Context files/links
+    attachments: list[AttachmentData] | None = None  # Context files/links
 
 
 class SendCoursePlanningMessage(BaseModel):
     """Request to continue planning with a new message"""
     session_uuid: str
     message: str
-    current_plan: Optional[CoursePlan] = None  # User-modified plan to iterate on
-    attachments: Optional[List[AttachmentData]] = None  # Context files/links
+    current_plan: CoursePlan | None = None  # User-modified plan to iterate on
+    attachments: list[AttachmentData] | None = None  # Context files/links
 
 
 class FinalizeCoursePlanRequest(BaseModel):
@@ -86,13 +87,13 @@ class GenerateActivityContentRequest(BaseModel):
     chapter_name: str
     course_name: str
     course_description: str
-    prompt: Optional[str] = None  # Additional instructions for content generation
+    prompt: str | None = None  # Additional instructions for content generation
 
 
 class SaveActivityContentRequest(BaseModel):
     """Request to save AI-generated content to an activity"""
     activity_uuid: str
-    content: Dict  # ProseMirror JSON content
+    content: dict  # ProseMirror JSON content
 
 
 class CoursePlanningSessionResponse(BaseModel):
@@ -100,13 +101,13 @@ class CoursePlanningSessionResponse(BaseModel):
     session_uuid: str
     planning_iteration_count: int
     max_planning_iterations: int
-    current_plan: Optional[CoursePlan]
-    message_history: List[CoursePlanningMessage]
-    course_id: Optional[int] = None
+    current_plan: CoursePlan | None
+    message_history: list[CoursePlanningMessage]
+    course_id: int | None = None
 
 
 class FinalizeCoursePlanResponse(BaseModel):
     """Response after finalizing the course plan"""
     course_uuid: str
     course_id: int
-    chapters: List[Dict]  # List of created chapters with their activities
+    chapters: list[dict]  # List of created chapters with their activities

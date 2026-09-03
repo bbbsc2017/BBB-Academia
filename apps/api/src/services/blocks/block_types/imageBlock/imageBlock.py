@@ -1,15 +1,17 @@
 from datetime import datetime
 from uuid import uuid4
-from src.db.organizations import Organization
-from fastapi import HTTPException, status, UploadFile, Request
+
+from fastapi import HTTPException, Request, UploadFile, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.courses.activities import Activity
 from src.db.courses.blocks import Block, BlockRead, BlockTypeEnum
 from src.db.courses.courses import Course
+from src.db.organizations import Organization
 from src.db.users import AnonymousUser, PublicUser
 from src.security.org_auth import is_org_member
-from src.security.rbac import check_resource_access, AccessAction
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.blocks.utils.upload_files import upload_file_and_return_file_object
 
 

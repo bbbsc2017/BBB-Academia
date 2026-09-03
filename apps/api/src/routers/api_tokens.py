@@ -1,8 +1,7 @@
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Request
-
-
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.api_tokens import (
     APITokenCreate,
@@ -69,7 +68,7 @@ async def api_create_api_token(
 
 @router.get(
     "/{org_id}/api-tokens",
-    response_model=List[APITokenRead],
+    response_model=list[APITokenRead],
     summary="List API tokens",
     description=(
         "List all API tokens for an organization. Returns token metadata including the "
@@ -85,7 +84,7 @@ async def api_list_api_tokens(
     org_id: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[APITokenRead]:
+) -> list[APITokenRead]:
     """
     List all API tokens for an organization.
 

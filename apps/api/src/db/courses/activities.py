@@ -1,8 +1,8 @@
-from typing import Optional
+from enum import Enum
+
 from sqlalchemy import JSON, Column, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
-from enum import Enum
 
 
 class ActivityTypeEnum(str, Enum):
@@ -46,13 +46,13 @@ class ActivityBase(SQLModel):
     activity_type: ActivityTypeEnum
     activity_sub_type: ActivitySubTypeEnum
     content: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    details: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    details: dict | None = Field(default=None, sa_column=Column(JSON))
     published: bool = False
     lock_type: ActivityLockType = ActivityLockType.PUBLIC
 
 
 class Activity(ActivityBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), index=True)
     )
@@ -63,10 +63,10 @@ class Activity(ActivityBase, table=True):
     activity_uuid: str = Field(default="", index=True)
     creation_date: str = ""
     update_date: str = ""
-    extra_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
+    extra_metadata: dict | None = Field(default=None, sa_column=Column(JSONB))
     # Versioning fields
     current_version: int = Field(default=1)
-    last_modified_by_id: Optional[int] = Field(
+    last_modified_by_id: int | None = Field(
         default=None,
         sa_column=Column(Integer, ForeignKey("user.id", ondelete="SET NULL"))
     )
@@ -77,19 +77,18 @@ class ActivityCreate(ActivityBase):
     activity_type: ActivityTypeEnum = ActivityTypeEnum.TYPE_CUSTOM
     activity_sub_type: ActivitySubTypeEnum = ActivitySubTypeEnum.SUBTYPE_CUSTOM
     details: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    extra_metadata: Optional[dict] = None
-    pass
+    extra_metadata: dict | None = None
 
 
 class ActivityUpdate(SQLModel):
-    name: Optional[str] = None
-    content: Optional[dict] = None
-    activity_type: Optional[ActivityTypeEnum] = None
-    activity_sub_type: Optional[ActivitySubTypeEnum] = None
-    details: Optional[dict] = None
-    published: Optional[bool] = None
-    lock_type: Optional[ActivityLockType] = None
-    extra_metadata: Optional[dict] = None
+    name: str | None = None
+    content: dict | None = None
+    activity_type: ActivityTypeEnum | None = None
+    activity_sub_type: ActivitySubTypeEnum | None = None
+    details: dict | None = None
+    published: bool | None = None
+    lock_type: ActivityLockType | None = None
+    extra_metadata: dict | None = None
 
 
 class ActivityRead(ActivityBase):
@@ -99,16 +98,16 @@ class ActivityRead(ActivityBase):
     activity_uuid: str
     creation_date: str
     update_date: str
-    details: Optional[dict] = Field(default=None, sa_column=Column(JSON))
-    extra_metadata: Optional[dict] = None
+    details: dict | None = Field(default=None, sa_column=Column(JSON))
+    extra_metadata: dict | None = None
     # Versioning fields
     current_version: int = 1
-    last_modified_by_id: Optional[int] = None
-    last_modified_by_username: Optional[str] = None
+    last_modified_by_id: int | None = None
+    last_modified_by_username: str | None = None
     # Computed per-request: true if current user cannot access this activity.
     is_locked: bool = False
     # Computed per-request: set when is_locked is True and the block is a paid
     # PaymentsOffer's usergroup (as opposed to a plain, non-payment restricted
     # usergroup) — lets the client render a PaymentWall instead of a generic
     # "no access" screen.
-    offer: Optional[dict] = None
+    offer: dict | None = None

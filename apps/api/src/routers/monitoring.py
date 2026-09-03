@@ -1,6 +1,5 @@
 """Server-side relay so adblockers can't drop Sentry user feedback."""
 
-from typing import Optional
 
 import sentry_sdk
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -29,9 +28,9 @@ _MAX_MESSAGE_LENGTH = 4096
 )
 async def submit_feedback(
     message: str = Form(""),
-    name: Optional[str] = Form(None),
-    email: Optional[str] = Form(None),
-    associated_event_id: Optional[str] = Form(None),
+    name: str | None = Form(None),
+    email: str | None = Form(None),
+    associated_event_id: str | None = Form(None),
     attachments: list[UploadFile] = File(default=[]),
 ):
     message = (message or "").strip()

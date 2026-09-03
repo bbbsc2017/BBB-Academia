@@ -27,7 +27,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from sqlalchemy import JSON
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -42,8 +42,8 @@ from src.db.courses.chapter_activities import ChapterActivity
 from src.db.courses.chapters import Chapter
 from src.db.courses.course_chapters import CourseChapter
 from src.db.courses.courses import Course
-from src.db.folders.folders import Folder
 from src.db.folders.folder_content import FolderContent
+from src.db.folders.folders import Folder
 from src.db.organizations import Organization
 from src.db.roles import (
     DashboardPermission,
@@ -55,7 +55,6 @@ from src.db.roles import (
 )
 from src.db.user_organizations import UserOrganization
 from src.db.users import AnonymousUser, PublicUser, User
-
 
 # ---------------------------------------------------------------------------
 # Rights helpers

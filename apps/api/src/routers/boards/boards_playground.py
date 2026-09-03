@@ -1,33 +1,37 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import StreamingResponse
-from sqlmodel import select
 import json
 import logging
 
-from src.db.organizations import Organization
-from src.db.boards import Board
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
-from src.db.users import PublicUser, APITokenUser
-from src.security.auth import get_current_user, get_authenticated_user, resolve_acting_user_id
+from src.db.boards import Board
+from src.db.organizations import Organization
+from src.db.users import APITokenUser, PublicUser
+from src.security.auth import (
+    get_authenticated_user,
+    get_current_user,
+    resolve_acting_user_id,
+)
 from src.security.features_utils.usage import (
     reserve_ai_credit,
 )
 from src.security.org_auth import is_org_member
 from src.services.ai.llm import model_for_tier
 from src.services.boards.boards_playground import (
-    get_boards_playground_session,
+    MAX_ITERATIONS,
     create_boards_playground_session,
     generate_boards_playground_stream,
-    MAX_ITERATIONS,
+    get_boards_playground_session,
 )
 from src.services.boards.schemas.boards_playground import (
-    StartBoardsPlaygroundSession,
-    SendBoardsPlaygroundMessage,
-    BoardsPlaygroundSessionResponse,
     BoardsPlaygroundMessage,
+    BoardsPlaygroundSessionResponse,
+    SendBoardsPlaygroundMessage,
+    StartBoardsPlaygroundSession,
 )
-
 
 router = APIRouter()
 

@@ -9,16 +9,22 @@ from sqlmodel import select
 
 from src.db.courses.courses import Course
 from src.db.organization_config import OrganizationConfig, SeoOrgConfig
-from src.db.organizations import Organization, OrganizationCreate, OrganizationRead, OrganizationUpdate
+from src.db.organizations import (
+    Organization,
+    OrganizationCreate,
+    OrganizationRead,
+    OrganizationUpdate,
+)
 from src.db.user_organizations import UserOrganization
+from src.db.users import PublicUser
 from src.services.orgs.orgs import (
     _build_org_read_with_resolved,
     _get_org_config_cached,
     create_org,
     create_org_with_config,
+    get_org_join_mechanism,
     get_organization_by_slug,
     get_organization_by_uuid,
-    get_org_join_mechanism,
     update_org,
     update_org_ai_config,
     update_org_landing,
@@ -28,7 +34,6 @@ from src.services.orgs.orgs import (
     wipe_org_content,
 )
 from src.services.orgs.users import leave_org
-from src.db.users import PublicUser
 
 
 async def _make_org_config(db, org, config):
@@ -291,15 +296,14 @@ class TestUpdateOrg:
         with patch(
             "src.services.orgs.orgs.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as slug_exc:
-                await update_org(
-                    mock_request,
-                    OrganizationUpdate(slug=other_org.slug),
-                    org.id,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as slug_exc:
+            await update_org(
+                mock_request,
+                OrganizationUpdate(slug=other_org.slug),
+                org.id,
+                admin_user,
+                db,
+            )
         assert slug_exc.value.status_code == 409
 
         with pytest.raises(HTTPException) as config_exc:

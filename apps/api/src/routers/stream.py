@@ -12,33 +12,37 @@ import asyncio
 import os
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Path
-from fastapi.responses import StreamingResponse, Response, RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Path, Request
+from fastapi.responses import RedirectResponse, Response, StreamingResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.courses.courses import Course
-from src.db.courses.activities import Activity
-from src.db.podcasts.podcasts import Podcast
-from src.db.podcasts.episodes import PodcastEpisode
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
 from src.core.events.database import get_db_session
+from src.db.courses.activities import Activity
+from src.db.courses.courses import Course
+from src.db.podcasts.episodes import PodcastEpisode
+from src.db.podcasts.podcasts import Podcast
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import get_current_user
-from src.security.rbac.resource_access import ResourceAccessChecker, AccessAction, AccessContext
+from src.security.rbac.resource_access import (
+    AccessAction,
+    AccessContext,
+    ResourceAccessChecker,
+)
 from src.services.courses.transfer.storage_utils import (
-    is_s3_enabled,
     generate_presigned_get_url,
+    is_s3_enabled,
     read_file_content,
 )
-from src.services.utils.video_streaming import (
-    stream_video_file,
-    parse_range_header,
-    is_range_unsatisfiable,
-    get_file_info,
-    validate_video_path,
-    CHUNK_SIZE,
-)
 from src.services.utils.hls_playlist import rewrite_playlist
+from src.services.utils.video_streaming import (
+    CHUNK_SIZE,
+    get_file_info,
+    is_range_unsatisfiable,
+    parse_range_header,
+    stream_video_file,
+    validate_video_path,
+)
 
 router = APIRouter()
 

@@ -1,7 +1,7 @@
 """Tests for src/services/courses/updates.py."""
 
-from uuid import UUID
 from unittest.mock import AsyncMock, patch
+from uuid import UUID
 
 import pytest
 from fastapi import HTTPException

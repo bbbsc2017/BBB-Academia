@@ -1,15 +1,16 @@
-from typing import Optional, AsyncGenerator
-from uuid import uuid4
-import logging
-import redis
 import json
+import logging
+from collections.abc import AsyncGenerator
+from uuid import uuid4
+
+import redis
 
 from config.config import get_learnhouse_config
 from src.services.ai.llm import generate_stream, model_for_tier
 from src.services.ai.schemas.magicblocks import (
     MagicBlockContext,
-    MagicBlockSessionData,
     MagicBlockMessage,
+    MagicBlockSessionData,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ def get_redis_connection():
     return None
 
 
-def get_magicblock_session(session_uuid: str) -> Optional[MagicBlockSessionData]:
+def get_magicblock_session(session_uuid: str) -> MagicBlockSessionData | None:
     """Get an existing MagicBlock session from Redis"""
     r = get_redis_connection()
     if not r:
@@ -60,7 +61,7 @@ def create_magicblock_session(
     block_uuid: str,
     activity_uuid: str,
     context: MagicBlockContext,
-    user_id: Optional[int] = None,
+    user_id: int | None = None,
 ) -> MagicBlockSessionData:
     """Create a new MagicBlock session"""
     session_uuid = f"mb_{uuid4()}"
@@ -199,8 +200,8 @@ async def generate_magicblock_stream(
     prompt: str,
     session: MagicBlockSessionData,
     model_name: str = "",
-    current_html: Optional[str] = None
-) -> AsyncGenerator[str, None]:
+    current_html: str | None = None
+) -> AsyncGenerator[str]:
     """
     Generate MagicBlock HTML content with streaming.
     Yields chunks of the response as they arrive.

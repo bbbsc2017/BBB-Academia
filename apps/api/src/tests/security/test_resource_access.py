@@ -5,12 +5,13 @@ This module tests the ResourceAccessChecker class and related functionality
 for the unified RBAC system.
 """
 
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, AsyncMock, patch
 from fastapi import HTTPException, Request
 from sqlmodel import Session
 
-from src.security.rbac.types import AccessAction, AccessContext, AccessDecision
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.rbac.config import (
     RESOURCE_CONFIGS,
     get_resource_config,
@@ -18,10 +19,10 @@ from src.security.rbac.config import (
 )
 from src.security.rbac.resource_access import (
     ResourceAccessChecker,
-    check_resource_access,
     _get_request_checker,
+    check_resource_access,
 )
-from src.db.users import AnonymousUser, PublicUser, APITokenUser
+from src.security.rbac.types import AccessAction, AccessContext, AccessDecision
 
 
 class TestResourceConfig:
@@ -449,7 +450,16 @@ class TestDashboardContext:
 
     @pytest.fixture
     def mock_db_session(self):
-        return Mock(spec=Session)
+        """Async session — the "all checks failed" fallthrough in
+        _check_public_view_read_access() awaits db_session.execute() to look
+        up a blocking paid offer, so this must be an AsyncMock (not a plain
+        Mock) or that await raises TypeError instead of resolving to "no
+        offer found"."""
+        session = AsyncMock()
+        execute_result = MagicMock()
+        execute_result.scalars.return_value.first.return_value = None
+        session.execute = AsyncMock(return_value=execute_result)
+        return session
 
     @pytest.fixture
     def mock_public_user(self):

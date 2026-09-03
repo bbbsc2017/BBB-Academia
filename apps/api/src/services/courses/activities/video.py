@@ -1,14 +1,15 @@
-from typing import Literal, Optional
 import json
 import logging
 import re
-from src.db.courses.courses import Course
-from src.db.organizations import Organization
+from datetime import datetime
+from typing import Literal
+from uuid import uuid4
 
+from fastapi import HTTPException, Request, UploadFile, status
 from pydantic import BaseModel
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.courses.chapters import Chapter
+
 from src.db.courses.activities import (
     Activity,
     ActivityRead,
@@ -16,13 +17,13 @@ from src.db.courses.activities import (
     ActivityTypeEnum,
 )
 from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.chapters import Chapter
 from src.db.courses.course_chapters import CourseChapter
+from src.db.courses.courses import Course
+from src.db.organizations import Organization
 from src.db.users import AnonymousUser, PublicUser
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.courses.activities.uploads.videos import upload_video
-from fastapi import HTTPException, status, UploadFile, Request
-from uuid import uuid4
-from datetime import datetime
-from src.security.rbac import check_resource_access, AccessAction
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ async def create_video_activity(
     db_session: AsyncSession,
     video_file: UploadFile | None = None,
     details: str = "{}",
-    extra_metadata: Optional[dict] = None,
+    extra_metadata: dict | None = None,
 ):
     # get chapter_id
     statement = select(Chapter).where(Chapter.id == chapter_id)
@@ -175,7 +176,7 @@ class ExternalVideo(BaseModel):
     type: Literal["youtube", "vimeo"]
     chapter_id: int
     details: str = "{}"
-    extra_metadata: Optional[dict] = None
+    extra_metadata: dict | None = None
 
 
 class ExternalVideoInDB(BaseModel):
@@ -285,9 +286,9 @@ async def update_video_activity(
     activity_uuid: str,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-    name: Optional[str] = None,
+    name: str | None = None,
     video_file: UploadFile | None = None,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> ActivityRead:
     statement = select(Activity).where(Activity.activity_uuid == activity_uuid)
     activity = (await db_session.execute(statement)).scalars().first()
@@ -353,7 +354,7 @@ MAX_CAPTION_LANGUAGES = 15
 
 class CaptionLanguageIn(BaseModel):
     code: str
-    label: Optional[str] = None
+    label: str | None = None
 
 
 class CaptionsConfigIn(BaseModel):
@@ -461,9 +462,9 @@ async def update_external_video_activity(
     activity_uuid: str,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-    uri: Optional[str] = None,
-    name: Optional[str] = None,
-    details: Optional[str] = None,
+    uri: str | None = None,
+    name: str | None = None,
+    details: str | None = None,
 ) -> ActivityRead:
     statement = select(Activity).where(Activity.activity_uuid == activity_uuid)
     activity = (await db_session.execute(statement)).scalars().first()

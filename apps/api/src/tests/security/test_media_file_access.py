@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.db.folders.folders import Folder
 from src.db.folders.folder_content import FolderContent
+from src.db.folders.folders import Folder
 from src.db.media.media import Media, MediaTypeEnum
 from src.services.media.media import (
     authorize_media_file,

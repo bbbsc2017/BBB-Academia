@@ -163,11 +163,10 @@ class TestImportHelpers:
         with patch(
             "src.services.courses.transfer.import_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await analyze_import_package(
-                    mock_request, _upload_file(package_bytes), org.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await analyze_import_package(
+                mock_request, _upload_file(package_bytes), org.id, admin_user, db
+            )
 
         assert exc.value.status_code == 400
         assert "No valid courses found" in exc.value.detail
@@ -197,11 +196,10 @@ class TestImportHelpers:
         ), patch(
             "src.services.courses.transfer.import_service.os.path.commonpath",
             side_effect=ValueError("mixed drives"),
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await analyze_import_package(
-                    mock_request, _upload_file(package_bytes), org.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await analyze_import_package(
+                mock_request, _upload_file(package_bytes), org.id, admin_user, db
+            )
 
         # Every entry skipped → manifest.json is never written to disk.
         assert exc.value.status_code == 400
@@ -225,15 +223,14 @@ class TestImportHelpers:
         with patch(
             "src.services.courses.transfer.import_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await analyze_import_package(
-                    mock_request,
-                    _upload_file(package_bytes),
-                    org.id,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await analyze_import_package(
+                mock_request,
+                _upload_file(package_bytes),
+                org.id,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 413
         assert "too large" in exc_info.value.detail
@@ -403,15 +400,14 @@ class TestImportHelpers:
         with patch(
             "src.services.courses.transfer.import_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await analyze_import_package(
-                    mock_request,
-                    _upload_file(package_bytes),
-                    org.id,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await analyze_import_package(
+                mock_request,
+                _upload_file(package_bytes),
+                org.id,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == expected_status
         assert expected_detail in exc_info.value.detail
@@ -479,11 +475,10 @@ class TestImportHelpers:
         with patch(
             "src.services.courses.transfer.import_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await analyze_import_package(
-                    mock_request, _upload_file(package), org.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await analyze_import_package(
+                mock_request, _upload_file(package), org.id, admin_user, db
+            )
         assert exc.value.status_code == 400
         assert "too many entries" in exc.value.detail.lower()
 
@@ -500,11 +495,10 @@ class TestImportHelpers:
         with patch(
             "src.services.courses.transfer.import_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await analyze_import_package(
-                    mock_request, _upload_file(package), org.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await analyze_import_package(
+                mock_request, _upload_file(package), org.id, admin_user, db
+            )
         assert exc.value.status_code == 400
         assert "per-file size limit" in exc.value.detail
 
@@ -545,11 +539,10 @@ class TestImportHelpers:
         with patch(
             "src.services.courses.transfer.import_service.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await analyze_import_package(
-                    mock_request, _upload_file(buf.getvalue()), org.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await analyze_import_package(
+                mock_request, _upload_file(buf.getvalue()), org.id, admin_user, db
+            )
         assert exc.value.status_code == 400
         assert "symlink" in exc.value.detail.lower()
 
@@ -581,15 +574,14 @@ class TestImportHelpers:
         ), patch(
             "src.services.courses.transfer.import_service.zipfile.ZipFile",
             side_effect=RuntimeError("zip exploded"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await analyze_import_package(
-                    mock_request,
-                    _upload_file(package_bytes),
-                    org.id,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await analyze_import_package(
+                mock_request,
+                _upload_file(package_bytes),
+                org.id,
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 500
         assert "zip exploded" in exc_info.value.detail
@@ -613,15 +605,14 @@ class TestImportHelpers:
             new_callable=AsyncMock,
         ), patch(
             "src.services.courses.transfer.import_service.os.unlink"
-        ):
-            with pytest.raises(HTTPException) as manifest_exc:
-                await analyze_import_package(
-                    mock_request,
-                    _upload_file(package_bytes),
-                    org.id,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as manifest_exc:
+            await analyze_import_package(
+                mock_request,
+                _upload_file(package_bytes),
+                org.id,
+                admin_user,
+                db,
+            )
 
         assert manifest_exc.value.status_code == 400
         assert "manifest.json not found" in manifest_exc.value.detail
@@ -760,16 +751,15 @@ class TestImportHelpers:
         ), patch(
             "src.services.courses.transfer.import_service.os.rename",
             side_effect=OSError("busy"),
-        ):
-            with pytest.raises(HTTPException) as locked_exc:
-                await import_courses(
-                    mock_request,
-                    temp_id,
-                    org.id,
-                    ImportOptions(course_uuids=["course-1"]),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as locked_exc:
+            await import_courses(
+                mock_request,
+                temp_id,
+                org.id,
+                ImportOptions(course_uuids=["course-1"]),
+                admin_user,
+                db,
+            )
 
         assert locked_exc.value.status_code == 409
 
@@ -874,16 +864,15 @@ class TestImportHelpers:
         ), patch(
             "src.services.courses.transfer.import_service.os.rename",
             side_effect=rename_side_effect,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await import_courses(
-                    mock_request,
-                    temp_id,
-                    org.id,
-                    ImportOptions(course_uuids=["course-1"]),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await import_courses(
+                mock_request,
+                temp_id,
+                org.id,
+                ImportOptions(course_uuids=["course-1"]),
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == expected_status
         assert expected_detail in exc_info.value.detail
@@ -971,16 +960,15 @@ class TestImportHelpers:
         ), patch(
             "src.services.courses.transfer.import_service.uuid4",
             side_effect=_uuid_factory(),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await _import_single_course(
-                    course_path=str(course_path),
-                    organization=org,
-                    current_user=admin_user,
-                    options=ImportOptions(course_uuids=["course-upload"]),
-                    db_session=db,
-                    new_course_uuid="course-upload-new",
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await _import_single_course(
+                course_path=str(course_path),
+                organization=org,
+                current_user=admin_user,
+                options=ImportOptions(course_uuids=["course-upload"]),
+                db_session=db,
+                new_course_uuid="course-upload-new",
+            )
 
         assert exc_info.value.status_code == 500
         assert "Failed to upload thumbnail" in exc_info.value.detail
@@ -1317,24 +1305,23 @@ class TestImportHelpers:
         ), patch(
             "src.services.courses.transfer.import_service.upload_file_to_s3",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await _import_block(
-                    block_data={
-                        "block_type": "BLOCK_VIDEO",
-                        "content": {
-                            "file_id": "old-file",
-                            "activity_uuid": "old-activity",
-                        },
+        ), pytest.raises(HTTPException) as exc_info:
+            await _import_block(
+                block_data={
+                    "block_type": "BLOCK_VIDEO",
+                    "content": {
+                        "file_id": "old-file",
+                        "activity_uuid": "old-activity",
                     },
-                    original_block_uuid="block-old",
-                    new_activity=SimpleNamespace(id=1, activity_uuid="activity-new"),
-                    new_activity_path=str(new_activity_path),
-                    new_course=SimpleNamespace(id=course.id),
-                    new_chapter=SimpleNamespace(id=chapter.id),
-                    organization=org,
-                    db_session=db,
-                )
+                },
+                original_block_uuid="block-old",
+                new_activity=SimpleNamespace(id=1, activity_uuid="activity-new"),
+                new_activity_path=str(new_activity_path),
+                new_course=SimpleNamespace(id=course.id),
+                new_chapter=SimpleNamespace(id=chapter.id),
+                organization=org,
+                db_session=db,
+            )
 
         assert exc_info.value.status_code == 500
         assert "Failed to upload block file" in exc_info.value.detail

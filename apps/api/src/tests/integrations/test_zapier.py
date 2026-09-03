@@ -14,8 +14,8 @@ from sqlmodel import select
 
 from src.db.courses.courses import Course
 from src.db.roles import Role
-from src.db.usergroups import UserGroup
 from src.db.user_organizations import UserOrganization
+from src.db.usergroups import UserGroup
 from src.db.users import AnonymousUser, APITokenUser, PublicUser, User
 from src.db.webhooks import WebhookEndpoint
 from src.routers.integrations.zapier import (
@@ -30,7 +30,6 @@ from src.routers.integrations.zapier import (
     zapier_list_users,
     zapier_me,
 )
-
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -218,9 +217,8 @@ class TestZapierMe:
             token_name="Orphan",
             created_by_user_id=user.id,
         )
-        with _patch_plan_pro():
-            with pytest.raises(HTTPException) as exc:
-                await zapier_me(ctx=(orphan_token, db))
+        with _patch_plan_pro(), pytest.raises(HTTPException) as exc:
+            await zapier_me(ctx=(orphan_token, db))
         assert exc.value.status_code == 404
 
     async def test_me_rejects_free_plan(self, db, token_user):
@@ -228,9 +226,8 @@ class TestZapierMe:
         with _patch_plan_free(), patch(
             "src.routers.integrations.zapier.plan_meets_requirement",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await _require_pro_plan(token_user.org_id, db)
+        ), pytest.raises(HTTPException) as exc:
+            await _require_pro_plan(token_user.org_id, db)
         assert exc.value.status_code == 403
         assert "Pro plan" in exc.value.detail
 
@@ -356,13 +353,12 @@ class TestZapierSubscriptions:
             target_url="https://hooks.zapier.com/hooks/catch/1/x",
             event="nonexistent_event",
         )
-        with _patch_plan_pro():
-            with pytest.raises(HTTPException) as exc:
-                await zapier_create_subscription(
-                    request=request_obj,
-                    payload=payload,
-                    ctx=(token_user, db),
-                )
+        with _patch_plan_pro(), pytest.raises(HTTPException) as exc:
+            await zapier_create_subscription(
+                request=request_obj,
+                payload=payload,
+                ctx=(token_user, db),
+            )
         assert exc.value.status_code == 400
 
     async def test_list_subscriptions_only_own_org_and_zapier_source(
@@ -445,27 +441,25 @@ class TestZapierSubscriptions:
         self, db, token_user, other_token, request_obj
     ):
         # Create a Zapier webhook in other org
-        with _patch_plan_pro():
-            with patch(
-                "src.routers.integrations.zapier.get_org_plan",
-                return_value="pro",
-            ):
-                created = await zapier_create_subscription(
-                    request=request_obj,
-                    payload=ZapierSubscriptionCreate(
-                        target_url="https://hooks.zapier.com/hooks/catch/2/x",
-                        event="ping",
-                    ),
-                    ctx=(other_token, db),
-                )
+        with _patch_plan_pro(), patch(
+            "src.routers.integrations.zapier.get_org_plan",
+            return_value="pro",
+        ):
+            created = await zapier_create_subscription(
+                request=request_obj,
+                payload=ZapierSubscriptionCreate(
+                    target_url="https://hooks.zapier.com/hooks/catch/2/x",
+                    event="ping",
+                ),
+                ctx=(other_token, db),
+            )
 
         # Our token tries to delete — should 404 (not leak existence)
-        with _patch_plan_pro():
-            with pytest.raises(HTTPException) as exc:
-                await zapier_delete_subscription(
-                    subscription_id=created.id,
-                    ctx=(token_user, db),
-                )
+        with _patch_plan_pro(), pytest.raises(HTTPException) as exc:
+            await zapier_delete_subscription(
+                subscription_id=created.id,
+                ctx=(token_user, db),
+            )
         assert exc.value.status_code == 404
 
     async def test_delete_refuses_manual_webhook(self, db, token_user):
@@ -487,10 +481,9 @@ class TestZapierSubscriptions:
         await db.commit()
         await db.refresh(wh)
 
-        with _patch_plan_pro():
-            with pytest.raises(HTTPException) as exc:
-                await zapier_delete_subscription(
-                    subscription_id=wh.id,
-                    ctx=(token_user, db),
-                )
+        with _patch_plan_pro(), pytest.raises(HTTPException) as exc:
+            await zapier_delete_subscription(
+                subscription_id=wh.id,
+                ctx=(token_user, db),
+            )
         assert exc.value.status_code == 404

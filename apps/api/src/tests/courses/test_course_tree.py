@@ -27,7 +27,6 @@ from src.db.courses.chapter_activities import ChapterActivity
 from src.db.users import PublicUser
 from src.services.courses.chapters import get_course_chapters
 
-
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
 # engine, db, org, course, chapter, mock_request, bypass_rbac are provided

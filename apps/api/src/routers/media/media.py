@@ -1,21 +1,21 @@
-from typing import List, Optional
+
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+
 from src.core.events.database import get_db_session
 from src.db.media.media import MediaCreate, MediaRead, MediaTypeEnum, MediaUpdate
 from src.security.auth import get_current_user
-from src.services.users.users import PublicUser
 from src.services.media.media import (
+    authorize_media_file,
+    authorize_share_token,
     create_media,
+    create_media_share_link,
+    delete_media,
     get_media,
     get_media_list,
     update_media,
-    delete_media,
-    authorize_media_file,
-    authorize_share_token,
-    create_media_share_link,
 )
 from src.services.media.media_serve import serve_media_file
-
+from src.services.users.users import PublicUser
 
 router = APIRouter()
 
@@ -97,11 +97,11 @@ async def api_create_media(
     org_id: int = Form(...),
     name: str = Form(...),
     media_type: MediaTypeEnum = Form(MediaTypeEnum.UPLOAD),
-    description: Optional[str] = Form(""),
-    url: Optional[str] = Form(""),
+    description: str | None = Form(""),
+    url: str | None = Form(""),
     public: bool = Form(True),
-    folder_uuid: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None),
+    folder_uuid: str | None = Form(None),
+    file: UploadFile | None = File(None),
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
 ) -> MediaRead:
@@ -134,7 +134,7 @@ async def api_get_media(
 
 @router.get(
     "/org/{org_id}/page/{page}/limit/{limit}",
-    response_model=List[MediaRead],
+    response_model=list[MediaRead],
     summary="List media for org",
     description="List media assets for an organization, paginated.",
 )
@@ -145,7 +145,7 @@ async def api_get_media_list(
     org_id: str,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> List[MediaRead]:
+) -> list[MediaRead]:
     return await get_media_list(request, org_id, current_user, db_session, page, limit)
 
 

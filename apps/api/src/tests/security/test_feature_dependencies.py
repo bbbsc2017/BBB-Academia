@@ -1,9 +1,8 @@
-import pytest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-from fastapi import HTTPException
-from fastapi import Request
+import pytest
+from fastapi import HTTPException, Request
 
 from src.db.users import AnonymousUser, PublicUser
 from src.security.features_utils.dependencies import (

@@ -14,15 +14,14 @@ Missing coverage lines targeted:
 
 from datetime import datetime
 
-from src.db.usergroups import UserGroup
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
+from src.db.usergroups import UserGroup
 from src.services.courses.locks import (
     batch_accessible_restricted_uuids,
     is_locked_for_user,
     is_org_admin,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -91,8 +90,8 @@ class TestIsOrgAdmin:
 
     async def test_maintainer_role_returns_true(self, db, org):
         # role_id=2 is MAINTAINER_ROLE_ID — create a user+UO with that role
-        from src.db.users import User
         from src.db.user_organizations import UserOrganization
+        from src.db.users import User
 
         u = User(
             id=10,

@@ -1,12 +1,12 @@
-from typing import Optional
-from sqlmodel import SQLModel, Field, Column, JSON
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+from sqlmodel import JSON, Column, Field, SQLModel
 
 
 class CodeSubmission(SQLModel, table=True):
     __tablename__ = "code_submission"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     submission_uuid: str = Field(index=True)
     user_id: int = Field(index=True)
     activity_uuid: str = Field(index=True)
@@ -17,8 +17,8 @@ class CodeSubmission(SQLModel, table=True):
     passed: bool = False
     total_tests: int = 0
     passed_tests: int = 0
-    execution_time_ms: Optional[int] = None
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None).isoformat())
+    execution_time_ms: int | None = None
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None).isoformat())
 
 
 class CodeSubmissionRead(SQLModel):
@@ -30,5 +30,5 @@ class CodeSubmissionRead(SQLModel):
     passed: bool
     total_tests: int
     passed_tests: int
-    execution_time_ms: Optional[int]
+    execution_time_ms: int | None
     created_at: str

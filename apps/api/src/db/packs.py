@@ -1,7 +1,7 @@
-from typing import Optional
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, ForeignKey, BigInteger, Index, String, Boolean
+
+from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Index, String
 from sqlmodel import Field, SQLModel
 
 
@@ -21,7 +21,7 @@ class OrgPack(SQLModel, table=True):
         Index('ix_orgpack_platform_sub', 'platform_subscription_id', unique=True),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("organization.id", ondelete="CASCADE"))
     )
@@ -30,7 +30,7 @@ class OrgPack(SQLModel, table=True):
     quantity: int
     status: PackStatusEnum = PackStatusEnum.active
     activated_at: datetime = Field(default_factory=datetime.now)
-    cancelled_at: Optional[datetime] = None
+    cancelled_at: datetime | None = None
     cancel_at_period_end: bool = Field(
         sa_column=Column(Boolean, nullable=False, server_default="false")
     )
@@ -47,6 +47,6 @@ class OrgPackRead(SQLModel):
     quantity: int
     status: str
     activated_at: datetime
-    cancelled_at: Optional[datetime]
+    cancelled_at: datetime | None
     cancel_at_period_end: bool
     platform_subscription_id: str

@@ -1,6 +1,6 @@
 """Unit tests for src/services/utils/hls_playlist.py (playlist URL rewriting)."""
 
-from src.services.utils.hls_playlist import rewrite_playlist, _resolve_key
+from src.services.utils.hls_playlist import _resolve_key, rewrite_playlist
 
 
 def _presign(key: str):

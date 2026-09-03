@@ -1,6 +1,6 @@
 """Tests for src/services/security/account_lockout.py."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -26,13 +26,13 @@ class TestAccountLockoutService:
             SimpleNamespace(locked_until="not-a-datetime")
         ) == (False, None)
 
-        past_until = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+        past_until = (datetime.now(UTC) - timedelta(minutes=1)).isoformat()
         assert check_account_locked(
             SimpleNamespace(locked_until=past_until)
         ) == (False, None)
 
         aware_future_until = (
-            datetime.now(timezone.utc) + timedelta(hours=1)
+            datetime.now(UTC) + timedelta(hours=1)
         ).isoformat()
         locked, remaining = check_account_locked(
             SimpleNamespace(locked_until=aware_future_until)
@@ -81,7 +81,7 @@ class TestAccountLockoutService:
         # An expired locked_until should be treated as not locked
         expired_user = SimpleNamespace(
             id=1,
-            locked_until=(datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
+            locked_until=(datetime.now(UTC) - timedelta(minutes=1)).isoformat(),
         )
         expired_session = AsyncMock()
         expired_session.execute.return_value = MagicMock()
@@ -93,7 +93,7 @@ class TestAccountLockoutService:
 
     @pytest.mark.asyncio
     async def test_record_failed_login_threshold_locks_account(self):
-        future = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
+        future = (datetime.now(UTC) + timedelta(minutes=5)).isoformat()
         user = SimpleNamespace(id=1, locked_until=future)
         db_session = AsyncMock()
         db_session.execute.return_value = MagicMock()

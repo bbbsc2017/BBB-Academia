@@ -14,10 +14,12 @@ _api_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 
 if _api_root not in sys.path:  # pragma: no cover
     sys.path.insert(0, _api_root)
 
-from datetime import datetime  # noqa: E402
-from sqlmodel import select  # noqa: E402
-from src.db.organization_config import OrganizationConfig  # noqa: E402
-from src.security.features_utils.plans import PLAN_FEATURE_CONFIGS  # noqa: E402
+from datetime import datetime
+
+from sqlmodel import select
+
+from src.db.organization_config import OrganizationConfig
+from src.security.features_utils.plans import PLAN_FEATURE_CONFIGS
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +188,7 @@ if __name__ == "__main__":
     import asyncio
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     from sqlmodel.ext.asyncio.session import AsyncSession as _AsyncSession
+
     from src.core.events.database import engine as _engine
 
     async def _main():

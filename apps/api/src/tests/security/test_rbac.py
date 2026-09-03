@@ -1,19 +1,24 @@
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import HTTPException, Request
-from src.security.rbac.rbac import (
-    authorization_verify_if_element_is_public,
-    authorization_verify_if_user_is_author,
-    authorization_verify_based_on_roles,
-    authorization_verify_based_on_org_admin_status,
-    authorization_verify_based_on_roles_and_authorship,
-    authorization_verify_if_user_is_anon,
-)
+
 from src.db.courses.courses import Course
 from src.db.folders.folders import Folder
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
 from src.db.roles import Role
-from unittest.mock import Mock
+from src.security.rbac.rbac import (
+    authorization_verify_based_on_org_admin_status,
+    authorization_verify_based_on_roles,
+    authorization_verify_based_on_roles_and_authorship,
+    authorization_verify_if_element_is_public,
+    authorization_verify_if_user_is_anon,
+    authorization_verify_if_user_is_author,
+)
 
 
 class TestRBAC:
@@ -59,7 +64,13 @@ class TestRBAC:
     @pytest.fixture
     def mock_role(self):
         """Create a mock role object"""
-        from src.db.roles import RoleTypeEnum, Rights, PermissionsWithOwn, Permission, DashboardPermission
+        from src.db.roles import (
+            DashboardPermission,
+            Permission,
+            PermissionsWithOwn,
+            Rights,
+            RoleTypeEnum,
+        )
         role = Mock(spec=Role)
         role.id = 1
         role.org_id = 1
@@ -416,11 +427,13 @@ class TestRBAC:
         with patch('src.security.rbac.rbac.authorization_verify_if_user_is_author', new_callable=AsyncMock) as mock_author, \
              patch('src.security.rbac.rbac.authorization_verify_based_on_roles', new_callable=AsyncMock) as mock_roles, \
              patch('src.security.rbac.rbac.check_usergroup_access', new_callable=AsyncMock) as mock_usergroup, \
+             patch('src.services.payments.enrollments.check_enrollment_access', new_callable=AsyncMock) as mock_enrollment, \
              patch('src.security.rbac.rbac.is_user_superadmin', return_value=False):
 
             mock_author.return_value = False
             mock_roles.return_value = False
             mock_usergroup.return_value = False
+            mock_enrollment.return_value = False
 
             with pytest.raises(HTTPException) as exc_info:
                 await authorization_verify_based_on_roles_and_authorship(

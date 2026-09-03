@@ -18,7 +18,6 @@ from src.services.ai.schemas.ai import (
     StartActivityAIChatSession,
 )
 
-
 # ---------------------------------------------------------------------------
 # Non-streaming endpoints: return await <service>(...)  (lines 58, 83)
 # ---------------------------------------------------------------------------
@@ -119,7 +118,6 @@ class TestEditorChatEventGeneratorRefund:
         async def empty_stream():
             if False:
                 yield ""  # pragma: no cover
-            return
 
         with patch.object(
             ai_router, "refund_ai_credit"
@@ -195,19 +193,18 @@ class TestEditorChatEventGeneratorRefund:
             "generate_follow_up_suggestions",
             new_callable=AsyncMock,
             return_value=[],
-        ):
-            with pytest.raises(asyncio.CancelledError):
-                await _drain(
-                    ai_router.editor_chat_event_generator(
-                        cancelling_stream(),
-                        aichat_uuid="chat_1",
-                        activity_uuid="act_1",
-                        user_message="hi",
-                        ai_friendly_text="ctx",
-                        ai_model="gemini-2.5-flash",
-                        org_id=5,
-                    )
+        ), pytest.raises(asyncio.CancelledError):
+            await _drain(
+                ai_router.editor_chat_event_generator(
+                    cancelling_stream(),
+                    aichat_uuid="chat_1",
+                    activity_uuid="act_1",
+                    user_message="hi",
+                    ai_friendly_text="ctx",
+                    ai_model="gemini-2.5-flash",
+                    org_id=5,
                 )
+            )
 
         refund.assert_called_once_with(5, 1)
 

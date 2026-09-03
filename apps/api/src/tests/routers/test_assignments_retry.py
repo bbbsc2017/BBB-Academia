@@ -41,7 +41,6 @@ from src.services.courses.activities.assignments import (
     retry_assignment_submission,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helper fixtures local to this module
 # ---------------------------------------------------------------------------
@@ -281,11 +280,10 @@ class TestRetryAssignmentSubmissionService:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await retry_assignment_submission(
-                    mock_request, assignment.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await retry_assignment_submission(
+                mock_request, assignment.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 403
         assert "Retries are not enabled" in exc_info.value.detail
@@ -306,11 +304,10 @@ class TestRetryAssignmentSubmissionService:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await retry_assignment_submission(
-                    mock_request, assignment.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await retry_assignment_submission(
+                mock_request, assignment.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 403
         assert "No retry attempts remaining" in exc_info.value.detail
@@ -328,11 +325,10 @@ class TestRetryAssignmentSubmissionService:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await retry_assignment_submission(
-                    mock_request, assignment.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await retry_assignment_submission(
+                mock_request, assignment.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 400
         assert "Only graded submissions" in exc_info.value.detail
@@ -343,11 +339,10 @@ class TestRetryAssignmentSubmissionService:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await retry_assignment_submission(
-                    mock_request, assignment.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await retry_assignment_submission(
+                mock_request, assignment.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 404
         assert "Assignment User Submission not found" in exc_info.value.detail
@@ -358,11 +353,10 @@ class TestRetryAssignmentSubmissionService:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await retry_assignment_submission(
-                    mock_request, "assignment_does_not_exist", regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await retry_assignment_submission(
+                mock_request, "assignment_does_not_exist", regular_user, db
+            )
 
         assert exc_info.value.status_code == 404
         assert "Assignment not found" in exc_info.value.detail
@@ -397,11 +391,10 @@ class TestRetryAssignmentSubmissionService:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await retry_assignment_submission(
-                    mock_request, orphan.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await retry_assignment_submission(
+                mock_request, orphan.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 404
         assert "Course not found" in exc_info.value.detail
@@ -515,11 +508,10 @@ class TestCreateAssignmentSubmissionRetryPath:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_assignment_submission(
-                    mock_request, assignment.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_assignment_submission(
+                mock_request, assignment.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 400
         assert "already exists" in exc_info.value.detail
@@ -537,11 +529,10 @@ class TestCreateAssignmentSubmissionRetryPath:
         with patch(
             "src.services.courses.activities.assignments.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_assignment_submission(
-                    mock_request, assignment.assignment_uuid, regular_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_assignment_submission(
+                mock_request, assignment.assignment_uuid, regular_user, db
+            )
 
         assert exc_info.value.status_code == 400
 

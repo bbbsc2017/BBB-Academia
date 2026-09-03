@@ -16,7 +16,6 @@ contract, including the quiz-score override from issue #891.
 """
 
 from datetime import datetime
-
 from unittest.mock import AsyncMock, patch
 
 from src.db.courses.assignments import (

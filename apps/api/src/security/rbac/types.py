@@ -5,7 +5,7 @@ This module defines the core types and enums used throughout the RBAC system.
 """
 
 from enum import Enum
-from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -36,14 +36,14 @@ class AccessDecision(BaseModel):
     via_role: bool = False
     via_admin: bool = False
     via_public: bool = False
-    resource_uuid: Optional[str] = None
-    user_id: Optional[int] = None
-    action: Optional[str] = None
-    context: Optional[str] = None
+    resource_uuid: str | None = None
+    user_id: int | None = None
+    action: str | None = None
+    context: str | None = None
     # Set when access was denied specifically because the resource is gated by
     # a PaymentsOffer's usergroup — lets the caller raise 402 with offer data
     # (so the frontend can render a PaymentWall) instead of a plain 403.
-    offer: Optional[dict] = None
+    offer: dict | None = None
 
 
 class ResourceConfig(BaseModel):
@@ -60,10 +60,10 @@ class ResourceConfig(BaseModel):
     supports_authorship: bool
 
     # Table/model info for lookups
-    model_name: Optional[str] = None
-    uuid_field: Optional[str] = None
+    model_name: str | None = None
+    uuid_field: str | None = None
 
     # Parent resource configuration (for child resources like chapters, episodes)
     # If set, access is delegated to the parent resource
-    parent_resource_type: Optional[str] = None
-    parent_id_field: Optional[str] = None  # e.g., "course_id" for chapters
+    parent_resource_type: str | None = None
+    parent_id_field: str | None = None  # e.g., "course_id" for chapters

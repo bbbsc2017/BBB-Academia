@@ -378,9 +378,8 @@ async def test_change_user_role_admin_branch_unreachable_via_token(
     target = await _make_user(db, id=70, username="target70", email="t70@test.com")
     await _link(db, target.id, org.id, user_role.id)
 
-    with patch(_LOOPS_TARGET) as loops_hook:
-        with pytest.raises(HTTPException) as exc:
-            await change_user_role(token_user, target.id, ADMIN_ROLE_ID, db)
+    with patch(_LOOPS_TARGET) as loops_hook, pytest.raises(HTTPException) as exc:
+        await change_user_role(token_user, target.id, ADMIN_ROLE_ID, db)
 
     assert exc.value.status_code == 403
     loops_hook.assert_not_called()

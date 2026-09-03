@@ -1,25 +1,14 @@
 import json
 import logging
-from typing import Literal, List, Optional, Union
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, Query
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel, EmailStr
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.core.redis import get_redis_client as _get_redis_pool_client
-from src.services.users.password_reset import (
-    change_password_with_reset_code,
-    change_password_with_reset_code_platform,
-    send_reset_password_code,
-    send_reset_password_code_platform,
-)
-from src.services.security.rate_limiting import (
-    check_password_reset_rate_limit,
-    check_invite_acceptance_rate_limit,
-)
-from src.services.orgs.orgs import get_org_join_mechanism
-from src.security.auth import get_current_user, get_authenticated_user
-from src.core.events.database import get_db_session
-from src.db.courses.courses import CourseRead
 
+from src.core.events.database import get_db_session
+from src.core.redis import get_redis_client as _get_redis_pool_client
+from src.db.courses.courses import CourseRead
 from src.db.users import (
     AnonymousUser,
     PublicUser,
@@ -30,6 +19,19 @@ from src.db.users import (
     UserUpdate,
     UserUpdatePassword,
 )
+from src.security.auth import get_authenticated_user, get_current_user
+from src.services.courses.courses import get_user_courses
+from src.services.orgs.orgs import get_org_join_mechanism
+from src.services.security.rate_limiting import (
+    check_invite_acceptance_rate_limit,
+    check_password_reset_rate_limit,
+)
+from src.services.users.password_reset import (
+    change_password_with_reset_code,
+    change_password_with_reset_code_platform,
+    send_reset_password_code,
+    send_reset_password_code_platform,
+)
 from src.services.users.users import (
     authorize_user_action,
     create_user,
@@ -38,13 +40,12 @@ from src.services.users.users import (
     delete_user_by_id,
     get_user_session,
     read_user_by_id,
-    read_user_by_uuid,
     read_user_by_username,
+    read_user_by_uuid,
     update_user,
     update_user_avatar,
     update_user_password,
 )
-from src.services.courses.courses import get_user_courses
 
 _get_redis_client = _get_redis_pool_client
 
@@ -55,7 +56,7 @@ router = APIRouter()
 SESSION_CACHE_TTL = 600  # 10 minutes
 
 
-def _get_session_cache(user_id: int) -> Optional[dict]:
+def _get_session_cache(user_id: int) -> dict | None:
     """Get cached session data for a user."""
     r = _get_redis_pool_client()
     if r is None:
@@ -100,7 +101,7 @@ def _invalidate_session_cache(user_id: int) -> None:
     },
 )
 async def api_get_current_user(
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user)
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user)
 ):
     """
     Get current user
@@ -120,7 +121,7 @@ async def api_get_current_user(
 async def api_get_current_user_session(
     request: Request,
     db_session: AsyncSession = Depends(get_db_session),
-    current_user: Union[PublicUser, AnonymousUser] = Depends(get_current_user),
+    current_user: PublicUser | AnonymousUser = Depends(get_current_user),
 ) -> UserSession:
     """
     Get current user session (cached for 10 minutes).
@@ -454,7 +455,7 @@ async def api_update_user_password(
 class ResetPasswordRequest(BaseModel):
     # Email is optional so the legacy path-param variant can reuse the same
     # body model; the v2 handlers require it.
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
     new_password: str
     org_id: int
     reset_code: str
@@ -603,7 +604,7 @@ async def api_send_password_reset_email(
 
 
 class PlatformResetPasswordRequest(BaseModel):
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
     new_password: str
     reset_code: str
 
@@ -759,7 +760,7 @@ async def api_delete_user(
 
 @router.get(
     "/{user_id}/courses",
-    response_model=List[CourseRead],
+    response_model=list[CourseRead],
     tags=["users"],
     summary="List courses for user",
     description="List courses authored or contributed to by a user. Paginated; the maximum page size is 50 to prevent bulk data extraction.",
@@ -776,7 +777,7 @@ async def api_get_user_courses(
     user_id: int,
     page: int = Query(default=1, ge=1, description="Page number"),
     limit: int = Query(default=10, ge=1, le=50, description="Items per page (max 50)"),
-) -> List[CourseRead]:
+) -> list[CourseRead]:
     """
     Get courses made or contributed by a user.
 

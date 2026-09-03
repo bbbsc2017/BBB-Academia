@@ -47,7 +47,12 @@ jobs:
           files: apps/api/coverage.xml
           flags: api
           name: api-coverage
-          fail_ci_if_error: true
+          # No CODECOV_TOKEN is configured for this repo, so tokenless upload
+          # is rejected — that's a repo-settings gap, not a test failure.
+          # Don't fail the whole job over a missing upload; the actual test
+          # results (pytest's own exit code, checked in the step above) are
+          # what should gate CI.
+          fail_ci_if_error: false
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v7

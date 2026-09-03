@@ -1,5 +1,5 @@
+
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 class MagicBlockContext(BaseModel):
@@ -21,7 +21,7 @@ class SendMagicBlockMessage(BaseModel):
     activity_uuid: str
     block_uuid: str
     message: str
-    current_html: Optional[str] = None  # The current HTML content to iterate on
+    current_html: str | None = None  # The current HTML content to iterate on
 
 
 class MagicBlockMessage(BaseModel):
@@ -33,8 +33,8 @@ class MagicBlockSessionResponse(BaseModel):
     session_uuid: str
     iteration_count: int
     max_iterations: int
-    html_content: Optional[str]
-    message_history: List[MagicBlockMessage]
+    html_content: str | None
+    message_history: list[MagicBlockMessage]
 
 
 class MagicBlockSessionData(BaseModel):
@@ -43,7 +43,7 @@ class MagicBlockSessionData(BaseModel):
     activity_uuid: str
     iteration_count: int
     max_iterations: int
-    message_history: List[MagicBlockMessage]
-    current_html: Optional[str]
+    message_history: list[MagicBlockMessage]
+    current_html: str | None
     context: MagicBlockContext
-    user_id: Optional[int] = None
+    user_id: int | None = None

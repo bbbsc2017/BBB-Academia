@@ -7,7 +7,11 @@ from fastapi import HTTPException
 
 from src.db.courses.activities import Activity, ActivitySubTypeEnum, ActivityTypeEnum
 from src.services.courses.activities import video as video_mod
-from src.services.courses.activities.video import CaptionsConfigIn, CaptionLanguageIn, configure_captions
+from src.services.courses.activities.video import (
+    CaptionLanguageIn,
+    CaptionsConfigIn,
+    configure_captions,
+)
 
 
 async def _add_video(db, org, course, uuid):
@@ -34,7 +38,7 @@ def _mock_common(monkeypatch, enqueued):
 
     monkeypatch.setattr(video_mod, "check_resource_access", _access)
 
-    import src.security.features_utils.usage as usage
+    from src.security.features_utils import usage
 
     async def _feat(*a, **k):
         return True
@@ -136,7 +140,7 @@ async def test_configure_bad_source_language(monkeypatch, db, org, course, chapt
 
 async def test_configure_no_credits_blocks(monkeypatch, db, org, course, chapter, activity):
     _mock_common(monkeypatch, [])
-    import src.security.features_utils.usage as usage
+    from src.security.features_utils import usage
 
     async def _empty(*a, **k):
         return {"remaining_credits": 0}

@@ -10,14 +10,13 @@ import shutil
 import time
 import zipfile
 from datetime import datetime
-from typing import Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, Request, UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.courses.activities import Activity, ActivityTypeEnum, ActivitySubTypeEnum
+from src.db.courses.activities import Activity, ActivitySubTypeEnum, ActivityTypeEnum
 from src.db.courses.blocks import Block, BlockTypeEnum
 from src.db.courses.chapter_activities import ChapterActivity
 from src.db.courses.chapters import Chapter
@@ -29,19 +28,27 @@ from src.db.resource_authors import (
     ResourceAuthorshipEnum,
     ResourceAuthorshipStatusEnum,
 )
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
-from src.security.rbac import check_resource_access, AccessAction
-from src.security.features_utils.usage import check_limits_with_usage, increase_feature_usage
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.features_utils.usage import (
+    check_limits_with_usage,
+    increase_feature_usage,
+)
+from src.security.rbac import AccessAction, check_resource_access
 
 from .models import (
     ImportAnalysisResponse,
     ImportCourseInfo,
+    ImportCourseResult,
     ImportOptions,
     ImportResult,
-    ImportCourseResult,
 )
-from .storage_utils import upload_directory_to_s3, upload_file_to_s3, is_s3_enabled, delete_storage_file, delete_storage_directory
-
+from .storage_utils import (
+    delete_storage_directory,
+    delete_storage_file,
+    is_s3_enabled,
+    upload_directory_to_s3,
+    upload_file_to_s3,
+)
 
 # Temp storage for analyzed packages
 TEMP_IMPORT_DIR = "content/temp/imports"
@@ -72,8 +79,8 @@ def validate_zip(content: bytes) -> bool:
 
 def sanitize_path(path: str) -> str:
     """Sanitize file path to prevent directory traversal attacks"""
-    from urllib.parse import unquote
     from pathlib import PurePosixPath
+    from urllib.parse import unquote
     # Decode URL-encoded characters to catch %2e%2e etc.
     path = unquote(unquote(path))
     # Strip null bytes
@@ -91,7 +98,7 @@ def sanitize_path(path: str) -> str:
     return sanitized
 
 
-def _safe_manifest_join(extract_dir: str, manifest_path: Optional[str]) -> Optional[str]:
+def _safe_manifest_join(extract_dir: str, manifest_path: str | None) -> str | None:
     """Safely resolve a manifest-supplied relative path under extract_dir.
 
     manifest.json ``path`` values are attacker-controlled (they come from the
@@ -337,14 +344,14 @@ async def analyze_import_package(
             shutil.rmtree(temp_dir, ignore_errors=True)
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid package: Could not parse JSON - {str(e)}"
+            detail=f"Invalid package: Could not parse JSON - {e!s}"
         )
     except Exception as e:
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir, ignore_errors=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Error analyzing package: {str(e)}"
+            detail=f"Error analyzing package: {e!s}"
         )
 
 
@@ -926,7 +933,7 @@ async def _import_block(
     return new_block_uuid, content_updates
 
 
-def _get_block_type_folder(block_type: str) -> Optional[str]:
+def _get_block_type_folder(block_type: str) -> str | None:
     """
     Get the folder name for a block type.
     """

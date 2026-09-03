@@ -1,31 +1,32 @@
-from typing import List, Optional
 import json
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, Request, Query
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel
-from src.db.courses.activities import ActivityCreate, ActivityRead, ActivityUpdate
-from src.db.courses.activity_versions import ActivityVersionRead, ActivityStateRead
-from src.db.users import PublicUser
+
 from src.core.events.database import get_db_session
-from src.services.courses.activities.activities import (
-    create_activity,
-    get_activity,
-    get_activities,
-    get_activityby_id,
-    update_activity,
-    delete_activity,
-    get_editor_bootstrap,
-    EditorBootstrapResponse,
-)
-from src.services.courses.activities.versioning import (
-    get_activity_versions,
-    get_activity_version,
-    get_activity_state,
-    restore_activity_version,
-)
+from src.db.courses.activities import ActivityCreate, ActivityRead, ActivityUpdate
+from src.db.courses.activity_versions import ActivityStateRead, ActivityVersionRead
+from src.db.users import PublicUser
 from src.security.auth import get_current_user
+from src.services.courses.activities.activities import (
+    EditorBootstrapResponse,
+    create_activity,
+    delete_activity,
+    get_activities,
+    get_activity,
+    get_activityby_id,
+    get_editor_bootstrap,
+    update_activity,
+)
 from src.services.courses.activities.pdf import (
     create_documentpdf_activity,
     update_documentpdf_activity,
+)
+from src.services.courses.activities.versioning import (
+    get_activity_state,
+    get_activity_version,
+    get_activity_versions,
+    restore_activity_version,
 )
 from src.services.courses.activities.video import (
     CaptionsConfigIn,
@@ -33,8 +34,8 @@ from src.services.courses.activities.video import (
     configure_captions,
     create_external_video_activity,
     create_video_activity,
-    update_video_activity,
     update_external_video_activity,
+    update_video_activity,
 )
 from src.services.courses.lock_usergroups import (
     add_usergroup_to_activity,
@@ -46,15 +47,15 @@ router = APIRouter()
 
 
 class ExternalVideoUpdateBody(BaseModel):
-    name: Optional[str] = None
-    uri: Optional[str] = None
-    startTime: Optional[int] = None
-    endTime: Optional[int] = None
-    autoplay: Optional[bool] = None
-    muted: Optional[bool] = None
+    name: str | None = None
+    uri: str | None = None
+    startTime: int | None = None
+    endTime: int | None = None
+    autoplay: bool | None = None
+    muted: bool | None = None
 
 
-def _parse_extra_metadata(raw: Optional[str]) -> Optional[dict]:
+def _parse_extra_metadata(raw: str | None) -> dict | None:
     if not raw:
         return None
     try:
@@ -118,13 +119,13 @@ async def api_create_activity(
 
 @router.get(
     "/{activity_uuid}/versions",
-    response_model=List[ActivityVersionRead],
+    response_model=list[ActivityVersionRead],
     summary="List activity versions",
     description="Get the version history for an activity, ordered newest first. Supports pagination via limit and offset.",
     responses={
         200: {
             "description": "List of activity versions.",
-            "model": List[ActivityVersionRead],
+            "model": list[ActivityVersionRead],
         },
         401: {"description": "Authentication required"},
         403: {"description": "User lacks permission to view this activity's versions"},
@@ -138,7 +139,7 @@ async def api_get_activity_versions(
     offset: int = Query(default=0, ge=0),
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> List[ActivityVersionRead]:
+) -> list[ActivityVersionRead]:
     """
     Get version history for an activity.
     Returns versions in descending order (newest first).
@@ -309,13 +310,13 @@ async def api_get_activityby_id(
 
 @router.get(
     "/chapter/{chapter_id}",
-    response_model=List[ActivityRead],
+    response_model=list[ActivityRead],
     summary="List chapter activities",
     description="Get all activities that belong to the given chapter, in their configured order.",
     responses={
         200: {
             "description": "List of activities for the chapter.",
-            "model": List[ActivityRead],
+            "model": list[ActivityRead],
         },
         401: {"description": "Authentication required"},
         403: {"description": "User lacks permission to view this chapter"},
@@ -327,7 +328,7 @@ async def api_get_chapter_activities(
     chapter_id: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> List[ActivityRead]:
+) -> list[ActivityRead]:
     """
     Get Activities for a chapter
     """
@@ -409,7 +410,7 @@ async def api_create_video_activity(
     name: str = Form(),
     chapter_id: int = Form(),
     details: str = Form(default="{}"),
-    extra_metadata: Optional[str] = Form(default=None),
+    extra_metadata: str | None = Form(default=None),
     current_user: PublicUser = Depends(get_current_user),
     video_file: UploadFile | None = None,
     db_session=Depends(get_db_session),
@@ -481,7 +482,7 @@ async def api_create_documentpdf_activity(
     request: Request,
     name: str = Form(),
     chapter_id: int = Form(),
-    extra_metadata: Optional[str] = Form(default=None),
+    extra_metadata: str | None = Form(default=None),
     current_user: PublicUser = Depends(get_current_user),
     pdf_file: UploadFile | None = None,
     db_session=Depends(get_db_session),
@@ -508,11 +509,11 @@ async def api_create_documentpdf_activity(
 async def api_update_video_activity(
     request: Request,
     activity_uuid: str,
-    name: Optional[str] = Form(default=None),
-    start_time: Optional[int] = Form(default=None),
-    end_time: Optional[int] = Form(default=None),
-    autoplay: Optional[str] = Form(default=None),
-    muted: Optional[str] = Form(default=None),
+    name: str | None = Form(default=None),
+    start_time: int | None = Form(default=None),
+    end_time: int | None = Form(default=None),
+    autoplay: str | None = Form(default=None),
+    muted: str | None = Form(default=None),
     current_user: PublicUser = Depends(get_current_user),
     video_file: UploadFile | None = None,
     db_session=Depends(get_db_session),
@@ -563,7 +564,7 @@ async def api_update_external_video_activity(
     body: ExternalVideoUpdateBody,
     current_user: PublicUser = Depends(get_current_user),
     db_session=Depends(get_db_session),
-) -> ActivityRead:  # noqa: F811
+) -> ActivityRead:
     details_dict = {}
     if body.startTime is not None:
         details_dict["startTime"] = body.startTime
@@ -593,7 +594,7 @@ async def api_update_external_video_activity(
 async def api_update_documentpdf_activity(
     request: Request,
     activity_uuid: str,
-    name: Optional[str] = Form(default=None),
+    name: str | None = Form(default=None),
     current_user: PublicUser = Depends(get_current_user),
     pdf_file: UploadFile | None = None,
     db_session=Depends(get_db_session),

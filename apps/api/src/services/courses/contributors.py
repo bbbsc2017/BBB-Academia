@@ -1,15 +1,24 @@
 from datetime import datetime
+
 from fastapi import HTTPException, Request
-from sqlmodel import select, and_
+from sqlmodel import and_, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.users import PublicUser, AnonymousUser, APITokenUser, User, UserRead
+
 from src.db.courses.courses import Course
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserRead
 from src.security.auth import resolve_acting_user_id
+from src.security.rbac import (
+    AccessAction,
+    authorization_verify_if_user_is_anon,
+    check_resource_access,
+)
 from src.services.security.rate_limiting import enforce_batch_size_limit
-from src.security.rbac import authorization_verify_if_user_is_anon, check_resource_access, AccessAction
 from src.services.webhooks.dispatch import dispatch_webhooks
-from typing import List
 
 
 async def apply_course_contributor(
@@ -151,7 +160,7 @@ async def get_course_contributors(
     course_uuid: str,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
-) -> List[dict]:
+) -> list[dict]:
     """
     Get all contributors for a course with their user information
 
@@ -195,7 +204,7 @@ async def get_course_contributors(
 async def add_bulk_course_contributors(
     request: Request,
     course_uuid: str,
-    usernames: List[str],
+    usernames: list[str],
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ):
@@ -312,7 +321,7 @@ async def add_bulk_course_contributors(
 async def remove_bulk_course_contributors(
     request: Request,
     course_uuid: str,
-    usernames: List[str],
+    usernames: list[str],
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
 ):

@@ -1,7 +1,7 @@
 """Tests for src/services/orgs/users.py."""
 
-from datetime import datetime
 import json
+from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -16,8 +16,8 @@ from src.db.usergroups import UserGroup
 from src.db.users import User
 from src.services.orgs.users import (
     export_organization_users_csv,
-    get_organization_users,
     get_list_of_invited_users,
+    get_organization_users,
     invite_batch_users,
     remove_all_users_from_org,
     remove_batch_users_from_org,
@@ -152,9 +152,8 @@ class TestOrgUsersService:
             "src.security.superadmin.is_user_superadmin", return_value=False
         ), patch(
             "src.security.org_auth.is_org_admin", return_value=False
-        ):
-            with pytest.raises(Exception) as user_guard_exc:
-                await get_organization_users(mock_request, org.id, db, admin_user)
+        ), pytest.raises(Exception) as user_guard_exc:
+            await get_organization_users(mock_request, org.id, db, admin_user)
         assert user_guard_exc.value.status_code == 403
 
         with patch(
@@ -207,9 +206,8 @@ class TestOrgUsersService:
 
         with patch(
             "src.services.orgs.users.is_org_member", return_value=False
-        ):
-            with pytest.raises(Exception) as member_exc:
-                await export_organization_users_csv(mock_request, org.id, db, admin_user)
+        ), pytest.raises(Exception) as member_exc:
+            await export_organization_users_csv(mock_request, org.id, db, admin_user)
         assert member_exc.value.status_code == 403
 
         with patch(
@@ -218,9 +216,8 @@ class TestOrgUsersService:
             "src.security.superadmin.is_user_superadmin", return_value=False
         ), patch(
             "src.security.org_auth.is_org_admin", return_value=False
-        ):
-            with pytest.raises(Exception) as admin_exc:
-                await export_organization_users_csv(mock_request, org.id, db, admin_user)
+        ), pytest.raises(Exception) as admin_exc:
+            await export_organization_users_csv(mock_request, org.id, db, admin_user)
         assert admin_exc.value.status_code == 403
 
     @pytest.mark.asyncio
@@ -346,11 +343,10 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as remove_missing_user_exc:
-                await remove_user_from_org(
-                    mock_request, org.id, 9999, db, admin_user
-                )
+        ), pytest.raises(Exception) as remove_missing_user_exc:
+            await remove_user_from_org(
+                mock_request, org.id, 9999, db, admin_user
+            )
         assert remove_missing_user_exc.value.status_code == 404
 
         with patch(
@@ -426,36 +422,33 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as role_missing_exc:
-                await update_user_role(
-                    mock_request, org.id, regular_user.id, "missing_role", db, admin_user
-                )
+        ), pytest.raises(Exception) as role_missing_exc:
+            await update_user_role(
+                mock_request, org.id, regular_user.id, "missing_role", db, admin_user
+            )
         assert role_missing_exc.value.status_code == 404
 
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as org_missing_exc:
-                await update_user_role(
-                    mock_request, 999, regular_user.id, other_role.role_uuid, db, admin_user
-                )
+        ), pytest.raises(Exception) as org_missing_exc:
+            await update_user_role(
+                mock_request, 999, regular_user.id, other_role.role_uuid, db, admin_user
+            )
         assert org_missing_exc.value.status_code == 404
 
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as no_admin_exc:
-                await update_user_role(
-                    mock_request,
-                    other_org.id,
-                    other_user.id,
-                    other_role.role_uuid,
-                    db,
-                    admin_user,
-                )
+        ), pytest.raises(Exception) as no_admin_exc:
+            await update_user_role(
+                mock_request,
+                other_org.id,
+                other_user.id,
+                other_role.role_uuid,
+                db,
+                admin_user,
+            )
         assert no_admin_exc.value.status_code == 400
 
         role = await _make_role(db, org, id=11, name="Instructor", role_uuid="role_instructor")
@@ -463,21 +456,19 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as last_admin_exc:
-                await update_user_role(
-                    mock_request, org.id, admin_user.id, role.role_uuid, db, admin_user
-                )
+        ), pytest.raises(Exception) as last_admin_exc:
+            await update_user_role(
+                mock_request, org.id, admin_user.id, role.role_uuid, db, admin_user
+            )
         assert last_admin_exc.value.status_code == 400
 
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as user_missing_exc:
-                await update_user_role(
-                    mock_request, org.id, 9999, role.role_uuid, db, admin_user
-                )
+        ), pytest.raises(Exception) as user_missing_exc:
+            await update_user_role(
+                mock_request, org.id, 9999, role.role_uuid, db, admin_user
+            )
         assert user_missing_exc.value.status_code == 404
 
         with patch(
@@ -513,11 +504,10 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.get_learnhouse_config",
             return_value=empty_config,
-        ):
-            with pytest.raises(Exception) as redis_missing_exc:
-                await invite_batch_users(
-                    mock_request, org.id, "a@test.com", "invite_uuid", db, admin_user
-                )
+        ), pytest.raises(Exception) as redis_missing_exc:
+            await invite_batch_users(
+                mock_request, org.id, "a@test.com", "invite_uuid", db, admin_user
+            )
         assert redis_missing_exc.value.status_code == 500
 
         fake_config = SimpleNamespace(
@@ -529,11 +519,10 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as org_missing_exc:
-                await invite_batch_users(
-                    mock_request, 999, "a@test.com", "invite_uuid", db, admin_user
-                )
+        ), pytest.raises(Exception) as org_missing_exc:
+            await invite_batch_users(
+                mock_request, 999, "a@test.com", "invite_uuid", db, admin_user
+            )
         assert org_missing_exc.value.status_code == 404
 
         with patch(
@@ -548,11 +537,10 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.redis.Redis.from_url",
             return_value=None,
-        ):
-            with pytest.raises(Exception) as redis_conn_exc:
-                await invite_batch_users(
-                    mock_request, org.id, "a@test.com", "invite_uuid", db, admin_user
-                )
+        ), pytest.raises(Exception) as redis_conn_exc:
+            await invite_batch_users(
+                mock_request, org.id, "a@test.com", "invite_uuid", db, admin_user
+            )
         assert redis_conn_exc.value.status_code == 500
 
         fake_redis = Mock()
@@ -619,9 +607,8 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.get_learnhouse_config",
             return_value=empty_config,
-        ):
-            with pytest.raises(Exception) as list_missing_exc:
-                await get_list_of_invited_users(mock_request, org.id, db, admin_user)
+        ), pytest.raises(Exception) as list_missing_exc:
+            await get_list_of_invited_users(mock_request, org.id, db, admin_user)
         assert list_missing_exc.value.status_code == 500
 
         with patch(
@@ -632,9 +619,8 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as list_org_missing_exc:
-                await get_list_of_invited_users(mock_request, 999, db, admin_user)
+        ), pytest.raises(Exception) as list_org_missing_exc:
+            await get_list_of_invited_users(mock_request, 999, db, admin_user)
         assert list_org_missing_exc.value.status_code == 404
 
         fake_redis = Mock()
@@ -675,9 +661,8 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as list_redis_exc:
-                await get_list_of_invited_users(mock_request, org.id, db, admin_user)
+        ), pytest.raises(Exception) as list_redis_exc:
+            await get_list_of_invited_users(mock_request, org.id, db, admin_user)
         assert list_redis_exc.value.status_code == 500
 
         with patch(
@@ -689,21 +674,19 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.redis.Redis.from_url",
             return_value=None,
-        ):
-            with pytest.raises(Exception) as remove_redis_exc:
-                await remove_invited_user(
-                    mock_request, org.id, "a@test.com", db, admin_user
-                )
+        ), pytest.raises(Exception) as remove_redis_exc:
+            await remove_invited_user(
+                mock_request, org.id, "a@test.com", db, admin_user
+            )
         assert remove_redis_exc.value.status_code == 500
 
         with patch(
             "src.services.orgs.users.get_learnhouse_config",
             return_value=empty_config,
-        ):
-            with pytest.raises(Exception) as remove_missing_conn_exc:
-                await remove_invited_user(
-                    mock_request, org.id, "a@test.com", db, admin_user
-                )
+        ), pytest.raises(Exception) as remove_missing_conn_exc:
+            await remove_invited_user(
+                mock_request, org.id, "a@test.com", db, admin_user
+            )
         assert remove_missing_conn_exc.value.status_code == 500
 
         with patch(
@@ -714,11 +697,10 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as remove_org_missing_exc:
-                await remove_invited_user(
-                    mock_request, 999, "a@test.com", db, admin_user
-                )
+        ), pytest.raises(Exception) as remove_org_missing_exc:
+            await remove_invited_user(
+                mock_request, 999, "a@test.com", db, admin_user
+            )
         assert remove_org_missing_exc.value.status_code == 404
 
         with patch(
@@ -732,11 +714,10 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.redis.Redis.from_url",
             return_value=False,
-        ):
-            with pytest.raises(Exception) as remove_conn_exc:
-                await remove_invited_user(
-                    mock_request, org.id, "a@test.com", db, admin_user
-                )
+        ), pytest.raises(Exception) as remove_conn_exc:
+            await remove_invited_user(
+                mock_request, org.id, "a@test.com", db, admin_user
+            )
         assert remove_conn_exc.value.status_code == 500
 
         missing_redis = Mock()
@@ -753,11 +734,10 @@ class TestOrgUsersService:
         ), patch(
             "src.services.orgs.users.redis.Redis.from_url",
             return_value=missing_redis,
-        ):
-            with pytest.raises(Exception) as missing_invite_exc:
-                await remove_invited_user(
-                    mock_request, org.id, "missing@test.com", db, admin_user
-                )
+        ), pytest.raises(Exception) as missing_invite_exc:
+            await remove_invited_user(
+                mock_request, org.id, "missing@test.com", db, admin_user
+            )
         assert missing_invite_exc.value.status_code == 404
 
         fake_redis = Mock()
@@ -1057,9 +1037,8 @@ class TestOrgUsersService:
 
         with patch(
             "src.services.orgs.users.is_org_member", return_value=False
-        ):
-            with pytest.raises(Exception) as member_exc:
-                await get_organization_users(mock_request, org.id, db, admin_user)
+        ), pytest.raises(Exception) as member_exc:
+            await get_organization_users(mock_request, org.id, db, admin_user)
         assert member_exc.value.status_code == 403
 
     @pytest.mark.asyncio
@@ -1108,11 +1087,10 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as last_admin_exc:
-                await remove_user_from_org(
-                    mock_request, org.id, admin_user.id, db, admin_user
-                )
+        ), pytest.raises(Exception) as last_admin_exc:
+            await remove_user_from_org(
+                mock_request, org.id, admin_user.id, db, admin_user
+            )
         assert last_admin_exc.value.status_code == 400
 
         second_admin = await _make_user(
@@ -1129,11 +1107,10 @@ class TestOrgUsersService:
         with patch(
             "src.services.orgs.users.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(Exception) as batch_exc:
-                await remove_batch_users_from_org(
-                    mock_request, org.id, [admin_user.id, second_admin.id], db, admin_user
-                )
+        ), pytest.raises(Exception) as batch_exc:
+            await remove_batch_users_from_org(
+                mock_request, org.id, [admin_user.id, second_admin.id], db, admin_user
+            )
         assert batch_exc.value.status_code == 400
 
         with patch(

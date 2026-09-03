@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config.config import get_learnhouse_config
 
-
 _SINGLE_TENANCY_LOCALHOST_REGEX = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
 
 

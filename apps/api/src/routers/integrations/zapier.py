@@ -13,19 +13,18 @@ When the Zap is disabled, Zapier calls ``DELETE /subscriptions/{id}``.
 
 import secrets
 from datetime import datetime
-from typing import List, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
-from sqlmodel import select, col
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
 from src.db.courses.courses import Course
 from src.db.organizations import Organization
-from src.db.usergroups import UserGroup
 from src.db.user_organizations import UserOrganization
+from src.db.usergroups import UserGroup
 from src.db.users import APITokenUser, User
 from src.db.webhooks import WebhookEndpoint
 from src.security.auth import get_current_user
@@ -33,12 +32,12 @@ from src.security.features_utils.plan_check import get_org_plan
 from src.security.features_utils.plans import plan_meets_requirement
 from src.services.webhooks.crypto import encrypt_secret
 from src.services.webhooks.events import WEBHOOK_EVENTS
+
 # Reuse the same SSRF guard as the manual webhook create path so both code
 # paths enforce identical validation. The leading underscore is conventional,
 # not enforced — importing it here is deliberate to avoid duplicating the
 # logic across files.
 from src.services.webhooks.webhooks import _validate_webhook_url
-
 
 router = APIRouter()
 
@@ -116,8 +115,8 @@ class ZapierUserGroupItem(BaseModel):
 class ZapierSubscriptionCreate(BaseModel):
     target_url: str = Field(..., description="Zapier's REST Hook callback URL")
     event: str = Field(..., description="A single event name from /events")
-    zap_id: Optional[str] = Field(None, description="Zapier's internal Zap identifier")
-    zap_name: Optional[str] = Field(None, description="Human-readable Zap name")
+    zap_id: str | None = Field(None, description="Zapier's internal Zap identifier")
+    zap_name: str | None = Field(None, description="Human-readable Zap name")
 
 
 class ZapierSubscriptionResponse(BaseModel):
@@ -125,8 +124,8 @@ class ZapierSubscriptionResponse(BaseModel):
     webhook_uuid: str
     target_url: str
     event: str
-    zap_id: Optional[str] = None
-    zap_name: Optional[str] = None
+    zap_id: str | None = None
+    zap_name: str | None = None
     is_active: bool
 
 
@@ -192,7 +191,7 @@ async def zapier_list_events(ctx=Depends(_zapier_context)) -> dict:
 
 @router.get(
     "/courses",
-    response_model=List[ZapierCourseItem],
+    response_model=list[ZapierCourseItem],
     summary="List courses for Zapier",
     description="List courses in the caller's organization for use as Zapier trigger samples. Maximum 500 rows.",
     responses={
@@ -204,7 +203,7 @@ async def zapier_list_events(ctx=Depends(_zapier_context)) -> dict:
 async def zapier_list_courses(
     limit: int = 100,
     ctx=Depends(_zapier_context),
-) -> List[ZapierCourseItem]:
+) -> list[ZapierCourseItem]:
     api_user, db_session = ctx
     query = (
         select(Course)
@@ -221,7 +220,7 @@ async def zapier_list_courses(
 
 @router.get(
     "/users",
-    response_model=List[ZapierUserItem],
+    response_model=list[ZapierUserItem],
     summary="List users for Zapier",
     description="List users that belong to the caller's organization for use as Zapier trigger samples. Maximum 500 rows.",
     responses={
@@ -233,7 +232,7 @@ async def zapier_list_courses(
 async def zapier_list_users(
     limit: int = 100,
     ctx=Depends(_zapier_context),
-) -> List[ZapierUserItem]:
+) -> list[ZapierUserItem]:
     api_user, db_session = ctx
     query = (
         select(User)
@@ -257,7 +256,7 @@ async def zapier_list_users(
 
 @router.get(
     "/usergroups",
-    response_model=List[ZapierUserGroupItem],
+    response_model=list[ZapierUserGroupItem],
     summary="List user groups for Zapier",
     description="List cohorts / user groups in the caller's organization. Maximum 500 rows.",
     responses={
@@ -269,7 +268,7 @@ async def zapier_list_users(
 async def zapier_list_usergroups(
     limit: int = 100,
     ctx=Depends(_zapier_context),
-) -> List[ZapierUserGroupItem]:
+) -> list[ZapierUserGroupItem]:
     api_user, db_session = ctx
     query = (
         select(UserGroup)
@@ -358,7 +357,7 @@ async def zapier_create_subscription(
 
 @router.get(
     "/subscriptions",
-    response_model=List[ZapierSubscriptionResponse],
+    response_model=list[ZapierSubscriptionResponse],
     summary="List Zap subscriptions",
     description="List every active Zapier REST Hook subscription for the caller's organization.",
     responses={
@@ -369,7 +368,7 @@ async def zapier_create_subscription(
 )
 async def zapier_list_subscriptions(
     ctx=Depends(_zapier_context),
-) -> List[ZapierSubscriptionResponse]:
+) -> list[ZapierSubscriptionResponse]:
     api_user, db_session = ctx
     query = select(WebhookEndpoint).where(
         WebhookEndpoint.org_id == api_user.org_id,

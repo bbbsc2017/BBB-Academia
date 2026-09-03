@@ -5,7 +5,6 @@ import secrets
 import string
 import uuid
 from datetime import datetime, timedelta
-from typing import Optional
 
 import redis
 from fastapi import HTTPException, Request
@@ -23,7 +22,7 @@ from src.services.users.emails import send_invitation_email
 
 logger = logging.getLogger(__name__)
 
-_redis_pool: Optional[redis.ConnectionPool] = None
+_redis_pool: redis.ConnectionPool | None = None
 
 def _get_redis(redis_conn_string: str) -> redis.Redis:
     global _redis_pool
@@ -63,7 +62,7 @@ async def create_invite_code(
     org_id: int,
     current_user: PublicUser | AnonymousUser,
     db_session: AsyncSession,
-    usergroup_id: Optional[int] = None,
+    usergroup_id: int | None = None,
 ):
     # Redis init
     LH_CONFIG = get_learnhouse_config()

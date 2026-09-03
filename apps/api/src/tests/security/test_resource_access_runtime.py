@@ -8,13 +8,18 @@ from src.db.resource_authors import (
     ResourceAuthorshipEnum,
     ResourceAuthorshipStatusEnum,
 )
-from src.db.users import APITokenUser, AnonymousUser, PublicUser
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.rbac.resource_access import (
     ResourceAccessChecker,
     _get_request_checker,
     check_resource_access,
 )
-from src.security.rbac.types import AccessAction, AccessContext, AccessDecision, ResourceConfig
+from src.security.rbac.types import (
+    AccessAction,
+    AccessContext,
+    AccessDecision,
+    ResourceConfig,
+)
 
 
 class _FrozenState:

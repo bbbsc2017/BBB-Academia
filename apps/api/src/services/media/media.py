@@ -1,14 +1,11 @@
 import secrets
 from datetime import datetime
-from typing import List, Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, Request, UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.organizations import Organization
-from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.db.media.media import (
     Media,
     MediaCreate,
@@ -16,17 +13,18 @@ from src.db.media.media import (
     MediaTypeEnum,
     MediaUpdate,
 )
+from src.db.media.media_share_token import MediaShareToken
+from src.db.organizations import Organization
 from src.db.resource_authors import (
     ResourceAuthor,
     ResourceAuthorshipEnum,
     ResourceAuthorshipStatusEnum,
 )
-from src.db.media.media_share_token import MediaShareToken
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
 from src.security.auth import resolve_acting_user_id
-from src.security.rbac import check_resource_access, AccessAction
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.media.media_access import media_in_any_private_folder
 from src.services.utils.upload_content import upload_file
-
 
 # Validation categories (see src/security/file_validation.py). Office docs and
 # zip archives are validated by magic bytes + a zip-bomb guard and are only ever
@@ -56,7 +54,7 @@ async def create_media(
     media_object: MediaCreate,
     current_user: PublicUser,
     db_session: AsyncSession,
-    file: Optional[UploadFile] = None,
+    file: UploadFile | None = None,
 ) -> MediaRead:
     await check_resource_access(
         request, db_session, current_user, "media_x", AccessAction.CREATE
@@ -228,11 +226,11 @@ async def get_media_list(
     db_session: AsyncSession,
     page: int = 1,
     limit: int = 50,
-) -> List[MediaRead]:
+) -> list[MediaRead]:
     anonymous = resolve_acting_user_id(current_user) == 0
     statement = select(Media).where(Media.org_id == int(org_id))
     if anonymous:
-        statement = statement.where(Media.public == True)  # noqa: E712
+        statement = statement.where(Media.public == True)
         # Most-restrictive: also hide media that sit in any private folder.
         from src.db.folders.folder_content import FolderContent
         from src.db.folders.folders import Folder
@@ -240,7 +238,7 @@ async def get_media_list(
         private_media = (
             select(FolderContent.resource_uuid)
             .join(Folder, Folder.id == FolderContent.folder_id)
-            .where(Folder.public == False)  # noqa: E712
+            .where(Folder.public == False)
         )
         statement = statement.where(Media.media_uuid.not_in(private_media))
     statement = statement.offset((page - 1) * limit).limit(limit)

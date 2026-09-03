@@ -1,8 +1,8 @@
-from typing import Literal, Optional
+from typing import Literal
+
 from pydantic import BaseModel
 from sqlalchemy import JSON, BigInteger, Column, ForeignKey
 from sqlmodel import Field, SQLModel
-
 
 # ============================================================================
 # v1 Feature models (kept for backward compat with existing code imports)
@@ -263,10 +263,10 @@ class OrganizationConfigV2Base(BaseModel):
 # ============================================================================
 
 class OrganizationConfig(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("organization.id", ondelete="CASCADE"), index=True)
     )
     config: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
+    creation_date: str | None = None
+    update_date: str | None = None

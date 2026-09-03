@@ -9,7 +9,6 @@ query runs against Tinybird directly.
 import hashlib
 import json
 import logging
-from typing import Optional
 
 from src.core.redis import get_redis_client as _get_redis_client
 
@@ -32,7 +31,7 @@ def _build_cache_key(
     query_name: str,
     org_id: int,
     days: int,
-    course_id: Optional[str] = None,
+    course_id: str | None = None,
 ) -> str:
     """Build a deterministic Redis key for a query + params."""
     parts = f"{query_name}:{org_id}:{days}"
@@ -71,8 +70,8 @@ def get_cached_result(
     query_name: str,
     org_id: int,
     days: int,
-    course_id: Optional[str] = None,
-) -> Optional[dict]:
+    course_id: str | None = None,
+) -> dict | None:
     """Return cached analytics result or None."""
     if query_name in _NO_CACHE_QUERIES:
         return None
@@ -94,7 +93,7 @@ def set_cached_result(
     org_id: int,
     days: int,
     result: dict,
-    course_id: Optional[str] = None,
+    course_id: str | None = None,
 ) -> None:
     """Store an analytics result in Redis with appropriate TTL."""
     ttl = get_ttl_for_query(query_name)

@@ -1,8 +1,9 @@
 import os
+from typing import Literal
+
 import yaml
-from typing import Literal, Optional
-from pydantic import BaseModel
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 
 class CookieConfig(BaseModel):
@@ -102,20 +103,20 @@ class HostingConfig(BaseModel):
 class MailingConfig(BaseModel):
     email_provider: Literal["resend", "smtp"]
     system_email_address: str
-    resend_api_key: Optional[str] = None
-    smtp_host: Optional[str] = None
-    smtp_port: Optional[int] = 587
-    smtp_username: Optional[str] = None
-    smtp_password: Optional[str] = None
-    smtp_use_tls: Optional[bool] = True
+    resend_api_key: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int | None = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_use_tls: bool | None = True
 
 
 class DatabaseConfig(BaseModel):
-    sql_connection_string: Optional[str]
+    sql_connection_string: str | None
 
 
 class RedisConfig(BaseModel):
-    redis_connection_string: Optional[str]
+    redis_connection_string: str | None
 
 
 class InternalStripeConfig(BaseModel):
@@ -223,9 +224,7 @@ def get_learnhouse_config() -> LearnHouseConfig:
     if len(auth_jwt_secret_key) < 32:
         raise ValueError(
             "SECURITY ERROR: LEARNHOUSE_AUTH_JWT_SECRET_KEY must be at least 32 characters. "
-            "Current length: {}. Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\"".format(
-                len(auth_jwt_secret_key)
-            )
+            f"Current length: {len(auth_jwt_secret_key)}. Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
         )
 
     # Check if environment variables are defined

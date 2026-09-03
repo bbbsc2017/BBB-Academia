@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-import src.core.ee_hooks as ee_hooks
-import src.core.events.autoinstall as autoinstall
 import src.core.events.content as content_events
 import src.core.events.events as core_events
 import src.core.events.logs as logs_events
+from src.core import ee_hooks
+from src.core.events import autoinstall
 
 
 class _FakeResult:

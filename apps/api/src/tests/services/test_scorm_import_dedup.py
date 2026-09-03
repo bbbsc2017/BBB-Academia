@@ -12,10 +12,10 @@ import pytest
 from sqlmodel import select
 
 scorm = pytest.importorskip("ee.services.scorm.scorm")
-from ee.db.scorm import ScormScoAssignment  # noqa: E402
+from ee.db.scorm import ScormScoAssignment
 
-from src.db.courses.activities import Activity, ActivityTypeEnum  # noqa: E402
-from src.tests.fixtures import scorm_packages as pkg  # noqa: E402
+from src.db.courses.activities import Activity, ActivityTypeEnum
+from src.tests.fixtures import scorm_packages as pkg
 
 
 def _stage_temp_package(tmp_path, zip_bytes) -> str:

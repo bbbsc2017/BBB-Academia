@@ -16,7 +16,6 @@ chapters/activities.
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
@@ -64,8 +63,8 @@ class BbbscCourseItem(BaseModel):
 
 class BbbscAssignRequest(BaseModel):
     student_email: str
-    first_name: Optional[str] = ""
-    last_name: Optional[str] = ""
+    first_name: str | None = ""
+    last_name: str | None = ""
     course_uuid: str
 
 
@@ -77,14 +76,14 @@ class BbbscAssignResponse(BaseModel):
 
 @router.get(
     "/courses",
-    response_model=List[BbbscCourseItem],
+    response_model=list[BbbscCourseItem],
     summary="List courses for bbbsc",
     description="List courses in the caller's organization, for the bbbsc_admin course picker.",
 )
 async def bbbsc_list_courses(
     limit: int = 100,
     ctx=Depends(_bbbsc_context),
-) -> List[BbbscCourseItem]:
+) -> list[BbbscCourseItem]:
     api_user, db_session = ctx
     query = (
         select(Course)
@@ -209,7 +208,7 @@ async def _find_course_usergroup(
     db_session: AsyncSession,
     api_user: APITokenUser,
     course: Course,
-) -> Optional[UserGroup]:
+) -> UserGroup | None:
     """Read-only counterpart to ``_get_or_create_course_usergroup`` — used by
     unassign, which must never provision a group/course access that never
     existed in the first place."""
@@ -287,8 +286,8 @@ async def bbbsc_unassign_course(
 
 class BbbscSyncRoleRequest(BaseModel):
     email: str
-    first_name: Optional[str] = ""
-    last_name: Optional[str] = ""
+    first_name: str | None = ""
+    last_name: str | None = ""
     learnhouse_role_id: int
 
 

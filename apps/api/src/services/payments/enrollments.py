@@ -9,19 +9,13 @@ that belongs to a paid offer to raise 402) — so nothing here ever touches
 the lock/RBAC engine directly, it only maintains the UserGroup membership
 that engine already trusts.
 """
-from datetime import datetime
 import logging
-from typing import Optional
+from datetime import datetime
+
 from fastapi import HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.security.org_auth import require_org_role_permission
-from src.security.rbac.rbac import authorization_verify_if_user_is_anon
-from src.security.superadmin import is_user_superadmin
-from src.db.user_organizations import UserOrganization
-from src.db.usergroup_user import UserGroupUser
-from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser, User
 from src.db.payments.config import PaymentProviderEnum
 from src.db.payments.enrollments import (
     EnrollmentStatusEnum,
@@ -30,6 +24,12 @@ from src.db.payments.enrollments import (
 )
 from src.db.payments.groups import PaymentsGroup
 from src.db.payments.offers import PaymentsOffer
+from src.db.user_organizations import UserOrganization
+from src.db.usergroup_user import UserGroupUser
+from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser, User
+from src.security.org_auth import require_org_role_permission
+from src.security.rbac.rbac import authorization_verify_if_user_is_anon
+from src.security.superadmin import is_user_superadmin
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ async def create_pending_enrollment(
 async def activate_enrollment(
     enrollment_id: int,
     db_session: AsyncSession,
-    provider_specific_data: Optional[dict] = None,
+    provider_specific_data: dict | None = None,
 ) -> PaymentsEnrollment:
     """Payment confirmed by the provider — grant access. Idempotent: calling
     this twice for the same enrollment (e.g. a retried webhook) is a no-op
@@ -146,7 +146,7 @@ async def _deactivate_enrollment(
     enrollment_id: int,
     new_status: EnrollmentStatusEnum,
     db_session: AsyncSession,
-    provider_specific_data: Optional[dict] = None,
+    provider_specific_data: dict | None = None,
 ) -> PaymentsEnrollment:
     enrollment = (await db_session.execute(
         select(PaymentsEnrollment).where(PaymentsEnrollment.id == enrollment_id)
@@ -180,15 +180,15 @@ async def _deactivate_enrollment(
     return enrollment
 
 
-async def cancel_enrollment(enrollment_id: int, db_session: AsyncSession, provider_specific_data: Optional[dict] = None) -> PaymentsEnrollment:
+async def cancel_enrollment(enrollment_id: int, db_session: AsyncSession, provider_specific_data: dict | None = None) -> PaymentsEnrollment:
     return await _deactivate_enrollment(enrollment_id, EnrollmentStatusEnum.cancelled, db_session, provider_specific_data)
 
 
-async def fail_enrollment(enrollment_id: int, db_session: AsyncSession, provider_specific_data: Optional[dict] = None) -> PaymentsEnrollment:
+async def fail_enrollment(enrollment_id: int, db_session: AsyncSession, provider_specific_data: dict | None = None) -> PaymentsEnrollment:
     return await _deactivate_enrollment(enrollment_id, EnrollmentStatusEnum.failed, db_session, provider_specific_data)
 
 
-async def refund_enrollment(enrollment_id: int, db_session: AsyncSession, provider_specific_data: Optional[dict] = None) -> PaymentsEnrollment:
+async def refund_enrollment(enrollment_id: int, db_session: AsyncSession, provider_specific_data: dict | None = None) -> PaymentsEnrollment:
     return await _deactivate_enrollment(enrollment_id, EnrollmentStatusEnum.refunded, db_session, provider_specific_data)
 
 

@@ -25,7 +25,6 @@ import io
 import logging
 import wave
 from dataclasses import dataclass
-from typing import Optional
 
 from config.config import get_learnhouse_config
 from src.services.ai.llm import AINotConfiguredError
@@ -91,7 +90,7 @@ class Speaker:
     voice: str
 
 
-def normalise_voice(voice: Optional[str]) -> str:
+def normalise_voice(voice: str | None) -> str:
     """Return a valid prebuilt voice name, defaulting when unknown/empty."""
     if voice and voice.strip() in PREBUILT_VOICES:
         return voice.strip()
@@ -128,7 +127,7 @@ def _resolve_tts_config() -> tuple[str, str]:
     return api_key, model
 
 
-def _build_prompt(text: str, *, style: Optional[str], language: Optional[str], podcast: bool) -> str:
+def _build_prompt(text: str, *, style: str | None, language: str | None, podcast: bool) -> str:
     """Prefix the script with natural-language directives.
 
     Gemini TTS has no separate style/language parameter — tone, pacing and target
@@ -184,9 +183,9 @@ async def generate_spoken_script(
     brief: str,
     *,
     kind: str = "podcast",
-    speaker_names: Optional[list[str]] = None,
-    language: Optional[str] = None,
-    style: Optional[str] = None,
+    speaker_names: list[str] | None = None,
+    language: str | None = None,
+    style: str | None = None,
     minutes: int = MIN_SPOKEN_MINUTES,
 ) -> str:
     """Write a spoken script from a topic/brief using the text LLM.
@@ -247,7 +246,7 @@ async def generate_spoken_script(
         )
     except AINotConfiguredError:
         raise
-    except Exception as e:  # noqa: BLE001 — surface a clean error to the router
+    except Exception as e:
         logger.error("Script generation failed: %s", type(e).__name__)
         raise RuntimeError("Script generation failed") from e
 
@@ -271,7 +270,7 @@ def _pcm_to_wav(pcm: bytes) -> bytes:
     return buf.getvalue()
 
 
-def _extract_pcm(response) -> Optional[bytes]:
+def _extract_pcm(response) -> bytes | None:
     """Pull the first inline audio payload out of a GenAI response."""
     candidates = getattr(response, "candidates", None) or []
     for candidate in candidates:
@@ -288,10 +287,10 @@ def _extract_pcm(response) -> Optional[bytes]:
 async def generate_speech(
     text: str,
     *,
-    voice: Optional[str] = None,
-    speakers: Optional[list[Speaker]] = None,
-    style: Optional[str] = None,
-    language: Optional[str] = None,
+    voice: str | None = None,
+    speakers: list[Speaker] | None = None,
+    style: str | None = None,
+    language: str | None = None,
 ) -> bytes:
     """Synthesize speech with Gemini TTS. Returns WAV bytes.
 
@@ -358,7 +357,7 @@ async def generate_speech(
                 config=config,
             )
             break
-        except Exception as e:  # noqa: BLE001 — surface a clean error to the router
+        except Exception as e:
             # Log only the exception type: the underlying SDK error can embed the
             # API key (request URL/headers), so never log the message or traceback.
             if _is_retryable(e) and attempt < _MAX_ATTEMPTS:

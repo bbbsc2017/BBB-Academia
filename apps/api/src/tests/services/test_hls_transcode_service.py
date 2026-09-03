@@ -8,7 +8,6 @@ import pytest
 
 from src.services.utils import hls_transcode as ht
 
-
 # --------------------------------------------------------------------------
 # Pure ladder selection
 # --------------------------------------------------------------------------

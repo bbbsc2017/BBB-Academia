@@ -1,9 +1,9 @@
 import html
 import logging
-from typing import Optional
 from urllib.parse import quote
 
 from pydantic import EmailStr
+
 from src.db.organizations import OrganizationRead
 from src.db.users import UserRead
 from src.services.email.translations import t
@@ -265,7 +265,7 @@ def send_invitation_email(
     org_name: str,
     inviter_username: str,
     signup_url: str,
-    invite_code: Optional[str] = None,
+    invite_code: str | None = None,
     lang: str = "en",
 ):
     safe_org_name = html.escape(org_name)

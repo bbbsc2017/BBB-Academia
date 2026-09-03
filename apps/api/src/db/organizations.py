@@ -1,11 +1,12 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
-from src.db.roles import RoleRead
-from src.db.usergroups import UserGroupRead
 
 from src.db.organization_config import OrganizationConfig
+from src.db.roles import RoleRead
+from src.db.usergroups import UserGroupRead
 
 if TYPE_CHECKING:
     from src.db.users import UserRead
@@ -13,26 +14,26 @@ if TYPE_CHECKING:
 
 class OrganizationBase(SQLModel):
     name: str
-    description: Optional[str] = None
-    about: Optional[str] = None
-    socials: Optional[dict] = Field(default_factory=dict, sa_column=Column(JSON))
-    links: Optional[dict] = Field(default_factory=dict, sa_column=Column(JSON))
-    scripts: Optional[dict] = Field(default_factory=dict, sa_column=Column(JSON))
-    logo_image: Optional[str] = None
-    thumbnail_image: Optional[str] = None
-    previews: Optional[dict] = Field(default_factory=dict, sa_column=Column(JSON))
-    explore: Optional[bool] = Field(default=False)
-    label: Optional[str] = None
+    description: str | None = None
+    about: str | None = None
+    socials: dict | None = Field(default_factory=dict, sa_column=Column(JSON))
+    links: dict | None = Field(default_factory=dict, sa_column=Column(JSON))
+    scripts: dict | None = Field(default_factory=dict, sa_column=Column(JSON))
+    logo_image: str | None = None
+    thumbnail_image: str | None = None
+    previews: dict | None = Field(default_factory=dict, sa_column=Column(JSON))
+    explore: bool | None = Field(default=False)
+    label: str | None = None
     slug: str
     email: str
 
 
 class Organization(OrganizationBase, table=True):
     __table_args__ = {"extend_existing": True}
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_uuid: str = Field(default="", unique=True)
     slug: str = Field(unique=True, index=True)  # Override to add unique constraint
-    explore: Optional[bool] = Field(default=False, index=True)  # Override to add index
+    explore: bool | None = Field(default=False, index=True)  # Override to add index
     creation_date: str = ""
     update_date: str = ""
 
@@ -42,18 +43,18 @@ class OrganizationWithConfig(BaseModel):
 
 
 class OrganizationUpdate(SQLModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    about: Optional[str] = None
-    socials: Optional[dict] = None
-    links: Optional[dict] = None
-    scripts: Optional[dict] = None
-    logo_image: Optional[str] = None
-    thumbnail_image: Optional[str] = None
-    previews: Optional[dict] = None
-    label: Optional[str] = None
-    slug: Optional[str] = None
-    email: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    about: str | None = None
+    socials: dict | None = None
+    links: dict | None = None
+    scripts: dict | None = None
+    logo_image: str | None = None
+    thumbnail_image: str | None = None
+    previews: dict | None = None
+    label: str | None = None
+    slug: str | None = None
+    email: str | None = None
 
 class OrganizationCreate(OrganizationBase):
     pass
@@ -62,16 +63,16 @@ class OrganizationCreate(OrganizationBase):
 class OrganizationRead(OrganizationBase):
     id: int
     org_uuid: str
-    config: Optional[OrganizationConfig | dict] = None
+    config: OrganizationConfig | dict | None = None
     creation_date: str
     update_date: str
 
 
 class OrganizationUser(BaseModel):
-    user: "UserRead"
+    user: UserRead
     role: RoleRead
-    usergroups: List[UserGroupRead] = []
-    joined_at: Optional[str] = None
+    usergroups: list[UserGroupRead] = []
+    joined_at: str | None = None
 
 
 # Rebuild models to resolve forward references after all classes are defined

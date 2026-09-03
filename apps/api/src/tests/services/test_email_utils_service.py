@@ -295,7 +295,7 @@ class TestEmailUtilsService:
         assert result == {"id": "msg-1"}
         assert send_email.__module__ == "src.services.email.utils"
         assert mock_resend_send.call_args.args[0] == {
-            "from": "LearnHouse <system@test.com>",
+            "from": "BBB Academia <system@test.com>",
             "to": ["to@test.com"],
             "subject": "Hello",
             "html": "<p>Body</p>",
@@ -358,9 +358,8 @@ class TestEmailUtilsService:
         ), patch(
             "src.services.email.utils.resend.Emails.send",
             side_effect=Exception("API error"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                send_email("to@test.com", "Subject", "<p>Body</p>")
+        ), pytest.raises(HTTPException) as exc_info:
+            send_email("to@test.com", "Subject", "<p>Body</p>")
         assert exc_info.value.status_code == 503
 
     def test_send_email_smtp_exception_raises_503(self):
@@ -378,9 +377,8 @@ class TestEmailUtilsService:
         ), patch(
             "src.services.email.utils.smtplib.SMTP",
             return_value=smtp_client,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                send_email("to@test.com", "Subject", "<p>Body</p>")
+        ), pytest.raises(HTTPException) as exc_info:
+            send_email("to@test.com", "Subject", "<p>Body</p>")
         assert exc_info.value.status_code == 503
 
     def test_send_email_smtp_os_error_raises_503(self):
@@ -395,9 +393,8 @@ class TestEmailUtilsService:
         ), patch(
             "src.services.email.utils.smtplib.SMTP",
             side_effect=OSError("conn refused"),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                send_email("to@test.com", "Subject", "<p>Body</p>")
+        ), pytest.raises(HTTPException) as exc_info:
+            send_email("to@test.com", "Subject", "<p>Body</p>")
         assert exc_info.value.status_code == 503
 
 
@@ -458,6 +455,7 @@ class TestGetPrimaryVerifiedCustomDomain:
         """Should return the primary domain's name when a primary verified row
         is found (covers the execute + scalars().first() lines)."""
         from types import SimpleNamespace
+
         from src.services.email.utils import _get_primary_verified_custom_domain
 
         primary_domain = SimpleNamespace(domain="primary.example.com")
@@ -479,6 +477,7 @@ class TestGetPrimaryVerifiedCustomDomain:
         """When no primary row exists, should query for any verified domain and
         return it (covers the any_verified execute + return lines)."""
         from types import SimpleNamespace
+
         from src.services.email.utils import _get_primary_verified_custom_domain
 
         any_domain = SimpleNamespace(domain="any-verified.example.com")

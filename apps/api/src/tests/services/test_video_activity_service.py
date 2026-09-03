@@ -6,9 +6,9 @@ import pytest
 from fastapi import HTTPException, UploadFile
 
 from src.services.courses.activities.video import (
+    ExternalVideo,
     create_external_video_activity,
     create_video_activity,
-    ExternalVideo,
 )
 
 
@@ -42,16 +42,15 @@ class TestCreateVideoActivity:
         with patch(
             "src.services.courses.activities.video.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await create_video_activity(
-                    mock_request,
-                    name="Test Video",
-                    chapter_id=chapter.id,
-                    current_user=admin_user,
-                    db_session=db,
-                    video_file=None,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await create_video_activity(
+                mock_request,
+                name="Test Video",
+                chapter_id=chapter.id,
+                current_user=admin_user,
+                db_session=db,
+                video_file=None,
+            )
         assert exc.value.status_code == 409
 
     @pytest.mark.asyncio
@@ -61,16 +60,15 @@ class TestCreateVideoActivity:
         with patch(
             "src.services.courses.activities.video.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await create_video_activity(
-                    mock_request,
-                    name="Test Video",
-                    chapter_id=chapter.id,
-                    current_user=admin_user,
-                    db_session=db,
-                    video_file=_mock_video_file(content_type="text/plain"),
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await create_video_activity(
+                mock_request,
+                name="Test Video",
+                chapter_id=chapter.id,
+                current_user=admin_user,
+                db_session=db,
+                video_file=_mock_video_file(content_type="text/plain"),
+            )
         assert exc.value.status_code == 409
 
     @pytest.mark.asyncio

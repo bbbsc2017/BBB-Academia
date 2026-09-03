@@ -112,9 +112,8 @@ async def test_generate_image_no_image_raises_runtime():
     client.aio.models.generate_content = AsyncMock(return_value=SimpleNamespace(candidates=[]))
     with patch.object(gen, "get_learnhouse_config", return_value=_cfg()), patch(
         "google.genai.Client", return_value=client
-    ):
-        with pytest.raises(RuntimeError):
-            await gen.generate_image("x")
+    ), pytest.raises(RuntimeError):
+        await gen.generate_image("x")
 
 
 async def test_generate_image_sdk_error_raises_runtime():
@@ -122,9 +121,8 @@ async def test_generate_image_sdk_error_raises_runtime():
     client.aio.models.generate_content = AsyncMock(side_effect=Exception("boom"))
     with patch.object(gen, "get_learnhouse_config", return_value=_cfg()), patch(
         "google.genai.Client", return_value=client
-    ):
-        with pytest.raises(RuntimeError):
-            await gen.generate_image("x")
+    ), pytest.raises(RuntimeError):
+        await gen.generate_image("x")
 
 
 async def test_generate_image_requests_image_modality():

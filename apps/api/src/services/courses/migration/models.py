@@ -1,6 +1,6 @@
 """Pydantic models for content migration from other LMS platforms."""
 
-from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -37,7 +37,7 @@ class MigrationChapterNode(BaseModel):
 class MigrationTreeStructure(BaseModel):
     """The full course tree structure (proposed by AI or built manually)."""
     course_name: str
-    course_description: Optional[str] = None
+    course_description: str | None = None
     chapters: list[MigrationChapterNode]
 
 
@@ -45,7 +45,7 @@ class SuggestStructureRequest(BaseModel):
     """Request to AI for structure suggestion."""
     temp_id: str
     course_name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class CreateFromMigrationRequest(BaseModel):
@@ -61,4 +61,4 @@ class MigrationCreateResult(BaseModel):
     chapters_created: int
     activities_created: int
     success: bool
-    error: Optional[str] = None
+    error: str | None = None

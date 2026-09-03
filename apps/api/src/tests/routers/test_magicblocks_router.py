@@ -91,7 +91,6 @@ class TestEventGeneratorRefund:
         async def empty():
             if False:
                 yield ""  # pragma: no cover
-            return
 
         with patch.object(mb, "refund_ai_credit") as refund:
             events = await _drain(

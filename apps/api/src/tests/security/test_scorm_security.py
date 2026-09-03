@@ -7,9 +7,9 @@ Tests cover:
 """
 
 import re
+
 import pytest
 from fastapi import HTTPException
-
 
 # Replicate the validation regex and function locally to avoid heavy SCORM imports
 _VALID_UUID = re.compile(

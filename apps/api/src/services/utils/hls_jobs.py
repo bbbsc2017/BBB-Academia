@@ -21,8 +21,7 @@ import logging
 import os
 import shutil
 import tempfile
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from sqlmodel import select
 
@@ -33,9 +32,9 @@ from src.db.courses.blocks import Block, BlockTypeEnum
 from src.db.courses.courses import Course
 from src.db.organizations import Organization
 from src.services.courses.transfer.storage_utils import (
-    is_s3_enabled,
-    get_storage_client,
     get_s3_bucket_name,
+    get_storage_client,
+    is_s3_enabled,
     upload_directory_to_s3,
 )
 from src.services.utils.hls_transcode import transcode_source_to_hls
@@ -49,8 +48,8 @@ REDIS_QUEUE_KEY = "learnhouse:hls:queue"
 # deployment. ffmpeg runs as an async subprocess and S3 I/O is offloaded to a
 # thread, so the event loop is never blocked; a semaphore caps how many
 # transcodes run at once per pod.
-_consumer_task: Optional["asyncio.Task"] = None
-_reaper_task: Optional["asyncio.Task"] = None
+_consumer_task: asyncio.Task | None = None
+_reaper_task: asyncio.Task | None = None
 _consumer_children: set = set()
 # UUIDs currently transcoding on THIS pod — re-enqueued on shutdown so a pod
 # termination (deploy/autoscale) never leaves a job stuck at "processing".
@@ -117,7 +116,7 @@ def hls_concurrency() -> int:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 async def _set_status(activity_uuid: str, status: str, **extra) -> None:
@@ -136,7 +135,7 @@ async def _set_status(activity_uuid: str, status: str, **extra) -> None:
         await db.commit()
 
 
-async def _resolve_source(activity_uuid: str) -> Optional[dict]:
+async def _resolve_source(activity_uuid: str) -> dict | None:
     """Return {org_uuid, course_uuid, filename} for a hosted-video activity."""
     async with _async_session_factory() as db:
         activity = (
@@ -339,7 +338,7 @@ async def _set_block_status(block_uuid: str, status: str, **extra) -> None:
         await db.commit()
 
 
-async def _resolve_block_source(block_uuid: str) -> Optional[dict]:
+async def _resolve_block_source(block_uuid: str) -> dict | None:
     """Return {org_uuid, course_uuid, activity_uuid, filename} for a video block."""
     async with _async_session_factory() as db:
         block = (
@@ -487,7 +486,7 @@ async def _consumer_loop(poll_seconds: int = CONSUMER_POLL_SECONDS) -> None:
             # Hard overall cap so NO single job can occupy a slot indefinitely
             # (e.g. a subprocess spawn that hangs before its own timeout applies).
             await asyncio.wait_for(_dispatch(job), timeout=JOB_TIMEOUT_SECONDS)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("HLS: job %s exceeded %ss — marking failed", item, JOB_TIMEOUT_SECONDS)
             try:
                 await _mark_failed(job, "timeout")
@@ -528,7 +527,7 @@ async def _consumer_loop(poll_seconds: int = CONSUMER_POLL_SECONDS) -> None:
         task.add_done_callback(_consumer_children.discard)
 
 
-async def reconcile_unfinished(max_retries: Optional[int] = None) -> dict:
+async def reconcile_unfinished(max_retries: int | None = None) -> dict:
     """Re-poll for hosted videos whose HLS isn't `ready` and (re)queue them —
     the clean auto-retry system that replaces manual re-triggering.
 
@@ -547,7 +546,7 @@ async def reconcile_unfinished(max_retries: Optional[int] = None) -> dict:
     client = get_redis_client()
     if not client:
         return {"requeued": 0, "skipped": 0, "gaveup": 0, "error": "no_redis"}
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     # Snapshot what's already waiting so we never double-queue an item.
     try:
         raw = client.lrange(REDIS_QUEUE_KEY, 0, -1)

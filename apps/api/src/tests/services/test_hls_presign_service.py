@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-import src.services.courses.transfer.storage_utils as storage_utils
+from src.services.courses.transfer import storage_utils
 
 
 def test_presign_returns_none_when_s3_disabled(monkeypatch):

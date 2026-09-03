@@ -20,19 +20,18 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
+from src.db.folders.folder_content import FolderContent
 from src.db.folders.folders import (
     Folder,
     FolderOrder,
     FolderUpdateOrder,
 )
-from src.db.folders.folder_content import FolderContent
 from src.db.organization_config import OrganizationConfig
 from src.services.folders.folders import (
     get_folders,
-    reorder_folders,
     reorder_folder_content,
+    reorder_folders,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -167,9 +166,8 @@ class TestReorderFolders:
             ]
         )
 
-        with _rbac_pass():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folders(mock_request, org.id, order, admin_user, db)
+        with _rbac_pass(), pytest.raises(HTTPException) as exc:
+            await reorder_folders(mock_request, org.id, order, admin_user, db)
 
         assert exc.value.status_code == 400
         assert "not in this organization/parent scope" in exc.value.detail
@@ -183,34 +181,31 @@ class TestReorderFolders:
             folder_order_by_ids=[FolderOrder(folder_id=a.id)]
         )
 
-        with _rbac_reject():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folders(mock_request, org.id, order, regular_user, db)
+        with _rbac_reject(), pytest.raises(HTTPException) as exc:
+            await reorder_folders(mock_request, org.id, order, regular_user, db)
 
         assert exc.value.status_code == 403
 
     @pytest.mark.asyncio
     async def test_reorder_org_not_found(self, db, org, admin_user, mock_request):
         order = FolderUpdateOrder(folder_order_by_ids=[])
-        with _rbac_pass():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folders(mock_request, 999999, order, admin_user, db)
+        with _rbac_pass(), pytest.raises(HTTPException) as exc:
+            await reorder_folders(mock_request, 999999, order, admin_user, db)
         assert exc.value.status_code == 404
         assert exc.value.detail == "Organization not found"
 
     @pytest.mark.asyncio
     async def test_reorder_parent_not_found(self, db, org, admin_user, mock_request):
         order = FolderUpdateOrder(folder_order_by_ids=[])
-        with _rbac_pass():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folders(
-                    mock_request,
-                    org.id,
-                    order,
-                    admin_user,
-                    db,
-                    parent_folder_uuid="folder_missing",
-                )
+        with _rbac_pass(), pytest.raises(HTTPException) as exc:
+            await reorder_folders(
+                mock_request,
+                org.id,
+                order,
+                admin_user,
+                db,
+                parent_folder_uuid="folder_missing",
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Parent folder not found"
 
@@ -254,16 +249,15 @@ class TestReorderFolders:
         bad = FolderUpdateOrder(
             folder_order_by_ids=[FolderOrder(folder_id=root_other.id)]
         )
-        with _rbac_pass():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folders(
-                    mock_request,
-                    org.id,
-                    bad,
-                    admin_user,
-                    db,
-                    parent_folder_uuid=parent.folder_uuid,
-                )
+        with _rbac_pass(), pytest.raises(HTTPException) as exc:
+            await reorder_folders(
+                mock_request,
+                org.id,
+                bad,
+                admin_user,
+                db,
+                parent_folder_uuid=parent.folder_uuid,
+            )
         assert exc.value.status_code == 400
 
 
@@ -400,12 +394,11 @@ class TestReorderFolderContent:
     ):
         folder = await _mk_folder(db, org, "Docs")
         await _mk_content(db, org, folder, "course_a", 0)
-        with _rbac_pass():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folder_content(
-                    mock_request, folder.folder_uuid,
-                    ["course_a", "course_not_here"], admin_user, db,
-                )
+        with _rbac_pass(), pytest.raises(HTTPException) as exc:
+            await reorder_folder_content(
+                mock_request, folder.folder_uuid,
+                ["course_a", "course_not_here"], admin_user, db,
+            )
         assert exc.value.status_code == 400
         assert "not in this folder" in exc.value.detail
 
@@ -415,11 +408,10 @@ class TestReorderFolderContent:
     ):
         folder = await _mk_folder(db, org, "Docs")
         await _mk_content(db, org, folder, "course_a", 0)
-        with _rbac_reject():
-            with pytest.raises(HTTPException) as exc:
-                await reorder_folder_content(
-                    mock_request, folder.folder_uuid, ["course_a"], regular_user, db,
-                )
+        with _rbac_reject(), pytest.raises(HTTPException) as exc:
+            await reorder_folder_content(
+                mock_request, folder.folder_uuid, ["course_a"], regular_user, db,
+            )
         assert exc.value.status_code == 403
 
     @pytest.mark.asyncio
@@ -510,8 +502,8 @@ class TestFolderRouterDelegation:
 
     @pytest.mark.asyncio
     async def test_api_reorder_folder_content_delegates(self, mock_request, admin_user):
-        from src.routers.folders import folders as folders_router
         from src.db.folders.folders import FolderContentUpdateOrder
+        from src.routers.folders import folders as folders_router
         order = FolderContentUpdateOrder(resource_uuids=["course_a", "media_b"])
         with patch.object(
             folders_router, "reorder_folder_content",

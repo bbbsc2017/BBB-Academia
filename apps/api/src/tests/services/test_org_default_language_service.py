@@ -49,14 +49,14 @@ class TestUpdateOrgDefaultLanguageConfig:
             return_value=True,
         ):
             result = await update_org_default_language_config(
-                mock_request, "fr", other_org.id, admin_user, db
+                mock_request, "es", other_org.id, admin_user, db
             )
 
         assert result == {"detail": "Default language updated"}
 
         stmt = select(OrganizationConfig).where(OrganizationConfig.org_id == other_org.id)
         stored = (await db.execute(stmt)).scalars().first()
-        assert stored.config["customization"]["general"]["default_language"] == "fr"
+        assert stored.config["customization"]["general"]["default_language"] == "es"
         # Pre-existing customization keys are preserved.
         assert stored.config["customization"]["general"]["color"] == "#000"
 
@@ -81,12 +81,12 @@ class TestUpdateOrgDefaultLanguageConfig:
             return_value=True,
         ):
             await update_org_default_language_config(
-                mock_request, "de", org.id, admin_user, db
+                mock_request, "es", org.id, admin_user, db
             )
 
         stmt = select(OrganizationConfig).where(OrganizationConfig.org_id == org.id)
         stored = (await db.execute(stmt)).scalars().first()
-        assert stored.config["general"]["default_language"] == "de"
+        assert stored.config["general"]["default_language"] == "es"
 
     @pytest.mark.asyncio
     async def test_rejects_unsupported_language_with_400(
@@ -119,11 +119,10 @@ class TestUpdateOrgDefaultLanguageConfig:
             "src.services.orgs.orgs.rbac_check",
             new_callable=AsyncMock,
             return_value=True,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await update_org_default_language_config(
-                    mock_request, "en", org.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await update_org_default_language_config(
+                mock_request, "en", org.id, admin_user, db
+            )
         assert exc.value.status_code == 404
         assert exc.value.detail == "Organization config not found"
 

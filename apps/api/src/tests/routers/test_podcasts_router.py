@@ -8,8 +8,7 @@ from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.db.podcasts.episodes import PodcastEpisodeRead
-from src.db.podcasts.podcasts import Podcast
-from src.db.podcasts.podcasts import PodcastRead, PodcastReadWithEpisodeCount
+from src.db.podcasts.podcasts import Podcast, PodcastRead, PodcastReadWithEpisodeCount
 from src.routers.podcasts.episodes import router as episodes_router
 from src.routers.podcasts.podcasts import router as podcasts_router
 from src.security.auth import get_current_user

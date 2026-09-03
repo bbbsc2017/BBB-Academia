@@ -8,18 +8,18 @@ Previously collided with ``s8t9u0v1w2x3_add_webhook_tables.py`` which also
 declared ``revision = 's8t9u0v1w2x3'``. Renamed to ``s8t9u0v1w2x4`` and
 chained after the webhook migration so the graph is unambiguous.
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa  # noqa: F401
 import sqlmodel  # noqa: F401
+from alembic import op
 from alembic_postgresql_enum import TableReference  # type: ignore
 
 # revision identifiers, used by Alembic.
 revision: str = 's8t9u0v1w2x4'
-down_revision: Union[str, None] = 's8t9u0v1w2x3'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 's8t9u0v1w2x3'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

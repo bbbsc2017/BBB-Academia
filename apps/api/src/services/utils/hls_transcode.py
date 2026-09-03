@@ -12,13 +12,12 @@ never exceeds the source resolution.
 
 import asyncio
 import json
-import subprocess
 import logging
 import os
 import shutil
+import subprocess
 import tempfile
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -92,11 +91,11 @@ async def _run_subprocess(args, timeout: int):
     return await asyncio.to_thread(_run)
 
 
-def _ffmpeg() -> Optional[str]:
+def _ffmpeg() -> str | None:
     return shutil.which("ffmpeg")
 
 
-def _ffprobe() -> Optional[str]:
+def _ffprobe() -> str | None:
     return shutil.which("ffprobe")
 
 
@@ -126,7 +125,7 @@ def ffmpeg_threads() -> str:
 
 def build_ffmpeg_args(
     src_path: str, out_dir: str, rungs: list[Rung], has_audio: bool,
-    key_info_file: Optional[str] = None,
+    key_info_file: str | None = None,
 ) -> list[str]:
     """Build the single-invocation ffmpeg command for the whole ladder.
 
@@ -262,7 +261,7 @@ async def generate_sprite_thumbnails(
     interval: int = THUMB_INTERVAL_SECONDS,
     width: int = THUMB_WIDTH, height: int = THUMB_HEIGHT,
     columns: int = THUMB_COLUMNS,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Build a single sprite sheet of evenly-spaced frames for progress-bar hover
     previews. Returns the videojs-sprite-thumbnails config (relative url,
@@ -307,7 +306,7 @@ async def generate_sprite_thumbnails(
     }
 
 
-async def transcode_source_to_hls(src_path: str, out_dir: str) -> Optional[dict]:
+async def transcode_source_to_hls(src_path: str, out_dir: str) -> dict | None:
     """
     Transcode src_path into an HLS ladder under out_dir.
 

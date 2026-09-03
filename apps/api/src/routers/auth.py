@@ -1,58 +1,60 @@
-from datetime import timedelta, datetime, timezone
-from typing import Literal, Optional
-from fastapi import Depends, APIRouter, HTTPException, Response, status, Request, Form
+from datetime import UTC, datetime, timedelta
+from typing import Literal
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr
 from sqlmodel import select
-from src.db.users import AnonymousUser, User, UserRead
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.core.events.database import get_db_session
+
 from config.config import get_learnhouse_config
 from src.core.deployment_mode import get_deployment_mode
+from src.core.events.database import get_db_session
+from src.db.users import AnonymousUser, User, UserRead
 from src.security.auth import (
+    JWT_ACCESS_TOKEN_EXPIRES,
+    JWT_COOKIE_NAME,
+    JWT_REFRESH_COOKIE_NAME,
+    JWT_REFRESH_TOKEN_EXPIRES,
+    _get_refresh_grace,
+    _is_token_revoked_for_user,
+    _mark_refresh_jti_used,
+    _store_refresh_grace,
     authenticate_user,
-    get_current_user,
     create_access_token,
     create_refresh_token,
     decode_jwt,
     decode_refresh_token,
     extract_jwt_from_request,
+    get_current_user,
     revoke_user_sessions_before,
-    _is_token_revoked_for_user,
-    _mark_refresh_jti_used,
-    _store_refresh_grace,
-    _get_refresh_grace,
-    JWT_ACCESS_TOKEN_EXPIRES,
-    JWT_REFRESH_TOKEN_EXPIRES,
-    JWT_REFRESH_COOKIE_NAME,
-    JWT_COOKIE_NAME,
 )
-from src.services.users.users import security_get_user
-from src.services.auth.utils import signWithGoogle, get_google_user_info
+from src.services.auth.utils import get_google_user_info, signWithGoogle
 from src.services.dev.dev import isDevModeEnabled
-from src.services.security.rate_limiting import (
-    check_login_rate_limit,
-    check_refresh_rate_limit,
-    check_email_verification_rate_limit,
-    get_client_ip,
-)
 from src.services.security.account_lockout import (
     check_account_locked,
+    format_lockout_message,
     record_failed_login,
     reset_failed_attempts,
     update_login_info,
-    format_lockout_message,
+)
+from src.services.security.rate_limiting import (
+    check_email_verification_rate_limit,
+    check_login_rate_limit,
+    check_refresh_rate_limit,
+    get_client_ip,
 )
 from src.services.users.email_verification import (
-    verify_email_token,
     resend_verification_email,
+    verify_email_token,
 )
+from src.services.users.users import security_get_user
 
 
-def get_token_expiry_ms() -> Optional[int]:
+def get_token_expiry_ms() -> int | None:
     """Get the token expiry timestamp in milliseconds for frontend use."""
     if isDevModeEnabled() or JWT_ACCESS_TOKEN_EXPIRES is None:
         return None  # No expiry in dev mode
-    expiry_time = datetime.now(timezone.utc) + JWT_ACCESS_TOKEN_EXPIRES
+    expiry_time = datetime.now(UTC) + JWT_ACCESS_TOKEN_EXPIRES
     return int(expiry_time.timestamp() * 1000)
 
 
@@ -259,13 +261,13 @@ async def refresh(
     issued_at = None
     if iat_raw:
         try:
-            issued_at = datetime.fromtimestamp(iat_raw, tz=timezone.utc)
+            issued_at = datetime.fromtimestamp(iat_raw, tz=UTC)
         except (TypeError, ValueError, OSError):
             issued_at = None
 
     pca_raw = getattr(user, "password_changed_at", None)
     if isinstance(pca_raw, datetime) and issued_at is not None:
-        pca = pca_raw if pca_raw.tzinfo else pca_raw.replace(tzinfo=timezone.utc)
+        pca = pca_raw if pca_raw.tzinfo else pca_raw.replace(tzinfo=UTC)
         if issued_at < pca:
             raise credentials_exception
 
@@ -490,11 +492,12 @@ async def third_party_login(
     request: Request,
     response: Response,
     body: ThirdPartyLogin,
-    org_id: Optional[int] = None,
+    org_id: int | None = None,
     current_user: AnonymousUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     import logging
+
     import redis as _redis
     _logger = logging.getLogger(__name__)
 
@@ -662,7 +665,7 @@ class VerifyEmailRequest(BaseModel):
     token: str
     user_uuid: str
     org_uuid: str
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
 
 
 @router.post(
@@ -736,7 +739,7 @@ async def api_verify_email(
 
 class ResendVerificationRequest(BaseModel):
     email: EmailStr
-    org_id: Optional[int] = None
+    org_id: int | None = None
 
 
 @router.post(

@@ -13,18 +13,17 @@ Revises: b7c8d9e0f3a4
 Create Date: 2026-05-12
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
-import sqlalchemy as sa  # noqa: F401
+import sqlalchemy as sa
 import sqlmodel  # noqa: F401
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
-
 revision: str = 'c8d9e0f4a5b6'
-down_revision: Union[str, None] = 'b7c8d9e0f3a4'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'b7c8d9e0f3a4'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 TABLES = ('course', 'chapter', 'activity', 'user')

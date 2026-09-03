@@ -1,15 +1,15 @@
-import re
 import json
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Tuple, Any, Dict
+import re
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.communities.communities import Community, DEFAULT_MODERATION_SETTINGS
+from src.db.communities.communities import DEFAULT_MODERATION_SETTINGS, Community
 from src.db.communities.discussions import Discussion
 from src.db.users import User
-
 
 URL_PATTERN = re.compile(
     r"(?:https?://|www\.)[^\s<>\"']+",
@@ -17,7 +17,7 @@ URL_PATTERN = re.compile(
 )
 
 
-def get_community_settings(community: Optional[Community]) -> Dict[str, Any]:
+def get_community_settings(community: Community | None) -> dict[str, Any]:
     """Return moderation settings for a community, falling back to defaults."""
     stored = (community.moderation_settings if community else None) or {}
     merged = dict(DEFAULT_MODERATION_SETTINGS)
@@ -31,13 +31,13 @@ def content_has_link(text: str) -> bool:
     return bool(URL_PATTERN.search(text))
 
 
-def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
+def _parse_iso_datetime(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.replace(tzinfo=UTC)
         return parsed
     except (ValueError, AttributeError):
         return None
@@ -45,7 +45,7 @@ def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
 
 async def enforce_posting_limits(
     user_id: int,
-    community: Optional[Community],
+    community: Community | None,
     db_session: AsyncSession,
 ) -> None:
     """
@@ -77,7 +77,7 @@ async def enforce_posting_limits(
     if min_account_age_days > 0 and user is not None:
         created = _parse_iso_datetime(user.creation_date)
         if created is not None:
-            age = datetime.now(timezone.utc) - created
+            age = datetime.now(UTC) - created
             if age < timedelta(days=min_account_age_days):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -99,7 +99,7 @@ async def enforce_posting_limits(
     if slow_mode_seconds > 0 and recent_discussions:
         last_created = _parse_iso_datetime(recent_discussions[0].creation_date)
         if last_created is not None:
-            elapsed = (datetime.now(timezone.utc) - last_created).total_seconds()
+            elapsed = (datetime.now(UTC) - last_created).total_seconds()
             if elapsed < slow_mode_seconds:
                 wait = int(slow_mode_seconds - elapsed)
                 raise HTTPException(
@@ -112,7 +112,7 @@ async def enforce_posting_limits(
                 )
 
     if max_posts_per_day > 0:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=1)
+        cutoff = datetime.now(UTC) - timedelta(days=1)
         count = 0
         for d in recent_discussions:
             created = _parse_iso_datetime(d.creation_date)
@@ -132,7 +132,7 @@ async def enforce_posting_limits(
 
 async def enforce_auto_lock(
     discussion: Discussion,
-    community: Optional[Community],
+    community: Community | None,
     db_session: AsyncSession,
 ) -> None:
     """
@@ -148,7 +148,7 @@ async def enforce_auto_lock(
     reference = _parse_iso_datetime(discussion.update_date) or _parse_iso_datetime(discussion.creation_date)
     if reference is None:
         return
-    if datetime.now(timezone.utc) - reference >= timedelta(days=auto_lock_days):
+    if datetime.now(UTC) - reference >= timedelta(days=auto_lock_days):
         discussion.is_locked = True
         db_session.add(discussion)
         await db_session.commit()
@@ -199,8 +199,8 @@ def parse_content_for_moderation(content: str) -> str:
 
 def check_content_moderation(
     content: str,
-    moderation_words: List[str],
-) -> Tuple[bool, Optional[str]]:
+    moderation_words: list[str],
+) -> tuple[bool, str | None]:
     """
     Check if content contains any moderation words.
 

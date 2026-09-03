@@ -19,8 +19,7 @@ Design notes:
   creation_date, so only genuinely new accounts are ever gated. Legacy rows
   with an empty/odd date are treated as old enough.
 """
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlmodel import select
@@ -39,7 +38,7 @@ from src.security.features_utils.usage import (
 FREE_TIER_MIN_AGE_DAYS = 7
 
 
-def parse_creation_date(raw: Optional[str]) -> Optional[datetime]:
+def parse_creation_date(raw: str | None) -> datetime | None:
     """Parse a stored ``creation_date`` string into a tz-aware UTC datetime.
 
     Handles the primary persisted format ``str(datetime.now())`` (naive,
@@ -58,19 +57,19 @@ def parse_creation_date(raw: Optional[str]) -> Optional[datetime]:
         except ValueError:
             return None
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 def account_age_days(
-    raw: Optional[str], *, now: Optional[datetime] = None
-) -> Optional[float]:
+    raw: str | None, *, now: datetime | None = None
+) -> float | None:
     """Return the age in days for a stored creation_date, or ``None`` if the
     date cannot be parsed (caller decides how to treat unknown ages)."""
     created = parse_creation_date(raw)
     if created is None:
         return None
-    now = now or datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
     return (now - created).total_seconds() / 86400.0
 
 
@@ -80,6 +79,7 @@ async def is_free_tier_age_gated(
     db_session: AsyncSession,
     *,
     min_age_days: int = FREE_TIER_MIN_AGE_DAYS,
+    now: datetime | None = None,
 ) -> list[str]:
     """Return the list of subjects (``"organization"`` / ``"account"``) that
     are younger than ``min_age_days`` and would block a gated free-tier action.
@@ -87,6 +87,10 @@ async def is_free_tier_age_gated(
     Returns an empty list when the action should be allowed — i.e. the org is
     on a paid plan, the deployment is non-SaaS, or both the org and account are
     old enough (or have unparseable/legacy dates that fail open).
+
+    ``now`` mirrors the same parameter on :func:`account_age_days`: it defaults
+    to the real current time and only needs to be passed explicitly by tests
+    that want deterministic age math.
     """
     # Self-hosted EE/OSS: no free-tier abuse economics, skip the gate.
     if _is_non_saas():
@@ -97,7 +101,7 @@ async def is_free_tier_age_gated(
     if org_config is not None and _get_org_plan(org_config) not in ("free",):
         return []
 
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
 
     org = (
         await db_session.execute(select(Organization).where(Organization.id == org_id))
@@ -125,6 +129,7 @@ async def enforce_free_tier_age_gate(
     *,
     action: str = "perform this action",
     min_age_days: int = FREE_TIER_MIN_AGE_DAYS,
+    now: datetime | None = None,
 ) -> None:
     """Raise HTTP 403 (``ACCOUNT_TOO_NEW``) if a free-tier org or its acting
     user is younger than ``min_age_days``. No-op for paid orgs, non-SaaS
@@ -135,7 +140,7 @@ async def enforce_free_tier_age_gate(
     ``resolve_acting_user_id``) so token-driven calls are gated correctly.
     """
     too_new = await is_free_tier_age_gated(
-        org_id, user_id, db_session, min_age_days=min_age_days
+        org_id, user_id, db_session, min_age_days=min_age_days, now=now
     )
     if not too_new:
         return

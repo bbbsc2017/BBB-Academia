@@ -1,17 +1,18 @@
-from typing import Optional, AsyncGenerator, List
-from uuid import uuid4
-import logging
-import redis
-import json
 import base64
+import json
+import logging
+from collections.abc import AsyncGenerator
+from uuid import uuid4
+
+import redis
 
 from config.config import get_learnhouse_config
-from src.services.ai.llm import generate_stream, attachments_to_parts, model_for_tier
+from src.services.ai.llm import attachments_to_parts, generate_stream, model_for_tier
 from src.services.ai.schemas.courseplanning import (
-    CoursePlan,
-    CoursePlanningSessionData,
-    CoursePlanningMessage,
     AttachmentData,
+    CoursePlan,
+    CoursePlanningMessage,
+    CoursePlanningSessionData,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ def get_redis_connection():
     return None
 
 
-def get_course_planning_session(session_uuid: str) -> Optional[CoursePlanningSessionData]:
+def get_course_planning_session(session_uuid: str) -> CoursePlanningSessionData | None:
     """Get an existing course planning session from Redis"""
     r = get_redis_connection()
     if not r:
@@ -98,7 +99,7 @@ def save_course_planning_session(session: CoursePlanningSessionData) -> bool:
         return False
 
 
-def build_attachment_context(attachments: List[AttachmentData]) -> str:
+def build_attachment_context(attachments: list[AttachmentData]) -> str:
     """Build context string from attachments for the AI prompt (text-based context)"""
     if not attachments:
         return ""
@@ -148,8 +149,7 @@ def build_attachment_context(attachments: List[AttachmentData]) -> str:
     if documents:
         context_parts.append("\n** DOCUMENTS PROVIDED **")
         context_parts.append("Use the following document content to inform the course structure and topics:")
-        for doc in documents:
-            context_parts.append(doc)
+        context_parts.extend(documents)
 
     if images:
         context_parts.append("\n** IMAGES PROVIDED (also attached as image content) **")
@@ -384,9 +384,9 @@ async def generate_course_plan_stream(
     prompt: str,
     session: CoursePlanningSessionData,
     model_name: str = "",
-    current_plan: Optional[CoursePlan] = None,
-    attachments: Optional[List[AttachmentData]] = None
-) -> AsyncGenerator[str, None]:
+    current_plan: CoursePlan | None = None,
+    attachments: list[AttachmentData] | None = None
+) -> AsyncGenerator[str]:
     """
     Generate course plan with streaming.
     Yields chunks of the response (raw JSON text) as they arrive; parsed afterward.
@@ -460,7 +460,7 @@ IMPORTANT: You MUST incorporate the materials provided above into the course pla
 
     except Exception as e:
         # Raise the exception so it's handled by the event_generator error handler
-        raise RuntimeError(f"Course planning error: {str(e)}")
+        raise RuntimeError(f"Course planning error: {e!s}")
 
 
 async def generate_activity_content_stream(
@@ -472,9 +472,9 @@ async def generate_activity_content_stream(
     course_name: str,
     course_description: str,
     model_name: str = "",
-    prompt: Optional[str] = None,
-    current_content: Optional[str] = None
-) -> AsyncGenerator[str, None]:
+    prompt: str | None = None,
+    current_content: str | None = None
+) -> AsyncGenerator[str]:
     """
     Generate activity content with streaming.
     Yields chunks of the response (raw JSON text) as they arrive.
@@ -527,10 +527,10 @@ Please modify the content according to the user's request. Output ONLY the compl
 
     except Exception as e:
         # Raise the exception so it's handled by the event_generator error handler
-        raise RuntimeError(f"Activity content generation error: {str(e)}")
+        raise RuntimeError(f"Activity content generation error: {e!s}")
 
 
-def extract_plan_from_response(response: str) -> Optional[CoursePlan]:
+def extract_plan_from_response(response: str) -> CoursePlan | None:
     """Extract and parse the course plan from the AI response"""
     try:
         # Clean up the response - remove markdown code blocks if present
@@ -566,7 +566,7 @@ def extract_plan_from_response(response: str) -> Optional[CoursePlan]:
         return None
 
 
-def extract_content_from_response(response: str) -> Optional[dict]:
+def extract_content_from_response(response: str) -> dict | None:
     """Extract and parse the activity content from the AI response"""
     try:
         # Clean up the response

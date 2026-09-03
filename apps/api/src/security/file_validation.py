@@ -5,7 +5,7 @@ Validates file types and content to prevent unrestricted uploads (CWE-434).
 """
 
 import re
-from typing import List, Optional, Tuple
+
 from fastapi import HTTPException, UploadFile
 
 
@@ -246,9 +246,9 @@ MIME_TO_SAFE_EXT = {
 
 def validate_upload(
     file: UploadFile,
-    allowed_types: List[str],
-    max_size: Optional[int] = None
-) -> Tuple[str, bytes]:
+    allowed_types: list[str],
+    max_size: int | None = None
+) -> tuple[str, bytes]:
     """
     Validate uploaded file for security and type compliance.
     
@@ -311,7 +311,7 @@ def validate_upload(
 def get_safe_filename(
     original_filename: str,
     prefix: str = "",
-    content_type: Optional[str] = None,
+    content_type: str | None = None,
 ) -> str:
     """Generate a safe filename with a UUID prefix and a safe extension.
 

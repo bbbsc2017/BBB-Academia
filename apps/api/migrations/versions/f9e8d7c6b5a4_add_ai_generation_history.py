@@ -14,17 +14,16 @@ Revises: (merges all prior heads — see down_revision tuple)
 Create Date: 2026-07-02
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
-import sqlmodel  # noqa: F401
-
+import sqlmodel
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'f9e8d7c6b5a4'
 # Merge every open head at authoring time so the tree collapses to one head.
-down_revision: Union[str, Sequence[str], None] = (
+down_revision: str | Sequence[str] | None = (
     'd4e5f6a7b8c9',
     'm3b4c5d6e7f8',
     '5e3a9c7f1b2d',
@@ -33,8 +32,8 @@ down_revision: Union[str, Sequence[str], None] = (
     'c1d2e3f4a5b6',
     'b2c3d4e5f8a9',
 )
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

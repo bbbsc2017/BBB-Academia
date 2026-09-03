@@ -11,14 +11,14 @@ from unittest.mock import MagicMock, patch
 
 from src.services.orgs import cache as cache_module
 from src.services.orgs.cache import (
-    get_cached_org_config,
-    invalidate_org_config_cache,
-    set_cached_org_config,
-    get_cached_org_by_slug,
-    set_cached_org_by_slug,
-    invalidate_org_cache,
     get_cached_instance_info,
+    get_cached_org_by_slug,
+    get_cached_org_config,
+    invalidate_org_cache,
+    invalidate_org_config_cache,
     set_cached_instance_info,
+    set_cached_org_by_slug,
+    set_cached_org_config,
 )
 
 

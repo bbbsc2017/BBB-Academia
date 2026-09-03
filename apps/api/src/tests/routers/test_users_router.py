@@ -18,8 +18,7 @@ from httpx import ASGITransport, AsyncClient
 from src.core.events.database import get_db_session
 from src.db.users import UserReadPublic
 from src.routers.users import router as users_router
-from src.security.auth import get_current_user, get_authenticated_user
-
+from src.security.auth import get_authenticated_user, get_current_user
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -9,14 +9,14 @@ idempotent migration. All CREATE INDEX statements use IF NOT EXISTS and
 all ADD COLUMN statements use IF NOT EXISTS so the migration is safe to
 run against a DB that already has some of the objects.
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 
 revision: str = 'l3m4n5o6p7q8'
-down_revision: Union[str, None] = 'y4z5a6b7c8d9'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'y4z5a6b7c8d9'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

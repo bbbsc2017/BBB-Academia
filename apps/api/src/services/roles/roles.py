@@ -1,20 +1,22 @@
-from typing import Literal, List
+from datetime import datetime
+from typing import Literal
 from uuid import uuid4
+
+from fastapi import HTTPException, Request
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import select, text
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.exc import IntegrityError
+
+from src.db.organizations import Organization
+from src.db.roles import Role, RoleCreate, RoleRead, RoleTypeEnum, RoleUpdate
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.auth import resolve_acting_user_id
+from src.security.org_auth import get_user_org_role, require_org_role_permission
 from src.security.rbac.rbac import (
     authorization_verify_based_on_roles_and_authorship,
     authorization_verify_if_user_is_anon,
 )
-from src.security.org_auth import require_org_role_permission, get_user_org_role
 from src.security.superadmin import is_user_superadmin
-from src.db.users import AnonymousUser, APITokenUser, PublicUser
-from src.security.auth import resolve_acting_user_id
-from src.db.roles import Role, RoleCreate, RoleRead, RoleUpdate, RoleTypeEnum
-from src.db.organizations import Organization
-from fastapi import HTTPException, Request
-from datetime import datetime
 
 
 def validate_rights_shape(rights_dict: dict) -> dict:
@@ -265,7 +267,7 @@ async def get_roles_by_organization(
     db_session: AsyncSession,
     org_id: int,
     current_user: PublicUser | AnonymousUser | APITokenUser,
-) -> List[RoleRead]:
+) -> list[RoleRead]:
     """
     Get all roles for a specific organization, including global roles.
 

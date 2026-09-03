@@ -1,18 +1,19 @@
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
+from src.db.users import PublicUser
 from src.db.webhooks import (
+    WebhookDeliveryLogRead,
     WebhookEndpointCreate,
     WebhookEndpointCreatedResponse,
     WebhookEndpointRead,
     WebhookEndpointUpdate,
-    WebhookDeliveryLogRead,
 )
-from src.db.users import PublicUser
 from src.security.auth import get_current_user
 from src.services.security.rate_limiting import check_webhook_mutation_rate_limit
+from src.services.webhooks.events import WEBHOOK_EVENTS
 from src.services.webhooks.webhooks import (
     create_webhook_endpoint,
     delete_webhook_endpoint,
@@ -23,7 +24,6 @@ from src.services.webhooks.webhooks import (
     send_test_event,
     update_webhook_endpoint,
 )
-from src.services.webhooks.events import WEBHOOK_EVENTS
 
 
 def _enforce_webhook_rate_limit(org_id: int, action: str) -> None:
@@ -96,11 +96,11 @@ async def api_create_webhook_endpoint(
 
 @router.get(
     "/{org_id}/webhooks",
-    response_model=List[WebhookEndpointRead],
+    response_model=list[WebhookEndpointRead],
     summary="List webhook endpoints",
     description="Returns all webhook endpoints configured for the given organization.",
     responses={
-        200: {"description": "List of webhook endpoints", "model": List[WebhookEndpointRead]},
+        200: {"description": "List of webhook endpoints", "model": list[WebhookEndpointRead]},
         401: {"description": "Authentication required"},
         403: {"description": "User lacks permission to view webhooks for this organization"},
         404: {"description": "Organization not found"},
@@ -111,7 +111,7 @@ async def api_list_webhook_endpoints(
     org_id: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[WebhookEndpointRead]:
+) -> list[WebhookEndpointRead]:
     """List all webhook endpoints for an organization."""
     return await get_webhook_endpoints(request, db_session, org_id, current_user)
 
@@ -247,11 +247,11 @@ async def api_send_test_event(
 
 @router.get(
     "/{org_id}/webhooks/{webhook_uuid}/deliveries",
-    response_model=List[WebhookDeliveryLogRead],
+    response_model=list[WebhookDeliveryLogRead],
     summary="List webhook delivery logs",
     description="Returns recent webhook delivery attempts and their outcomes for the specified endpoint, up to the requested limit.",
     responses={
-        200: {"description": "List of webhook delivery log entries", "model": List[WebhookDeliveryLogRead]},
+        200: {"description": "List of webhook delivery log entries", "model": list[WebhookDeliveryLogRead]},
         401: {"description": "Authentication required"},
         403: {"description": "User lacks permission to view this webhook"},
         404: {"description": "Webhook endpoint not found"},
@@ -264,7 +264,7 @@ async def api_get_webhook_deliveries(
     limit: int = Query(50, ge=1, le=200),
     current_user: PublicUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
-) -> List[WebhookDeliveryLogRead]:
+) -> list[WebhookDeliveryLogRead]:
     """Get recent delivery logs for a webhook endpoint."""
     return await get_webhook_delivery_logs(
         request, db_session, org_id, webhook_uuid, current_user, limit=limit

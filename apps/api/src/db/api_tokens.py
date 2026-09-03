@@ -1,15 +1,16 @@
-from typing import Optional, Union
+
 from pydantic import BaseModel
-from sqlalchemy import JSON, Column, ForeignKey, Integer, String, Index
+from sqlalchemy import JSON, Column, ForeignKey, Index, Integer, String
 from sqlmodel import Field, SQLModel
+
 from src.db.roles import Rights
 
 
 class APITokenBase(SQLModel):
     """Base model for API tokens"""
     name: str = Field(max_length=100)
-    description: Optional[str] = Field(default=None, max_length=500)
-    rights: Optional[Union[Rights, dict]] = Field(default=None, sa_column=Column(JSON))
+    description: str | None = Field(default=None, max_length=500)
+    rights: Rights | dict | None = Field(default=None, sa_column=Column(JSON))
 
 
 class APIToken(APITokenBase, table=True):
@@ -21,7 +22,7 @@ class APIToken(APITokenBase, table=True):
         {"extend_existing": True}
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     token_uuid: str = Field(default="", max_length=100)  # format: apitoken_{uuid4()}
     token_prefix: str = Field(default="", max_length=12)
     token_hash: str = Field(default="", sa_column=Column(String(255)))
@@ -33,25 +34,25 @@ class APIToken(APITokenBase, table=True):
     )
     creation_date: str = ""
     update_date: str = ""
-    last_used_at: Optional[str] = None
-    expires_at: Optional[str] = None  # None = never expires
+    last_used_at: str | None = None
+    expires_at: str | None = None  # None = never expires
     is_active: bool = Field(default=True)  # False = revoked
 
 
 class APITokenCreate(BaseModel):
     """Model for creating a new API token"""
     name: str
-    description: Optional[str] = None
-    rights: Optional[Union[Rights, dict]] = None
-    expires_at: Optional[str] = None
+    description: str | None = None
+    rights: Rights | dict | None = None
+    expires_at: str | None = None
 
 
 class APITokenUpdate(BaseModel):
     """Model for updating an API token"""
-    name: Optional[str] = None
-    description: Optional[str] = None
-    rights: Optional[Union[Rights, dict]] = None
-    expires_at: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    rights: Rights | dict | None = None
+    expires_at: str | None = None
 
 
 class APITokenRead(BaseModel):
@@ -59,15 +60,15 @@ class APITokenRead(BaseModel):
     id: int
     token_uuid: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     token_prefix: str
     org_id: int
-    rights: Optional[Union[Rights, dict]] = None
+    rights: Rights | dict | None = None
     created_by_user_id: int
     creation_date: str
     update_date: str
-    last_used_at: Optional[str] = None
-    expires_at: Optional[str] = None
+    last_used_at: str | None = None
+    expires_at: str | None = None
     is_active: bool
 
 
@@ -79,10 +80,10 @@ class APITokenCreatedResponse(BaseModel):
     token: str  # The full token (only shown once!)
     token_uuid: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     token_prefix: str
     org_id: int
-    rights: Optional[Union[Rights, dict]] = None
+    rights: Rights | dict | None = None
     created_by_user_id: int
     creation_date: str
-    expires_at: Optional[str] = None
+    expires_at: str | None = None

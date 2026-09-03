@@ -7,9 +7,22 @@ import pytest
 from fastapi import HTTPException
 from sqlmodel import select
 
-from src.db.courses.activities import Activity, ActivityLockType, ActivityRead, ActivitySubTypeEnum, ActivityTypeEnum
+from src.db.courses.activities import (
+    Activity,
+    ActivityLockType,
+    ActivityRead,
+    ActivitySubTypeEnum,
+    ActivityTypeEnum,
+)
 from src.db.courses.chapter_activities import ChapterActivity
-from src.db.courses.chapters import Chapter, ChapterCreate, ChapterRead, ChapterUpdate, ChapterUpdateOrder, LockType
+from src.db.courses.chapters import (
+    Chapter,
+    ChapterCreate,
+    ChapterRead,
+    ChapterUpdate,
+    ChapterUpdateOrder,
+    LockType,
+)
 from src.db.courses.course_chapters import CourseChapter
 from src.db.courses.courses import Course
 from src.services.courses.chapters import (
@@ -57,20 +70,19 @@ class TestCreateChapter:
         with patch(
             "src.services.courses.chapters.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await create_chapter(
-                    mock_request,
-                    ChapterCreate(
-                        name="Missing",
-                        description="Missing",
-                        thumbnail_image="",
-                        org_id=1,
-                        course_id=999,
-                    ),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await create_chapter(
+                mock_request,
+                ChapterCreate(
+                    name="Missing",
+                    description="Missing",
+                    thumbnail_image="",
+                    org_id=1,
+                    course_id=999,
+                ),
+                admin_user,
+                db,
+            )
 
         assert exc_info.value.status_code == 404
         assert "Course not found" in exc_info.value.detail
@@ -148,11 +160,10 @@ class TestUpdateChapter:
         with patch(
             "src.services.courses.chapters.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_chapter(
-                    mock_request, ChapterUpdate(name="x"), chapter.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_chapter(
+                mock_request, ChapterUpdate(name="x"), chapter.id, admin_user, db
+            )
 
         assert exc_info.value.status_code == 404
         assert "Course does not exist" in exc_info.value.detail
@@ -237,9 +248,8 @@ class TestDeleteChapter:
         with patch(
             "src.services.courses.chapters.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await delete_chapter(mock_request, chapter.id, admin_user, db)
+        ), pytest.raises(HTTPException) as exc_info:
+            await delete_chapter(mock_request, chapter.id, admin_user, db)
 
         assert exc_info.value.status_code == 404
         assert "Course not found" in exc_info.value.detail
@@ -591,11 +601,10 @@ class TestReorderChaptersAndActivities:
         with patch(
             "src.services.courses.chapters.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await reorder_chapters_and_activities(
-                    mock_request, course.course_uuid, payload, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await reorder_chapters_and_activities(
+                mock_request, course.course_uuid, payload, admin_user, db
+            )
 
         assert exc_info.value.status_code == 400
         assert "not part of this course" in exc_info.value.detail
@@ -664,11 +673,10 @@ class TestReorderChaptersAndActivities:
         with patch(
             "src.services.courses.chapters.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await reorder_chapters_and_activities(
-                    mock_request, course.course_uuid, payload, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await reorder_chapters_and_activities(
+                mock_request, course.course_uuid, payload, admin_user, db
+            )
 
         assert exc_info.value.status_code == 400
         assert "not part of this course" in exc_info.value.detail
@@ -757,9 +765,10 @@ class TestApplyLocksToChapters:
         """Lines 426-428: when the course uuid is in the accessible set,
         course_grants_access=True → activity_locked=False even if activity is restricted."""
         from datetime import datetime
-        from src.db.usergroups import UserGroup
+
         from src.db.usergroup_resources import UserGroupResource
         from src.db.usergroup_user import UserGroupUser
+        from src.db.usergroups import UserGroup
 
         ug = UserGroup(
             org_id=org.id,

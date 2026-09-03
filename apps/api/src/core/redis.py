@@ -8,7 +8,6 @@ exhaustion under load.
 """
 
 import logging
-from typing import Optional
 
 import redis
 
@@ -16,10 +15,10 @@ from config.config import get_learnhouse_config
 
 logger = logging.getLogger(__name__)
 
-_pool: Optional[redis.ConnectionPool] = None
+_pool: redis.ConnectionPool | None = None
 
 
-def _build_pool() -> Optional[redis.ConnectionPool]:
+def _build_pool() -> redis.ConnectionPool | None:
     try:
         config = get_learnhouse_config()
         conn_string = config.redis_config.redis_connection_string
@@ -36,7 +35,7 @@ def _build_pool() -> Optional[redis.ConnectionPool]:
         return None
 
 
-def get_redis_client() -> Optional[redis.Redis]:
+def get_redis_client() -> redis.Redis | None:
     """
     Return a Redis client backed by the shared connection pool, or None if
     Redis is not configured or unavailable.

@@ -16,6 +16,7 @@ Tests cover:
 import asyncio
 import re
 from unittest.mock import AsyncMock, MagicMock, patch
+
 from starlette.responses import JSONResponse
 
 
@@ -303,7 +304,7 @@ class TestCSRFCustomDomain:
         with patch("src.security.csrf.get_learnhouse_config", return_value=_make_mock_config(
             allowed_origins=["https://example.com"]
         )):
-            from src.security.csrf import CSRFProtectionMiddleware, _CUSTOM_DOMAIN_CACHE
+            from src.security.csrf import _CUSTOM_DOMAIN_CACHE, CSRFProtectionMiddleware
             _CUSTOM_DOMAIN_CACHE.clear()
             mw = CSRFProtectionMiddleware(MagicMock())
             with patch("src.core.events.database._async_session_factory", _mock_session_factory(object())):
@@ -315,7 +316,7 @@ class TestCSRFCustomDomain:
         with patch("src.security.csrf.get_learnhouse_config", return_value=_make_mock_config(
             allowed_origins=["https://example.com"]
         )):
-            from src.security.csrf import CSRFProtectionMiddleware, _CUSTOM_DOMAIN_CACHE
+            from src.security.csrf import _CUSTOM_DOMAIN_CACHE, CSRFProtectionMiddleware
             _CUSTOM_DOMAIN_CACHE.clear()
             mw = CSRFProtectionMiddleware(MagicMock())
             with patch("src.core.events.database._async_session_factory", _mock_session_factory(None)):
@@ -339,7 +340,7 @@ class TestCSRFCustomDomain:
         # When the cache hits its cap it is cleared before inserting, so it never
         # grows unbounded. Cap patched low to exercise the eviction branch.
         with patch("src.security.csrf.get_learnhouse_config", return_value=_make_mock_config()):
-            from src.security.csrf import CSRFProtectionMiddleware, _CUSTOM_DOMAIN_CACHE
+            from src.security.csrf import _CUSTOM_DOMAIN_CACHE, CSRFProtectionMiddleware
             _CUSTOM_DOMAIN_CACHE.clear()
             _CUSTOM_DOMAIN_CACHE["stale.example"] = (True, 9999999999.0)
             mw = CSRFProtectionMiddleware(MagicMock())
@@ -354,7 +355,7 @@ class TestCSRFCustomDomain:
         with patch("src.security.csrf.get_learnhouse_config", return_value=_make_mock_config(
             allowed_origins=["https://example.com"]
         )):
-            from src.security.csrf import CSRFProtectionMiddleware, _CUSTOM_DOMAIN_CACHE
+            from src.security.csrf import _CUSTOM_DOMAIN_CACHE, CSRFProtectionMiddleware
             _CUSTOM_DOMAIN_CACHE.clear()
             mw = CSRFProtectionMiddleware(MagicMock())
             req = _make_request("POST", {"origin": "https://learn.acme.org"})
@@ -372,7 +373,7 @@ class TestCSRFCustomDomain:
         with patch("src.security.csrf.get_learnhouse_config", return_value=_make_mock_config(
             allowed_origins=["https://example.com"]
         )):
-            from src.security.csrf import CSRFProtectionMiddleware, _CUSTOM_DOMAIN_CACHE
+            from src.security.csrf import _CUSTOM_DOMAIN_CACHE, CSRFProtectionMiddleware
             _CUSTOM_DOMAIN_CACHE.clear()
             mw = CSRFProtectionMiddleware(MagicMock())
             req = _make_request("POST", {"origin": "https://attacker.com"})

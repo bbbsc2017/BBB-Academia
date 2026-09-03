@@ -5,18 +5,18 @@ Revises: i9d0e1f2a3b4
 Create Date: 2026-02-07 12:00:00.000000
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
-import sqlalchemy as sa  # noqa: F401
+import sqlalchemy as sa
 import sqlmodel  # noqa: F401
+from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB
 
 # revision identifiers, used by Alembic.
 revision: str = 'j0e1f2a3b4c5'
-down_revision: Union[str, None] = 'i9d0e1f2a3b4'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'i9d0e1f2a3b4'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 # Default docspaces permissions per role

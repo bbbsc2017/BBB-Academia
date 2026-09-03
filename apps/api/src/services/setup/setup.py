@@ -1,20 +1,29 @@
+import json
 import logging
 from datetime import datetime
-import json
 from uuid import uuid4
+
 from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.organization_config import (
     OrganizationConfig,
     OrganizationConfigV2Base,
 )
 from src.db.organizations import Organization, OrganizationCreate
-from src.db.roles import DashboardPermission, Permission, PermissionsWithOwn, Rights, Role, RoleTypeEnum
+from src.db.roles import (
+    DashboardPermission,
+    Permission,
+    PermissionsWithOwn,
+    Rights,
+    Role,
+    RoleTypeEnum,
+)
 from src.db.user_organizations import UserOrganization
 from src.db.users import User, UserCreate, UserRead
-from src.security.security import security_hash_password
 from src.security.rbac.constants import ADMIN_ROLE_ID
+from src.security.security import security_hash_password
 
 
 # Install Default roles

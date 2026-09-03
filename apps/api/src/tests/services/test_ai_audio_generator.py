@@ -144,9 +144,8 @@ async def test_generate_speech_too_long_raises():
 async def test_generate_speech_no_audio_raises_runtime():
     client = _fake_client(SimpleNamespace(candidates=[]))
     with patch.object(gen, "get_learnhouse_config", return_value=_cfg()), \
-         patch("google.genai.Client", return_value=client):
-        with pytest.raises(RuntimeError):
-            await gen.generate_speech("Hello")
+         patch("google.genai.Client", return_value=client), pytest.raises(RuntimeError):
+        await gen.generate_speech("Hello")
 
 
 async def test_generate_speech_retries_then_succeeds():
@@ -165,9 +164,8 @@ async def test_generate_speech_retries_then_succeeds():
 async def test_generate_speech_nonretryable_raises_runtime():
     client = _fake_client(side_effect=ValueError("bad request"))
     with patch.object(gen, "get_learnhouse_config", return_value=_cfg()), \
-         patch("google.genai.Client", return_value=client):
-        with pytest.raises(RuntimeError):
-            await gen.generate_speech("Hello")
+         patch("google.genai.Client", return_value=client), pytest.raises(RuntimeError):
+        await gen.generate_speech("Hello")
 
 
 # --- generate_spoken_script ----------------------------------------------

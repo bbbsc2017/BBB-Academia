@@ -12,6 +12,11 @@ import pytest
 from fastapi import HTTPException
 from sqlmodel import select
 
+from src.db.courses.activities import Activity, ActivitySubTypeEnum, ActivityTypeEnum
+from src.db.courses.blocks import Block, BlockTypeEnum
+from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.chapters import Chapter
+from src.db.courses.course_chapters import CourseChapter
 from src.db.courses.courses import (
     Course,
     CourseCreate,
@@ -20,17 +25,12 @@ from src.db.courses.courses import (
     FullCourseRead,
     ThumbnailType,
 )
-from src.db.courses.activities import Activity, ActivityTypeEnum, ActivitySubTypeEnum
-from src.db.courses.blocks import Block, BlockTypeEnum
-from src.db.courses.chapters import Chapter
-from src.db.courses.chapter_activities import ChapterActivity
-from src.db.courses.course_chapters import CourseChapter
 from src.db.resource_authors import (
     ResourceAuthor,
     ResourceAuthorshipEnum,
     ResourceAuthorshipStatusEnum,
 )
-from src.db.users import APITokenUser, AnonymousUser
+from src.db.users import AnonymousUser, APITokenUser
 from src.security.rbac import AccessAction, AccessContext
 from src.services.courses.courses import (
     clone_course,
@@ -219,7 +219,8 @@ class TestGetCourseMeta:
     async def test_get_course_meta_skips_chapters_when_course_id_missing(
         self, org, mock_request, admin_user
     ):
-        from unittest.mock import AsyncMock as _AsyncMock, MagicMock
+        from unittest.mock import AsyncMock as _AsyncMock
+        from unittest.mock import MagicMock
 
         course = Course(
             id=None,
@@ -262,7 +263,8 @@ class TestGetCourseMeta:
 
     @pytest.mark.asyncio
     async def test_get_course_meta_not_found_raises(self, mock_request, admin_user):
-        from unittest.mock import AsyncMock as _AsyncMock, MagicMock
+        from unittest.mock import AsyncMock as _AsyncMock
+        from unittest.mock import MagicMock
 
         execute_result = MagicMock()
         execute_result.all.return_value = []
@@ -272,15 +274,14 @@ class TestGetCourseMeta:
         with patch(
             "src.services.courses.courses.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_course_meta(
-                    mock_request,
-                    "missing-course",
-                    False,
-                    admin_user,
-                    fake_db,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_course_meta(
+                mock_request,
+                "missing-course",
+                False,
+                admin_user,
+                fake_db,
+            )
 
         assert exc_info.value.status_code == 404
 
@@ -959,15 +960,14 @@ class TestCourseMutationsAndRights:
         with patch(
             "src.services.courses.courses.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_course_thumbnail(
-                    mock_request,
-                    course.course_uuid,
-                    admin_user,
-                    db,
-                    thumbnail_file=None,
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_course_thumbnail(
+                mock_request,
+                course.course_uuid,
+                admin_user,
+                db,
+                thumbnail_file=None,
+            )
 
         assert exc_info.value.status_code == 500
 
@@ -1147,14 +1147,13 @@ class TestCourseMutationsAndRights:
             new_callable=AsyncMock,
         ), patch(
             "src.services.courses.courses.check_limits_with_usage"
-        ):
-            with pytest.raises(HTTPException) as missing_course_exc:
-                await clone_course(
-                    mock_request,
-                    "missing-course",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as missing_course_exc:
+            await clone_course(
+                mock_request,
+                "missing-course",
+                admin_user,
+                db,
+            )
 
         assert missing_course_exc.value.status_code == 404
 
@@ -1178,14 +1177,13 @@ class TestCourseMutationsAndRights:
             new_callable=AsyncMock,
         ), patch(
             "src.services.courses.courses.check_limits_with_usage"
-        ):
-            with pytest.raises(HTTPException) as missing_org_exc:
-                await clone_course(
-                    mock_request,
-                    "course_orphan",
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as missing_org_exc:
+            await clone_course(
+                mock_request,
+                "course_orphan",
+                admin_user,
+                db,
+            )
 
         # The orphan course belongs to a foreign/non-existent org (999); cloning
         # now requires membership in the source course's org, so a non-member is
@@ -1719,7 +1717,7 @@ class TestGetUserCoursesAndRights:
         mock_copytree.assert_called_once_with("srcdir", "dstdir", dirs_exist_ok=True)
 
         class _FakePaginator:
-            def paginate(self, Bucket, Prefix):  # noqa: N803
+            def paginate(self, Bucket, Prefix):
                 return [{"Contents": [{"Key": "srcdir/file.txt"}]}]
 
         class _FakeS3Client:
@@ -1802,7 +1800,8 @@ class TestGetUserCoursesAndRights:
         self, db, org, admin_user, mock_request
     ):
         """Cover lines 668-670: db_session.rollback() and re-raise when commit fails."""
-        from unittest.mock import AsyncMock as _AsyncMock, MagicMock
+        from unittest.mock import AsyncMock as _AsyncMock
+        from unittest.mock import MagicMock
 
         mock_db = MagicMock()
         execute_result = MagicMock()
@@ -1818,22 +1817,21 @@ class TestGetUserCoursesAndRights:
             "src.services.courses.courses.check_limits_with_usage"
         ), patch(
             "src.services.courses.courses.increase_feature_usage"
-        ):
-            with pytest.raises(Exception, match="DB constraint violation"):
-                await create_course(
-                    mock_request,
-                    org.id,
-                    CourseCreate(
-                        org_id=org.id,
-                        name="Rollback Course",
-                        description="Will fail",
-                        public=False,
-                        published=False,
-                        open_to_contributors=False,
-                    ),
-                    admin_user,
-                    mock_db,
-                )
+        ), pytest.raises(Exception, match="DB constraint violation"):
+            await create_course(
+                mock_request,
+                org.id,
+                CourseCreate(
+                    org_id=org.id,
+                    name="Rollback Course",
+                    description="Will fail",
+                    public=False,
+                    published=False,
+                    open_to_contributors=False,
+                ),
+                admin_user,
+                mock_db,
+            )
 
         mock_db.rollback.assert_called_once()
 

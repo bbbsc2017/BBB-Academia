@@ -1,19 +1,19 @@
 import logging
 import os
 import random
-from datetime import datetime, timezone
-from typing import Optional
-from fastapi import Depends, HTTPException, Request
+from datetime import UTC, datetime
+
 import httpx
-from sqlmodel import select, func
+from fastapi import Depends, HTTPException, Request
+from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.events.database import get_db_session
 from src.db.users import User, UserCreate, UserRead
 from src.security.auth import get_current_user
-from src.services.users.users import create_user, create_user_without_org
-from src.services.security.rate_limiting import get_client_ip
 from src.services.security.account_lockout import update_login_info
-
+from src.services.security.rate_limiting import get_client_ip
+from src.services.users.users import create_user, create_user_without_org
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ async def signWithGoogle(
     request: Request,
     access_token: str,
     email: str,
-    org_id: Optional[int] = None,
+    org_id: int | None = None,
     current_user=Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
@@ -200,7 +200,7 @@ async def signWithGoogle(
     needs_update = False
     if not user.email_verified:
         user.email_verified = True
-        user.email_verified_at = datetime.now(timezone.utc).isoformat()
+        user.email_verified_at = datetime.now(UTC).isoformat()
         needs_update = True
 
     # Backfill signup_method for existing users who sign in with Google

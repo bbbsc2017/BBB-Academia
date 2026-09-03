@@ -1,6 +1,6 @@
-from typing import Optional, List
+
 from pydantic import BaseModel
-from sqlalchemy import JSON, Column, ForeignKey, Integer, String, Boolean, Index, Text
+from sqlalchemy import JSON, Boolean, Column, ForeignKey, Index, Integer, String, Text
 from sqlmodel import Field, SQLModel
 
 
@@ -16,7 +16,7 @@ class WebhookEndpoint(SQLModel, table=True):
         {"extend_existing": True},
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     webhook_uuid: str = Field(default="", max_length=100)
     org_id: int = Field(
         sa_column=Column(
@@ -27,16 +27,16 @@ class WebhookEndpoint(SQLModel, table=True):
     secret_encrypted: str = Field(
         default="", sa_column=Column(Text, nullable=False)
     )
-    description: Optional[str] = Field(default=None, max_length=500)
-    events: List[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
+    description: str | None = Field(default=None, max_length=500)
+    events: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
     is_active: bool = Field(default=True, sa_column=Column(Boolean, nullable=False, server_default="true"))
     # "manual" for UI-created webhooks, "zapier" for REST Hooks managed by the Zapier Platform.
     source: str = Field(
         default="manual",
         sa_column=Column(String(20), nullable=False, server_default="manual"),
     )
-    zap_name: Optional[str] = Field(default=None, max_length=200)
-    zap_id: Optional[str] = Field(default=None, max_length=100)
+    zap_name: str | None = Field(default=None, max_length=200)
+    zap_id: str | None = Field(default=None, max_length=100)
     created_by_user_id: int = Field(
         sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     )
@@ -54,7 +54,7 @@ class WebhookDeliveryLog(SQLModel, table=True):
         {"extend_existing": True},
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     webhook_id: int = Field(
         sa_column=Column(
             Integer,
@@ -64,12 +64,12 @@ class WebhookDeliveryLog(SQLModel, table=True):
     )
     event_name: str = Field(max_length=100)
     delivery_uuid: str = Field(default="", max_length=100)
-    request_payload: Optional[dict] = Field(default=None, sa_column=Column(JSON))
-    response_status: Optional[int] = None
-    response_body: Optional[str] = Field(default=None, sa_column=Column(String(500)))
+    request_payload: dict | None = Field(default=None, sa_column=Column(JSON))
+    response_status: int | None = None
+    response_body: str | None = Field(default=None, sa_column=Column(String(500)))
     success: bool = False
     attempt: int = 1
-    error_message: Optional[str] = Field(default=None, sa_column=Column(String(1000)))
+    error_message: str | None = Field(default=None, sa_column=Column(String(1000)))
     created_at: str = ""
 
 
@@ -80,15 +80,15 @@ class WebhookDeliveryLog(SQLModel, table=True):
 
 class WebhookEndpointCreate(BaseModel):
     url: str
-    description: Optional[str] = None
-    events: List[str]
+    description: str | None = None
+    events: list[str]
 
 
 class WebhookEndpointUpdate(BaseModel):
-    url: Optional[str] = None
-    description: Optional[str] = None
-    events: Optional[List[str]] = None
-    is_active: Optional[bool] = None
+    url: str | None = None
+    description: str | None = None
+    events: list[str] | None = None
+    is_active: bool | None = None
 
 
 class WebhookEndpointRead(BaseModel):
@@ -96,13 +96,13 @@ class WebhookEndpointRead(BaseModel):
     webhook_uuid: str
     org_id: int
     url: str
-    description: Optional[str] = None
-    events: List[str]
+    description: str | None = None
+    events: list[str]
     is_active: bool
     has_secret: bool = True
     source: str = "manual"
-    zap_name: Optional[str] = None
-    zap_id: Optional[str] = None
+    zap_name: str | None = None
+    zap_id: str | None = None
     created_by_user_id: int
     creation_date: str
     update_date: str
@@ -113,8 +113,8 @@ class WebhookEndpointCreatedResponse(BaseModel):
 
     webhook_uuid: str
     url: str
-    description: Optional[str] = None
-    events: List[str]
+    description: str | None = None
+    events: list[str]
     is_active: bool
     secret: str  # plaintext secret, shown once
     created_by_user_id: int
@@ -126,10 +126,10 @@ class WebhookDeliveryLogRead(BaseModel):
     webhook_id: int
     event_name: str
     delivery_uuid: str
-    request_payload: Optional[dict] = None
-    response_status: Optional[int] = None
-    response_body: Optional[str] = None
+    request_payload: dict | None = None
+    response_status: int | None = None
+    response_body: str | None = None
     success: bool
     attempt: int
-    error_message: Optional[str] = None
+    error_message: str | None = None
     created_at: str

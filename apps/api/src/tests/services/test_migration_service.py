@@ -3,9 +3,9 @@
 import json
 import os
 from pathlib import Path
-from uuid import uuid4
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
+from uuid import uuid4
 
 import pytest
 from sqlmodel import select
@@ -593,7 +593,6 @@ async def test_create_course_from_migration_success_and_failure(monkeypatch, tmp
         flush_calls["count"] += 1
         if flush_calls["count"] == 2:
             raise RuntimeError("flush failed")
-        return None
 
     with patch.object(db, "flush", side_effect=fake_flush):
         failure = await migrations.create_course_from_migration(

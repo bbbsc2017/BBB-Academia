@@ -8,19 +8,18 @@ F-22 : file validator enforces per-type size caps.
 F-24 : analytics course_uuid validator rejects SQL-injection characters.
 """
 
+from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, HTTPException, UploadFile
 from httpx import ASGITransport, AsyncClient
-from io import BytesIO
 from starlette.datastructures import Headers
 
 from src.core.events.database import get_db_session
 from src.db.users import AnonymousUser
 from src.routers.users import router as users_router
 from src.security.auth import get_current_user
-
 
 # ---------------------------------------------------------------------------
 # F-15: reset-email endpoints accept email in body

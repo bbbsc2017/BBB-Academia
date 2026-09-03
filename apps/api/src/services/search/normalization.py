@@ -6,8 +6,6 @@ on `services/courses/courses.py`, creating a cycle if imported the other way).
 """
 
 import unicodedata
-from typing import Optional
-
 
 # Escape character used by `build_like_pattern` when emitting `\%` / `\_` / `\\`.
 # Pass this to `column.ilike(pattern, escape=LIKE_ESCAPE_CHAR)` so the database
@@ -16,7 +14,7 @@ from typing import Optional
 LIKE_ESCAPE_CHAR = "\\"
 
 
-def normalize_search_term(query: Optional[str]) -> str:
+def normalize_search_term(query: str | None) -> str:
     """Normalize a user-supplied search term for consistent matching.
 
     Stored text and the query can otherwise differ in unicode form (NFC vs
@@ -38,6 +36,6 @@ def escape_like_wildcards(query: str) -> str:
     return query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
-def build_like_pattern(query: Optional[str]) -> str:
+def build_like_pattern(query: str | None) -> str:
     """Normalize, escape, and wrap a term as a substring LIKE/ILIKE pattern."""
     return f"%{escape_like_wildcards(normalize_search_term(query))}%"

@@ -1,24 +1,23 @@
 """API endpoints for content migration from other LMS platforms."""
 
-from typing import Optional
-from fastapi import APIRouter, Request, UploadFile, File, Depends, Query, HTTPException
 
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.core.events.database import get_db_session
 from src.db.users import PublicUser
 from src.security.auth import get_authenticated_user
-from sqlmodel.ext.asyncio.session import AsyncSession
-from src.core.events.database import get_db_session
+from src.services.courses.migration.migration_service import (
+    create_course_from_migration,
+    suggest_structure,
+    upload_migration_files,
+)
 from src.services.courses.migration.models import (
-    MigrationUploadResponse,
-    MigrationTreeStructure,
-    SuggestStructureRequest,
     CreateFromMigrationRequest,
     MigrationCreateResult,
-)
-from src.services.courses.migration.migration_service import (
-    upload_migration_files,
-    suggest_structure,
-    create_course_from_migration,
+    MigrationTreeStructure,
+    MigrationUploadResponse,
+    SuggestStructureRequest,
 )
 
 router = APIRouter()
@@ -56,7 +55,7 @@ async def api_upload_migration_files(
     request: Request,
     org_id: int,
     files: list[UploadFile] = File(...),
-    temp_id: Optional[str] = Query(None),
+    temp_id: str | None = Query(None),
     current_user: PublicUser = Depends(get_authenticated_user),
 ):
     """Upload files for content migration. Pass temp_id to append to existing upload."""

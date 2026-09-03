@@ -60,9 +60,8 @@ def test_resolve_and_validate_url_wraps_dns_errors():
     with patch(
         "src.services.utils.ssrf_guard.socket.getaddrinfo",
         side_effect=socket.gaierror("boom"),
-    ):
-        with pytest.raises(SSRFBlockedError, match="Could not resolve hostname"):
-            resolve_and_validate_url("https://example.com")
+    ), pytest.raises(SSRFBlockedError, match="Could not resolve hostname"):
+        resolve_and_validate_url("https://example.com")
 
 
 def test_resolve_and_validate_url_rejects_blocked_ip_ranges():
@@ -73,18 +72,16 @@ def test_resolve_and_validate_url_rejects_blocked_ip_ranges():
     with patch(
         "src.services.utils.ssrf_guard.socket.getaddrinfo",
         return_value=addr_info,
-    ):
-        with pytest.raises(SSRFBlockedError, match="blocked address range"):
-            resolve_and_validate_url("https://example.com")
+    ), pytest.raises(SSRFBlockedError, match="blocked address range"):
+        resolve_and_validate_url("https://example.com")
 
 
 def test_resolve_and_validate_url_rejects_empty_resolution():
     with patch(
         "src.services.utils.ssrf_guard.socket.getaddrinfo",
         return_value=[],
-    ):
-        with pytest.raises(SSRFBlockedError, match="No addresses resolved"):
-            resolve_and_validate_url("https://example.com")
+    ), pytest.raises(SSRFBlockedError, match="No addresses resolved"):
+        resolve_and_validate_url("https://example.com")
 
 
 def test_resolve_and_validate_url_returns_normalized_address_set():

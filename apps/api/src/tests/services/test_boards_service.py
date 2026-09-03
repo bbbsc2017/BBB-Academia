@@ -18,8 +18,8 @@ from src.db.boards import (
     BoardUpdate,
 )
 from src.db.resource_authors import ResourceAuthor
-from src.db.users import User
 from src.db.user_organizations import UserOrganization
+from src.db.users import User
 from src.services.boards.boards import (
     add_board_member,
     add_board_members_batch,
@@ -225,15 +225,14 @@ class TestBoardsService:
         with patch(
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as duplicate_exc:
-                await add_board_member(
-                    mock_request,
-                    board.board_uuid,
-                    BoardMemberCreate(user_id=30, role=BoardMemberRole.EDITOR),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as duplicate_exc:
+            await add_board_member(
+                mock_request,
+                board.board_uuid,
+                BoardMemberCreate(user_id=30, role=BoardMemberRole.EDITOR),
+                admin_user,
+                db,
+            )
 
         assert duplicate_exc.value.status_code == 409
 
@@ -247,15 +246,14 @@ class TestBoardsService:
         with patch(
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as limit_exc:
-                await add_board_member(
-                    mock_request,
-                    board.board_uuid,
-                    BoardMemberCreate(user_id=39, role=BoardMemberRole.EDITOR),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as limit_exc:
+            await add_board_member(
+                mock_request,
+                board.board_uuid,
+                BoardMemberCreate(user_id=39, role=BoardMemberRole.EDITOR),
+                admin_user,
+                db,
+            )
 
         assert limit_exc.value.status_code == 403
 
@@ -287,11 +285,10 @@ class TestBoardsService:
         with patch(
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as owner_exc:
-                await remove_board_member(
-                    mock_request, board.board_uuid, admin_user.id, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as owner_exc:
+            await remove_board_member(
+                mock_request, board.board_uuid, admin_user.id, admin_user, db
+            )
         assert owner_exc.value.status_code == 400
         assert owner.id is not None
 
@@ -306,11 +303,10 @@ class TestBoardsService:
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=403, detail="denied"),
-        ):
-            with pytest.raises(HTTPException) as missing_member_exc:
-                await check_board_membership(
-                    mock_request, board.board_uuid, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as missing_member_exc:
+            await check_board_membership(
+                mock_request, board.board_uuid, admin_user, db
+            )
         assert missing_member_exc.value.status_code == 403
 
         with pytest.raises(HTTPException) as missing_board_exc:
@@ -358,11 +354,10 @@ class TestBoardsService:
         with patch(
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await update_board_thumbnail(
-                    mock_request, board.board_uuid, admin_user, db, None
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await update_board_thumbnail(
+                mock_request, board.board_uuid, admin_user, db, None
+            )
 
         assert exc_info.value.status_code == 400
 
@@ -397,11 +392,10 @@ class TestBoardsService:
         with patch(
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await remove_board_member(
-                    mock_request, board.board_uuid, 9999, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await remove_board_member(
+                mock_request, board.board_uuid, 9999, admin_user, db
+            )
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -417,9 +411,8 @@ class TestBoardsService:
         with patch(
             "src.services.boards.boards.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_board(mock_request, "board_nonexistent", admin_user, db)
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_board(mock_request, "board_nonexistent", admin_user, db)
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -504,11 +497,10 @@ class TestBoardsService:
         ), patch(
             "src.services.boards.boards.require_org_membership",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_board_member(
-                    mock_request, board.board_uuid, bad_member, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_board_member(
+                mock_request, board.board_uuid, bad_member, admin_user, db
+            )
         assert exc_info.value.status_code == 400
         assert "Invalid board member role" in exc_info.value.detail
 
@@ -532,11 +524,10 @@ class TestBoardsService:
         ), patch(
             "src.services.boards.boards.require_org_membership",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await add_board_members_batch(
-                    mock_request, board.board_uuid, batch, admin_user, db
-                )
+        ), pytest.raises(HTTPException) as exc_info:
+            await add_board_members_batch(
+                mock_request, board.board_uuid, batch, admin_user, db
+            )
         assert exc_info.value.status_code == 400
         assert "Invalid board member role" in exc_info.value.detail
 

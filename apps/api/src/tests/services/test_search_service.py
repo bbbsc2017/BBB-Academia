@@ -11,15 +11,19 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.db.folders.folders import Folder
-from src.db.users import APITokenUser
 from src.db.courses.courses import Course
+from src.db.folders.folders import Folder
 from src.db.playgrounds import Playground, PlaygroundAccessType
-from src.services.search.search import SearchResult, _escape_like_wildcards, search_across_org
+from src.db.users import APITokenUser
 from src.services.search.normalization import (
     build_like_pattern,
     escape_like_wildcards,
     normalize_search_term,
+)
+from src.services.search.search import (
+    SearchResult,
+    _escape_like_wildcards,
+    search_across_org,
 )
 
 
@@ -200,11 +204,10 @@ class TestSearchAcrossOrg:
             "src.services.search.search.search_courses",
             new_callable=AsyncMock,
             return_value=[],
-        ):
-            with pytest.raises(Exception) as exc_info:
-                await search_across_org(
-                    mock_request, token_user, "test-org", "Test", db
-                )
+        ), pytest.raises(Exception) as exc_info:
+            await search_across_org(
+                mock_request, token_user, "test-org", "Test", db
+            )
 
         assert getattr(exc_info.value, "status_code", None) == 403
 
@@ -241,11 +244,10 @@ class TestSearchAcrossOrg:
             "src.services.search.search.search_courses",
             new_callable=AsyncMock,
             return_value=[],
-        ):
-            with pytest.raises(Exception) as exc_info:
-                await search_across_org(
-                    mock_request, denied_token, "test-org", "Test", db
-                )
+        ), pytest.raises(Exception) as exc_info:
+            await search_across_org(
+                mock_request, denied_token, "test-org", "Test", db
+            )
 
         assert getattr(exc_info.value, "status_code", None) == 403
 
@@ -288,11 +290,10 @@ class TestSearchAcrossOrg:
             "src.services.search.search.search_courses",
             new_callable=AsyncMock,
             return_value=[],
-        ):
-            with pytest.raises(Exception) as exc_info:
-                await search_across_org(
-                    mock_request, denied_token, "test-org", "Test", db
-                )
+        ), pytest.raises(Exception) as exc_info:
+            await search_across_org(
+                mock_request, denied_token, "test-org", "Test", db
+            )
 
         assert getattr(exc_info.value, "status_code", None) == 403
 

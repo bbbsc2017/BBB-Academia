@@ -1,4 +1,3 @@
-from typing import Optional, Dict
 from enum import Enum
 
 from sqlalchemy import JSON, Column, ForeignKey, Index, Text
@@ -30,12 +29,12 @@ class AIGenerationBase(SQLModel):
     # Links this durable record to the ephemeral Redis refine session (the
     # `chat_history:<session_uuid>` / `chat_meta:<session_uuid>` keys) so the UI
     # can resume the conversation that produced the artifact while it still lives.
-    session_uuid: Optional[str] = Field(default=None, index=True)
+    session_uuid: str | None = Field(default=None, index=True)
     # Kind-specific payload:
     #   IMAGE      -> {"file_id", "media_url", "source", "source_image_url"?}
     #   QUIZ       -> the blockQuiz attrs {"quizId", "questions": [...]}
     #   ASSIGNMENT -> {"assignment": {...}, "tasks": [...]}
-    result: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    result: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 class AIGenerationCreate(AIGenerationBase):
@@ -43,9 +42,9 @@ class AIGenerationCreate(AIGenerationBase):
 
     org_id: int
     user_id: int
-    course_id: Optional[int] = None
-    activity_id: Optional[int] = None
-    assignment_id: Optional[int] = None
+    course_id: int | None = None
+    activity_id: int | None = None
+    assignment_id: int | None = None
 
 
 class AIGenerationRead(AIGenerationBase):
@@ -55,11 +54,11 @@ class AIGenerationRead(AIGenerationBase):
     ai_generation_uuid: str
     org_id: int
     user_id: int
-    course_id: Optional[int] = None
-    activity_id: Optional[int] = None
-    assignment_id: Optional[int] = None
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
+    course_id: int | None = None
+    activity_id: int | None = None
+    assignment_id: int | None = None
+    creation_date: str | None = None
+    update_date: str | None = None
 
 
 class AIGeneration(AIGenerationBase, table=True):
@@ -71,10 +70,10 @@ class AIGeneration(AIGenerationBase, table=True):
         Index("ix_aigeneration_kind", "kind"),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     ai_generation_uuid: str = Field(default="", index=True)
-    creation_date: Optional[str] = None
-    update_date: Optional[str] = None
+    creation_date: str | None = None
+    update_date: str | None = None
 
     org_id: int = Field(
         sa_column=Column("org_id", ForeignKey("organization.id", ondelete="CASCADE"))
@@ -84,15 +83,15 @@ class AIGeneration(AIGenerationBase, table=True):
     )
     # Optional context the artifact was generated against. Nullable because an
     # image generated from a standalone thumbnail picker has no course/activity.
-    course_id: Optional[int] = Field(
+    course_id: int | None = Field(
         default=None,
         sa_column=Column("course_id", ForeignKey("course.id", ondelete="CASCADE"), nullable=True),
     )
-    activity_id: Optional[int] = Field(
+    activity_id: int | None = Field(
         default=None,
         sa_column=Column("activity_id", ForeignKey("activity.id", ondelete="CASCADE"), nullable=True),
     )
-    assignment_id: Optional[int] = Field(
+    assignment_id: int | None = Field(
         default=None,
         sa_column=Column("assignment_id", ForeignKey("assignment.id", ondelete="CASCADE"), nullable=True),
     )

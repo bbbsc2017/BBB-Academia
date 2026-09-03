@@ -17,8 +17,7 @@ email-verification rules) stay identical to any other signup path.
 import logging
 import os
 import random
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 import httpx
 from fastapi import Request
@@ -44,7 +43,7 @@ BBBSC_INSTRUCTOR_ROLE_ID = 3
 BBBSC_LEARNER_ROLE_ID = 4
 
 
-async def verify_bbbsc_credentials(email: str, password: str) -> Optional[dict]:
+async def verify_bbbsc_credentials(email: str, password: str) -> dict | None:
     """
     Ask bbbsc's internal endpoint whether (email, password) is a valid,
     active bbbsc account. Returns the bbbsc user dict on success, else None.
@@ -79,7 +78,7 @@ async def verify_bbbsc_credentials(email: str, password: str) -> Optional[dict]:
     return body.get("user")
 
 
-async def _get_default_org_id(db_session: AsyncSession) -> Optional[int]:
+async def _get_default_org_id(db_session: AsyncSession) -> int | None:
     """Same lookup as GET /instance/info: slug=='default', else first org."""
     stmt = select(Organization).where(Organization.slug == "default")
     org = (await db_session.execute(stmt)).scalars().first()
@@ -129,9 +128,9 @@ async def provision_or_sync_bbbsc_user(
     db_session: AsyncSession,
     bbbsc_user: dict,
     *,
-    role_id: Optional[int] = None,
+    role_id: int | None = None,
     sync_role: bool = True,
-) -> Optional[User]:
+) -> User | None:
     """
     Find-or-create the LearnHouse User matching a bbbsc account.
 
@@ -206,7 +205,7 @@ async def provision_or_sync_bbbsc_user(
 
     if not user.email_verified:
         user.email_verified = True
-        user.email_verified_at = datetime.now(timezone.utc).isoformat()
+        user.email_verified_at = datetime.now(UTC).isoformat()
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)

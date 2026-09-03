@@ -13,7 +13,7 @@ import pytest
 
 scorm = pytest.importorskip("ee.services.scorm.scorm")
 
-from src.tests.fixtures import scorm_packages as pkg  # noqa: E402
+from src.tests.fixtures import scorm_packages as pkg
 
 
 def _write(tmp_path, data: bytes):

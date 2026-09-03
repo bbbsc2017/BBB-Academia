@@ -101,9 +101,8 @@ class TestWebhookHelpers:
         with patch(
             "src.services.webhooks.webhooks.socket.getaddrinfo",
             side_effect=webhooks.socket.gaierror,
-        ):
-            with pytest.raises(HTTPException) as exc:
-                webhooks._validate_webhook_url("https://no-such-host.example/hook")
+        ), pytest.raises(HTTPException) as exc:
+            webhooks._validate_webhook_url("https://no-such-host.example/hook")
 
         assert exc.value.status_code == 400
         assert "Could not resolve hostname" in exc.value.detail
@@ -120,9 +119,8 @@ class TestWebhookHelpers:
                     ("10.0.0.1", 443),
                 )
             ],
-        ):
-            with pytest.raises(HTTPException) as exc:
-                webhooks._validate_webhook_url("https://internal.example/hook")
+        ), pytest.raises(HTTPException) as exc:
+            webhooks._validate_webhook_url("https://internal.example/hook")
 
         assert exc.value.status_code == 400
         assert "private or internal" in exc.value.detail
@@ -211,15 +209,14 @@ class TestWebhookCrud:
             new_callable=AsyncMock,
         ), patch(
             "src.services.webhooks.webhooks.require_org_admin"
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await webhooks.create_webhook_endpoint(
-                    mock_request,
-                    db,
-                    999,
-                    webhook_object,
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await webhooks.create_webhook_endpoint(
+                mock_request,
+                db,
+                999,
+                webhook_object,
+                admin_user,
+            )
 
         assert exc.value.status_code == 404
         assert "Organization not found" in exc.value.detail
@@ -257,15 +254,14 @@ class TestWebhookCrud:
             new_callable=AsyncMock,
         ), patch(
             "src.services.webhooks.webhooks.require_org_admin"
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await webhooks.get_webhook_endpoint(
-                    mock_request,
-                    db,
-                    org.id,
-                    "missing-webhook",
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await webhooks.get_webhook_endpoint(
+                mock_request,
+                db,
+                org.id,
+                "missing-webhook",
+                admin_user,
+            )
 
         assert exc.value.status_code == 404
         assert "Webhook endpoint not found" in exc.value.detail
@@ -361,16 +357,15 @@ class TestWebhookCrud:
             new_callable=AsyncMock,
         ), patch(
             "src.services.webhooks.webhooks.require_org_admin"
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await webhooks.update_webhook_endpoint(
-                    mock_request,
-                    db,
-                    org.id,
-                    endpoint.webhook_uuid,
-                    WebhookEndpointUpdate(events=["course_created"]),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await webhooks.update_webhook_endpoint(
+                mock_request,
+                db,
+                org.id,
+                endpoint.webhook_uuid,
+                WebhookEndpointUpdate(events=["course_created"]),
+                admin_user,
+            )
 
         assert exc.value.status_code == 400
         assert "Zapier-managed" in exc.value.detail
@@ -389,16 +384,15 @@ class TestWebhookCrud:
             new_callable=AsyncMock,
         ), patch(
             "src.services.webhooks.webhooks.require_org_admin"
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await webhooks.update_webhook_endpoint(
-                    mock_request,
-                    db,
-                    org.id,
-                    endpoint.webhook_uuid,
-                    WebhookEndpointUpdate(url="https://example.org/new"),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await webhooks.update_webhook_endpoint(
+                mock_request,
+                db,
+                org.id,
+                endpoint.webhook_uuid,
+                WebhookEndpointUpdate(url="https://example.org/new"),
+                admin_user,
+            )
 
         assert exc.value.status_code == 400
         assert "Zapier-managed" in exc.value.detail
@@ -412,16 +406,15 @@ class TestWebhookCrud:
             new_callable=AsyncMock,
         ), patch(
             "src.services.webhooks.webhooks.require_org_admin"
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await webhooks.update_webhook_endpoint(
-                    mock_request,
-                    db,
-                    org.id,
-                    "missing-webhook",
-                    WebhookEndpointUpdate(description="Updated"),
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await webhooks.update_webhook_endpoint(
+                mock_request,
+                db,
+                org.id,
+                "missing-webhook",
+                WebhookEndpointUpdate(description="Updated"),
+                admin_user,
+            )
 
         assert exc.value.status_code == 404
         assert "Webhook endpoint not found" in exc.value.detail
@@ -495,15 +488,14 @@ class TestWebhookCrud:
             new_callable=AsyncMock,
         ), patch(
             "src.services.webhooks.webhooks.require_org_admin"
-        ):
-            with pytest.raises(HTTPException) as exc:
-                await webhooks.send_test_event(
-                    mock_request,
-                    db,
-                    org.id,
-                    "missing-webhook",
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as exc:
+            await webhooks.send_test_event(
+                mock_request,
+                db,
+                org.id,
+                "missing-webhook",
+                admin_user,
+            )
 
         assert exc.value.status_code == 404
         assert "Webhook endpoint not found" in exc.value.detail

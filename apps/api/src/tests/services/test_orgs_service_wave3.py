@@ -31,16 +31,17 @@ from src.services.orgs.orgs import (
     get_orgs_by_user,
     get_orgs_by_user_admin,
     rbac_check,
-    update_org_boards_config,
+    update_org,
     update_org_ai_config,
     update_org_auth_branding_config,
+    update_org_boards_config,
     update_org_color_config,
-    update_org_folders_config,
     update_org_communities_config,
     update_org_courses_config,
     update_org_favicon,
-    update_org_footer_text_config,
+    update_org_folders_config,
     update_org_font_config,
+    update_org_footer_text_config,
     update_org_landing,
     update_org_logo,
     update_org_payments_config,
@@ -49,7 +50,6 @@ from src.services.orgs.orgs import (
     update_org_preview,
     update_org_seo_config,
     update_org_signup_mechanism,
-    update_org,
     update_org_thumbnail,
     update_org_watermark_config,
     update_org_with_config_no_auth,
@@ -308,19 +308,18 @@ class TestOrgCreationAndListingWave3:
         with patch(
             "src.services.orgs.orgs.is_multi_org_allowed",
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as ee_exc:
-                await create_org_with_config(
-                    mock_request,
-                    OrganizationCreate(
-                        name="Blocked Config Org",
-                        slug="blocked-config-org",
-                        email="blocked-config@org.com",
-                    ),
-                    admin_user,
-                    db,
-                    {"config_version": "2.0", "plan": "free"},
-                )
+        ), pytest.raises(HTTPException) as ee_exc:
+            await create_org_with_config(
+                mock_request,
+                OrganizationCreate(
+                    name="Blocked Config Org",
+                    slug="blocked-config-org",
+                    email="blocked-config@org.com",
+                ),
+                admin_user,
+                db,
+                {"config_version": "2.0", "plan": "free"},
+            )
         assert ee_exc.value.status_code == 403
 
     @pytest.mark.asyncio
@@ -449,9 +448,8 @@ class TestOrgCreationAndListingWave3:
         with patch(
             "src.services.orgs.orgs.rbac_check",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await func(mock_request, *args, missing_id, admin_user, db)
+        ), pytest.raises(HTTPException) as exc_info:
+            await func(mock_request, *args, missing_id, admin_user, db)
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
@@ -1087,9 +1085,8 @@ class TestOrgRbacWave3:
             "src.services.orgs.orgs.authorization_verify_based_on_org_admin_status",
             new_callable=AsyncMock,
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as anon_exc:
-                await rbac_check(mock_request, org.org_uuid, admin_user, "update", db)
+        ), pytest.raises(HTTPException) as anon_exc:
+            await rbac_check(mock_request, org.org_uuid, admin_user, "update", db)
         assert anon_exc.value.status_code == 401
 
         with patch(
@@ -1100,15 +1097,14 @@ class TestOrgRbacWave3:
             "src.services.orgs.orgs.authorization_verify_based_on_org_admin_status",
             new_callable=AsyncMock,
             return_value=False,
-        ):
-            with pytest.raises(HTTPException) as forbidden_exc:
-                await rbac_check(
-                    mock_request,
-                    org.org_uuid,
-                    regular_user,
-                    "update",
-                    db,
-                )
+        ), pytest.raises(HTTPException) as forbidden_exc:
+            await rbac_check(
+                mock_request,
+                org.org_uuid,
+                regular_user,
+                "update",
+                db,
+            )
         assert forbidden_exc.value.status_code == 403
 
         with patch(
@@ -1163,9 +1159,10 @@ class TestUpdateOrgWithConfigNoAuthMissingOrg:
     async def test_update_org_with_config_no_auth_missing_org_raises_404(
         self, mock_request, db
     ):
-        from src.services.orgs.orgs import update_org_with_config_no_auth
         import pytest
         from fastapi import HTTPException
+
+        from src.services.orgs.orgs import update_org_with_config_no_auth
 
         with pytest.raises(HTTPException) as exc_info:
             await update_org_with_config_no_auth(

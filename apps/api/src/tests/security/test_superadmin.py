@@ -14,7 +14,6 @@ from fastapi import HTTPException
 from src.db.users import AnonymousUser, PublicUser, User
 from src.security.superadmin import is_user_superadmin, require_superadmin
 
-
 # ---------------------------------------------------------------------------
 # is_user_superadmin
 # ---------------------------------------------------------------------------
@@ -118,9 +117,8 @@ class TestRequireSuperadmin:
         with patch(
             "src.security.superadmin.is_user_superadmin",
             new=AsyncMock(return_value=False),
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await require_superadmin(current_user=public_user, db_session=db)
+        ), pytest.raises(HTTPException) as exc_info:
+            await require_superadmin(current_user=public_user, db_session=db)
         assert exc_info.value.status_code == 403
         assert "Superadmin" in exc_info.value.detail
 

@@ -1,50 +1,74 @@
 from fastapi import APIRouter, Depends
+
+from src.core.deployment_mode import get_deployment_mode
+from src.core.ee_hooks import register_ee_routers
 from src.routers import admin as admin_router_module
 from src.routers import analytics as analytics_router_module
-from src.routers import code_execution
-from src.routers import code_submissions
-from src.routers import health
-from src.routers import instance
-from src.routers import plans
-from src.routers import usergroups
-from src.routers import dev, trail, users, auth, orgs, roles, search
-from src.routers import monitoring
-from src.routers import stream
-from src.routers import api_tokens
-from src.routers import webhooks
-from src.routers.integrations import zapier as zapier_integration
-from src.routers.integrations import bbbsc as bbbsc_integration
-from src.routers.ai import ai, magicblocks, courseplanning, rag, images, quiz, assignment_gen, scenario, audio
+from src.routers import (
+    api_tokens,
+    auth,
+    code_execution,
+    code_submissions,
+    dev,
+    health,
+    instance,
+    monitoring,
+    orgs,
+    plans,
+    roles,
+    search,
+    stream,
+    trail,
+    usergroups,
+    users,
+    webhooks,
+)
+from src.routers.ai import (
+    ai,
+    assignment_gen,
+    audio,
+    courseplanning,
+    images,
+    magicblocks,
+    quiz,
+    rag,
+    scenario,
+)
+from src.routers.boards import boards as boards_router_module
 from src.routers.boards import boards_playground
-from src.routers.orgs import ai_credits
-from src.routers.orgs import custom_domains
-from src.routers.orgs import packs
-from src.routers.orgs import org_plan
-from src.routers.payments import payments as payments_router_module
-from src.routers.courses import chapters, courses, assignments, certifications
-from src.routers.folders import folders as folders_router_module
-from src.routers.media import media as media_router_module
-from src.routers.courses import migration as migration_router_module
 from src.routers.communities import communities as communities_router_module
 from src.routers.communities import discussions as discussions_router_module
+from src.routers.courses import assignments, certifications, chapters, courses
+from src.routers.courses import migration as migration_router_module
 from src.routers.courses.activities import activities, blocks
-from src.routers.podcasts import podcasts as podcasts_router_module
-from src.routers.podcasts import episodes as episodes_router_module
-from src.routers.boards import boards as boards_router_module
+from src.routers.folders import folders as folders_router_module
+from src.routers.integrations import bbbsc as bbbsc_integration
+from src.routers.integrations import zapier as zapier_integration
+from src.routers.media import media as media_router_module
+from src.routers.orgs import ai_credits, custom_domains, org_plan, packs
+from src.routers.payments import payments as payments_router_module
 from src.routers.playgrounds import playgrounds as playgrounds_router_module
-from src.routers.playgrounds import playgrounds_generator as playgrounds_generator_router
-from src.core.ee_hooks import register_ee_routers
-from src.core.deployment_mode import get_deployment_mode
-from src.services.dev.dev import isDevModeEnabledOrRaise
+from src.routers.playgrounds import (
+    playgrounds_generator as playgrounds_generator_router,
+)
+from src.routers.podcasts import episodes as episodes_router_module
+from src.routers.podcasts import podcasts as podcasts_router_module
 from src.routers.utils import router as utils_router
-from src.security.auth import get_current_user
 from src.security.api_token_utils import (
     get_authenticated_non_api_token_user,
     require_authenticated_user_or_api_token,
     require_non_api_token_user,
 )
-from src.security.features_utils.plan_check import require_plan, require_plan_for_boards, require_plan_for_certifications, require_plan_for_community, require_plan_for_usergroups, require_plan_for_playgrounds
-
+from src.security.auth import get_current_user
+from src.security.features_utils.plan_check import (
+    require_plan,
+    require_plan_for_boards,
+    require_plan_for_certifications,
+    require_plan_for_community,
+    require_plan_for_playgrounds,
+    require_plan_for_usergroups,
+)
+from src.services.dev.dev import isDevModeEnabledOrRaise
 
 v1_router = APIRouter(prefix="/api/v1")
 

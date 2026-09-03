@@ -1,7 +1,7 @@
 """Tests for src/services/communities/moderation.py."""
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -161,7 +161,7 @@ class TestParseIsoDatetime:
     def test_valid_z_suffix(self):
         result = _parse_iso_datetime("2024-06-01T00:00:00Z")
         assert result is not None
-        assert result.tzinfo == timezone.utc
+        assert result.tzinfo == UTC
 
     def test_naive_datetime_gets_utc_attached(self):
         # No timezone info — should be assigned UTC
@@ -202,7 +202,7 @@ class TestEnforcePostingLimits:
 
     def _make_user(self, db, user_id, email_verified=True, creation_date=None):
         if creation_date is None:
-            creation_date = datetime.now(timezone.utc).isoformat()
+            creation_date = datetime.now(UTC).isoformat()
         user = User(
             id=user_id,
             username=f"user_{user_id}",
@@ -213,7 +213,7 @@ class TestEnforcePostingLimits:
             user_uuid=f"user_uuid_{user_id}",
             email_verified=email_verified,
             creation_date=creation_date,
-            update_date=datetime.now(timezone.utc).isoformat(),
+            update_date=datetime.now(UTC).isoformat(),
         )
         db.add(user)
         db.commit()
@@ -222,7 +222,7 @@ class TestEnforcePostingLimits:
 
     def _make_discussion(self, db, org, community, author_id, discussion_id, creation_date=None):
         if creation_date is None:
-            creation_date = datetime.now(timezone.utc).isoformat()
+            creation_date = datetime.now(UTC).isoformat()
         discussion = Discussion(
             id=discussion_id,
             community_id=community.id,
@@ -272,7 +272,7 @@ class TestEnforcePostingLimits:
             uuid_suffix="acct_age",
         )
         # Account created 1 day ago — younger than 30-day requirement
-        recent_creation = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        recent_creation = (datetime.now(UTC) - timedelta(days=1)).isoformat()
         user = self._make_user(db, user_id=11, email_verified=True, creation_date=recent_creation)
 
         with pytest.raises(HTTPException) as exc_info:
@@ -292,7 +292,7 @@ class TestEnforcePostingLimits:
         )
         user = self._make_user(db, user_id=12, email_verified=True)
         # Insert a discussion posted 10 seconds ago
-        recent_creation = (datetime.now(timezone.utc) - timedelta(seconds=10)).isoformat()
+        recent_creation = (datetime.now(UTC) - timedelta(seconds=10)).isoformat()
         self._make_discussion(
             db, org, community, author_id=user.id,
             discussion_id=100, creation_date=recent_creation,
@@ -316,7 +316,7 @@ class TestEnforcePostingLimits:
         user = self._make_user(db, user_id=13, email_verified=True)
         # Insert 2 discussions within the past 24 hours (at the limit)
         for i in range(2):
-            creation = (datetime.now(timezone.utc) - timedelta(hours=i + 1)).isoformat()
+            creation = (datetime.now(UTC) - timedelta(hours=i + 1)).isoformat()
             self._make_discussion(
                 db, org, community, author_id=user.id,
                 discussion_id=200 + i, creation_date=creation,
@@ -393,7 +393,7 @@ class TestEnforceAutoLock:
         db.commit()
 
         # Discussion last updated 10 days ago — older than the 7-day threshold
-        old_date = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+        old_date = (datetime.now(UTC) - timedelta(days=10)).isoformat()
         discussion = Discussion(
             id=300,
             community_id=community.id,

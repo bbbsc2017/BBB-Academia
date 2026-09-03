@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Path, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -19,7 +19,7 @@ from src.db.payments.offers import (
     PaymentsOfferRead,
     PaymentsOfferUpdate,
 )
-from src.db.users import AnonymousUser, PublicUser
+from src.db.users import PublicUser
 from src.security.auth import get_current_user
 from src.security.recaptcha import verify_recaptcha
 from src.security.superadmin import is_user_superadmin
@@ -215,7 +215,7 @@ async def api_create_checkout(
         raise HTTPException(status_code=404, detail="Offer not found")
 
     config = (await db_session.execute(
-        select(PaymentsConfig).where(PaymentsConfig.id == offer.payments_config_id, PaymentsConfig.active == True)  # noqa: E712
+        select(PaymentsConfig).where(PaymentsConfig.id == offer.payments_config_id, PaymentsConfig.active == True)
     )).scalars().first()
     if not config:
         raise HTTPException(status_code=400, detail="This offer's payment provider is not active")

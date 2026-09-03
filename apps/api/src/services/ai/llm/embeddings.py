@@ -18,11 +18,11 @@ from pydantic_ai.embeddings import Embedder, EmbeddingModel, EmbeddingSettings
 
 from config.config import get_learnhouse_config
 from src.services.ai.llm.provider import (
+    _GOOGLE_ALIASES,
+    _OPENAI_ALIASES,
     DEFAULT_OLLAMA_BASE_URL,
     DEFAULT_PROVIDER,
     AINotConfiguredError,
-    _GOOGLE_ALIASES,
-    _OPENAI_ALIASES,
 )
 
 logger = logging.getLogger(__name__)

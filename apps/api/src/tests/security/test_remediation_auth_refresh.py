@@ -9,7 +9,7 @@ Negative tests reproduce the original vulnerabilities:
 Positive tests prove the legitimate flow still works end-to-end.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -19,7 +19,8 @@ from httpx import ASGITransport, AsyncClient
 
 from src.core.events.database import get_db_session
 from src.db.users import AnonymousUser
-from src.routers.auth import JWT_REFRESH_COOKIE_NAME, router as auth_router
+from src.routers.auth import JWT_REFRESH_COOKIE_NAME
+from src.routers.auth import router as auth_router
 from src.security.auth import get_current_user
 
 
@@ -63,7 +64,7 @@ async def test_refresh_rejects_token_issued_before_password_change(client):
     their password at time T+1 — stolen-token-survives-password-rotation gap.
     """
     token_iat = 1_000_000_000
-    password_changed_at = datetime.fromtimestamp(token_iat + 3600, tz=timezone.utc)
+    password_changed_at = datetime.fromtimestamp(token_iat + 3600, tz=UTC)
     user = _fake_user(password_changed_at=password_changed_at)
 
     stack = _patch_happy_path(

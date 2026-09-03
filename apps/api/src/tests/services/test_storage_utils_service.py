@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 from botocore.exceptions import ClientError, NoCredentialsError
 
-import src.services.courses.transfer.storage_utils as storage_utils
+from src.services.courses.transfer import storage_utils
 
 
 def _make_config(

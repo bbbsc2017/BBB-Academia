@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import Optional, Dict, Any
+from typing import Any
+
 from pydantic import model_validator
-from sqlalchemy import JSON, Column, ForeignKey, Integer, Boolean
+from sqlalchemy import JSON, Boolean, Column, ForeignKey, Integer
 from sqlmodel import Field, SQLModel
 
 
@@ -32,14 +33,14 @@ class PaymentsConfigBase(SQLModel):
     # Stripe: the connected account id. Bold/OpenPay: unused (their
     # credentials are platform-level, in config.yaml/env — see
     # config/config.py InternalBoldConfig / InternalOpenPayConfig).
-    provider_specific_id: Optional[str] = None
-    provider_config: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON, nullable=True))
+    provider_specific_id: str | None = None
+    provider_config: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON, nullable=True))
 
 
 class PaymentsConfig(PaymentsConfigBase, table=True):
     __tablename__ = "paymentsconfig"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     org_id: int = Field(
         sa_column=Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), nullable=False)
     )
@@ -62,8 +63,8 @@ class BoldCredentialsUpdate(SQLModel):
     `x-bold-signature`) are collected — BoldProvider only implements Bold's
     server-to-server Payment Links API, not the client-side embedded Payment
     Button flow that would need the separate integrity-signature secret key."""
-    bold_api_key: Optional[str] = None
-    bold_webhook_secret: Optional[str] = None
+    bold_api_key: str | None = None
+    bold_webhook_secret: str | None = None
 
 
 class PaymentsConfigRead(PaymentsConfigBase):
@@ -77,10 +78,10 @@ class PaymentsConfigRead(PaymentsConfigBase):
     # services/payments/config.py::update_provider_credentials) and must never
     # reach the client, even as ciphertext. credentials_configured is the
     # client-safe substitute.
-    provider_config: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    provider_config: dict[str, Any] | None = Field(default=None, exclude=True)
     credentials_configured: bool = False
 
     @model_validator(mode="after")
-    def _compute_credentials_configured(self) -> "PaymentsConfigRead":
+    def _compute_credentials_configured(self) -> PaymentsConfigRead:
         self.credentials_configured = bool(self.provider_config)
         return self

@@ -7,9 +7,13 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException, UploadFile
 
-from src.db.podcasts.episodes import PodcastEpisode, PodcastEpisodeCreate, PodcastEpisodeUpdate
-from src.db.podcasts.podcasts import Podcast, PodcastCreate, PodcastUpdate
 from src.db.organization_config import OrganizationConfig
+from src.db.podcasts.episodes import (
+    PodcastEpisode,
+    PodcastEpisodeCreate,
+    PodcastEpisodeUpdate,
+)
+from src.db.podcasts.podcasts import Podcast, PodcastCreate, PodcastUpdate
 from src.db.resource_authors import (
     ResourceAuthor,
     ResourceAuthorshipEnum,
@@ -20,12 +24,12 @@ from src.db.usergroup_user import UserGroupUser
 from src.db.usergroups import UserGroup
 from src.db.users import APITokenUser
 from src.services.podcasts.episodes import (
+    _user_can_view_unpublished_episode,
     create_episode,
     delete_episode,
     get_episode,
     get_episodes_by_podcast,
     reorder_episodes,
-    _user_can_view_unpublished_episode,
     update_episode,
     upload_episode_audio_file,
     upload_episode_thumbnail_file,
@@ -614,28 +618,26 @@ class TestPodcastsService:
         with patch(
             "src.services.podcasts.podcasts.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as upload_exc:
-                await update_podcast_thumbnail(
-                    mock_request,
-                    created.podcast_uuid,
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as upload_exc:
+            await update_podcast_thumbnail(
+                mock_request,
+                created.podcast_uuid,
+                admin_user,
+                db,
+            )
         assert upload_exc.value.status_code == 500
 
         with patch(
             "src.services.podcasts.podcasts.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as missing_thumb_exc:
-                await update_podcast_thumbnail(
-                    mock_request,
-                    "missing-podcast",
-                    admin_user,
-                    db,
-                    _upload_file("thumb.png"),
-                )
+        ), pytest.raises(HTTPException) as missing_thumb_exc:
+            await update_podcast_thumbnail(
+                mock_request,
+                "missing-podcast",
+                admin_user,
+                db,
+                _upload_file("thumb.png"),
+            )
         assert missing_thumb_exc.value.status_code == 404
 
         with patch(
@@ -836,15 +838,14 @@ class TestEpisodesService:
         with patch(
             "src.services.podcasts.episodes.check_resource_access",
             new_callable=AsyncMock,
-        ):
-            with pytest.raises(HTTPException) as audio_exc:
-                await upload_episode_audio_file(
-                    mock_request,
-                    unpublished.episode_uuid,
-                    UploadFile(filename="", file=BytesIO(b"")),
-                    admin_user,
-                    db,
-                )
+        ), pytest.raises(HTTPException) as audio_exc:
+            await upload_episode_audio_file(
+                mock_request,
+                unpublished.episode_uuid,
+                UploadFile(filename="", file=BytesIO(b"")),
+                admin_user,
+                db,
+            )
         assert audio_exc.value.status_code == 400
 
     @pytest.mark.asyncio

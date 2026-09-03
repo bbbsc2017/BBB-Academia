@@ -1,22 +1,28 @@
 import logging
-from typing import Literal, Optional, Union
-from fastapi import HTTPException, status, Request
+from typing import Literal
+
+from fastapi import HTTPException, Request, status
 from sqlalchemy import null
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.db.courses.courses import Course
-from src.db.resource_authors import ResourceAuthor, ResourceAuthorshipEnum, ResourceAuthorshipStatusEnum
+from src.db.resource_authors import (
+    ResourceAuthor,
+    ResourceAuthorshipEnum,
+    ResourceAuthorshipStatusEnum,
+)
 from src.db.roles import Role
 from src.db.user_organizations import UserOrganization
-from src.db.users import APITokenUser
 from src.db.usergroup_resources import UserGroupResource
 from src.db.usergroup_user import UserGroupUser
+from src.db.users import APITokenUser
+from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
 from src.security.rbac.utils import (
-    check_element_type,
     check_course_permissions_with_own,
+    check_element_type,
     get_element_organization_id,
 )
-from src.security.rbac.constants import ADMIN_OR_MAINTAINER_ROLE_IDS
 from src.security.superadmin import is_user_superadmin
 
 logger = logging.getLogger(__name__)
@@ -31,7 +37,14 @@ async def _get_offer_for_usergroup(usergroup_id: int, db_session: AsyncSession) 
     stmt = select(PaymentsOffer).where(
         PaymentsOffer.usergroup_id == usergroup_id,
     )
-    offer = (await db_session.execute(stmt)).scalars().first()
+    try:
+        offer = (await db_session.execute(stmt)).scalars().first()
+    except Exception:
+        logger.exception(
+            "[RBAC] _get_offer_for_usergroup: DB lookup failed for usergroup_id=%s",
+            usergroup_id,
+        )
+        return None
     if offer:
         return {
             "offer_id": offer.id,
@@ -508,7 +521,7 @@ async def authorization_verify_api_token_permissions(
     action: Literal["read", "update", "delete", "create"],
     element_uuid: str,
     db_session: AsyncSession,
-    resource_type_override: Optional[str] = None,
+    resource_type_override: str | None = None,
 ) -> bool:
     """
     Verify API token permissions for an action on an element.
@@ -615,7 +628,7 @@ async def authorization_verify_api_token_permissions(
 
 async def authorization_verify_based_on_roles_and_authorship_or_api_token(
     request: Request,
-    current_user: Union[APITokenUser, any],
+    current_user: APITokenUser | any,
     action: Literal["read", "update", "delete", "create"],
     element_uuid: str,
     db_session: AsyncSession,

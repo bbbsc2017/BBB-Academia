@@ -5,29 +5,33 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.core.events.database import get_db_session
+from src.db.users import PublicUser
+from src.security.auth import get_authenticated_user
 from src.services.ai.ai import (
     ai_send_activity_chat_message,
+    ai_send_activity_chat_message_stream,
     ai_start_activity_chat_session,
     ai_start_activity_chat_session_stream,
-    ai_send_activity_chat_message_stream,
+)
+from src.services.ai.base import (
+    ask_ai_stream,
+    generate_follow_up_suggestions,
+    save_message_to_history,
 )
 from src.services.ai.editor import (
-    editor_ai_start_chat_session_stream,
     editor_ai_send_message_stream,
+    editor_ai_start_chat_session_stream,
 )
-from src.services.ai.base import ask_ai_stream, save_message_to_history, generate_follow_up_suggestions
 from src.services.ai.schemas.ai import (
     ActivityAIChatSessionResponse,
     SendActivityAIChatMessage,
     StartActivityAIChatSession,
 )
 from src.services.ai.schemas.editor import (
-    StartEditorAIChatSession,
     SendEditorAIChatMessage,
+    StartEditorAIChatSession,
 )
-from src.core.events.database import get_db_session
-from src.db.users import PublicUser
-from src.security.auth import get_authenticated_user
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +106,7 @@ async def activity_chat_event_generator(
     doesn't silently drain the org's quota.
     """
     import asyncio
+
     from src.security.features_utils.usage import refund_ai_credit
 
     full_response = ""
@@ -271,8 +276,9 @@ async def api_ai_send_activity_chat_message_stream(
 CONTENT_START_MARKER = "<<<CONTENT>>>"
 CONTENT_END_MARKER = "<<<END_CONTENT>>>"
 
-import asyncio  # noqa: E402
-from src.security.features_utils.usage import refund_ai_credit  # noqa: E402
+import asyncio
+
+from src.security.features_utils.usage import refund_ai_credit
 
 
 async def editor_chat_event_generator(

@@ -8,15 +8,14 @@ Supports both local filesystem and S3/R2 cloud storage.
 """
 
 import os
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, Tuple, Optional
 
 from src.services.courses.transfer.storage_utils import (
-    is_s3_enabled,
-    get_storage_client,
     get_s3_bucket_name,
+    get_storage_client,
+    is_s3_enabled,
 )
-
 
 # Chunk size for streaming (1MB chunks for optimal performance)
 CHUNK_SIZE = 1024 * 1024  # 1MB
@@ -50,7 +49,7 @@ def get_video_mime_type(file_path: str) -> str:
     return mime_types.get(extension, 'video/mp4')
 
 
-def is_range_unsatisfiable(range_header: Optional[str], file_size: int) -> bool:
+def is_range_unsatisfiable(range_header: str | None, file_size: int) -> bool:
     """
     Whether a Range request cannot be satisfied per RFC 7233 → caller returns 416.
 
@@ -72,7 +71,7 @@ def is_range_unsatisfiable(range_header: Optional[str], file_size: int) -> bool:
     return start > file_size - 1
 
 
-def parse_range_header(range_header: Optional[str], file_size: int) -> Tuple[int, int]:
+def parse_range_header(range_header: str | None, file_size: int) -> tuple[int, int]:
     """
     Parse the HTTP Range header to determine byte range.
 
@@ -117,9 +116,9 @@ def parse_range_header(range_header: Optional[str], file_size: int) -> Tuple[int
 def stream_video_file(
     file_path: str,
     start: int = 0,
-    end: Optional[int] = None,
+    end: int | None = None,
     chunk_size: int = CHUNK_SIZE
-) -> Generator[bytes, None, None]:
+) -> Generator[bytes]:
     """
     Generator that yields chunks of a video file for streaming.
     Supports both local filesystem and S3 storage.
@@ -142,9 +141,9 @@ def stream_video_file(
 def _stream_from_local(
     file_path: str,
     start: int = 0,
-    end: Optional[int] = None,
+    end: int | None = None,
     chunk_size: int = CHUNK_SIZE
-) -> Generator[bytes, None, None]:
+) -> Generator[bytes]:
     """Stream from local filesystem."""
     file_size = os.path.getsize(file_path)
 
@@ -173,9 +172,9 @@ def _stream_from_local(
 def _stream_from_s3(
     file_path: str,
     start: int = 0,
-    end: Optional[int] = None,
+    end: int | None = None,
     chunk_size: int = CHUNK_SIZE
-) -> Generator[bytes, None, None]:
+) -> Generator[bytes]:
     """Stream from S3 using Range requests for efficient chunked delivery."""
     s3_client = get_storage_client()
     bucket = get_s3_bucket_name()
@@ -209,7 +208,7 @@ def _stream_from_s3(
         yield data
 
 
-def get_file_info(file_path: str) -> Tuple[int, str, bool]:
+def get_file_info(file_path: str) -> tuple[int, str, bool]:
     """
     Get information about a video/audio file.
     Supports both local filesystem and S3 storage.
@@ -228,7 +227,7 @@ def get_file_info(file_path: str) -> Tuple[int, str, bool]:
         return _get_file_info_local(file_path, mime_type)
 
 
-def _get_file_info_local(file_path: str, mime_type: str) -> Tuple[int, str, bool]:
+def _get_file_info_local(file_path: str, mime_type: str) -> tuple[int, str, bool]:
     """Get file info from local filesystem."""
     path = Path(file_path)
 
@@ -239,7 +238,7 @@ def _get_file_info_local(file_path: str, mime_type: str) -> Tuple[int, str, bool
     return file_size, mime_type, True
 
 
-def _get_file_info_s3(file_path: str, mime_type: str) -> Tuple[int, str, bool]:
+def _get_file_info_s3(file_path: str, mime_type: str) -> tuple[int, str, bool]:
     """Get file info from S3."""
     from botocore.exceptions import ClientError
 
@@ -260,7 +259,7 @@ def _get_file_info_s3(file_path: str, mime_type: str) -> Tuple[int, str, bool]:
         return 0, '', False
 
 
-def validate_video_path(base_content_dir: str, *path_parts: str) -> Optional[str]:
+def validate_video_path(base_content_dir: str, *path_parts: str) -> str | None:
     """
     Validate and construct a safe file path within the content directory.
 

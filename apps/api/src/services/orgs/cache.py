@@ -7,7 +7,6 @@ Falls back gracefully — if Redis is unavailable, queries hit the DB directly.
 
 import json
 import logging
-from typing import Optional
 
 from src.core.redis import get_redis_client
 
@@ -20,7 +19,7 @@ CACHE_TTL_ORG_CONFIG = 120     # org config — same TTL as slug
 _KEY_PREFIX = "org_cache"
 
 
-def get_cached_org_config(org_id: int) -> Optional[dict]:
+def get_cached_org_config(org_id: int) -> dict | None:
     """Return cached org config for an org_id, or None."""
     r = get_redis_client()
     if r is None:
@@ -56,7 +55,7 @@ def invalidate_org_config_cache(org_id: int) -> None:
         logger.debug("Org config cache invalidate failed for org_id=%s", org_id, exc_info=True)
 
 
-def get_cached_org_by_slug(slug: str) -> Optional[dict]:
+def get_cached_org_by_slug(slug: str) -> dict | None:
     """Return cached org data for a slug, or None."""
     r = get_redis_client()
     if r is None:
@@ -92,7 +91,7 @@ def invalidate_org_cache(slug: str) -> None:
         logger.debug("Org cache invalidate failed for slug=%s", slug, exc_info=True)
 
 
-def get_cached_instance_info() -> Optional[dict]:
+def get_cached_instance_info() -> dict | None:
     """Return cached instance info, or None."""
     r = get_redis_client()
     if r is None:

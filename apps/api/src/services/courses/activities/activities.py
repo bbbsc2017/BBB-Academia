@@ -1,24 +1,29 @@
+import asyncio
+import logging
+from datetime import datetime
+from uuid import uuid4
+
+from fastapi import HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.courses.courses import Course
-from src.db.courses.chapters import Chapter
-from src.db.courses.activities import ActivityCreate, Activity, ActivityRead, ActivityUpdate
-from src.db.courses.chapter_activities import ChapterActivity
-from src.db.organizations import Organization, OrganizationRead
-from src.db.organization_config import OrganizationConfig
-from src.db.users import AnonymousUser, PublicUser, User
-from src.security.auth import resolve_acting_user_id
-from fastapi import HTTPException, Request
-from pydantic import BaseModel
-from uuid import uuid4
-from datetime import datetime
-
-import asyncio
-import logging
 
 from src.core.ee_hooks import check_ee_activity_paid_access
-from src.security.rbac import check_resource_access, AccessAction
+from src.db.courses.activities import (
+    Activity,
+    ActivityCreate,
+    ActivityRead,
+    ActivityUpdate,
+)
+from src.db.courses.chapter_activities import ChapterActivity
+from src.db.courses.chapters import Chapter
+from src.db.courses.courses import Course
+from src.db.organization_config import OrganizationConfig
+from src.db.organizations import Organization, OrganizationRead
+from src.db.users import AnonymousUser, PublicUser, User
+from src.security.auth import resolve_acting_user_id
+from src.security.rbac import AccessAction, check_resource_access
 from src.services.courses.activities.versioning import create_activity_version
 from src.services.courses.locks import (
     batch_accessible_restricted_uuids,

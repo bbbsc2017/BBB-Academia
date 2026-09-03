@@ -9,9 +9,9 @@ import defusedxml.ElementTree as ET
 import pytest
 
 scorm = pytest.importorskip("ee.services.scorm.scorm")
-from ee.db.scorm import ScormVersionEnum  # noqa: E402
+from ee.db.scorm import ScormVersionEnum
 
-from src.tests.fixtures import scorm_packages as pkg  # noqa: E402
+from src.tests.fixtures import scorm_packages as pkg
 
 
 def _root(manifest_str: str):

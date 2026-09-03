@@ -18,9 +18,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException, UploadFile
 
-import src.routers.code_execution as code_execution
+from src.routers import code_execution
 from src.routers.code_execution import upload_sqlite_db
-
 
 # Minimal valid SQLite header so the file "looks like" a real SQLite db.
 SQLITE_MAGIC = b"SQLite format 3\x00" + b"\x00" * 16

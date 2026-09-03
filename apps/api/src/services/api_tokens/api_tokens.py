@@ -1,10 +1,10 @@
 import secrets
-from typing import List, Optional
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
+
+from fastapi import HTTPException, Request, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import HTTPException, Request, status
 
 from src.db.api_tokens import (
     APIToken,
@@ -14,21 +14,20 @@ from src.db.api_tokens import (
     APITokenUpdate,
 )
 from src.db.organizations import Organization
-from src.db.users import PublicUser, AnonymousUser, APITokenUser
 from src.db.roles import Rights
+from src.db.users import AnonymousUser, APITokenUser, PublicUser
+from src.security.org_auth import (
+    get_user_org_role,
+    require_org_role_permission,
+)
 from src.security.rbac.rbac import (
     authorization_verify_if_user_is_anon,
-)
-from src.security.org_auth import (
-    require_org_role_permission,
-    get_user_org_role,
 )
 from src.security.security import (
     security_hash_token,
     security_token_needs_rehash,
     security_verify_token,
 )
-
 
 # Token generation constants
 TOKEN_PREFIX = "lh_"
@@ -199,7 +198,7 @@ async def list_api_tokens(
     db_session: AsyncSession,
     org_id: int,
     current_user: PublicUser | AnonymousUser | APITokenUser,
-) -> List[APITokenRead]:
+) -> list[APITokenRead]:
     """List all API tokens for an organization."""
     _block_api_tokens(current_user)
     # VERIFICATION 1: User must be authenticated
@@ -419,7 +418,7 @@ async def regenerate_api_token(
 async def validate_api_token_for_auth(
     token: str,
     db_session: AsyncSession,
-) -> Optional[APIToken]:
+) -> APIToken | None:
     """
     Validate an API token for authentication purposes.
     Updates last_used_at on successful validation.
@@ -436,7 +435,7 @@ async def validate_api_token_for_auth(
 
     statement = select(APIToken).where(
         APIToken.token_prefix == token[:12],
-        APIToken.is_active == True,  # noqa: E712
+        APIToken.is_active == True,
     )
     candidates = (await db_session.execute(statement)).scalars().all()
     api_token = next(
@@ -474,8 +473,8 @@ async def validate_api_token_for_auth(
 
 
 async def validate_rights_structure(
-    rights: Optional[Rights | dict],
-    user_rights: Optional[Rights | dict],
+    rights: Rights | dict | None,
+    user_rights: Rights | dict | None,
 ) -> None:
     """
     Validate the rights structure and ensure token rights don't exceed user rights.

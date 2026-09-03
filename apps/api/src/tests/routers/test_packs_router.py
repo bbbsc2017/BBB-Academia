@@ -11,7 +11,8 @@ from httpx import ASGITransport, AsyncClient
 from src.core.events.database import get_db_session
 from src.db.packs import OrgPackRead
 from src.db.users import APITokenUser
-from src.routers.orgs.packs import internal_router, router as packs_router
+from src.routers.orgs.packs import internal_router
+from src.routers.orgs.packs import router as packs_router
 from src.security.auth import get_current_user
 
 

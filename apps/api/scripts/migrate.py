@@ -25,10 +25,10 @@ Available commands:
     python scripts/migrate.py playgrounds  # Run only playgrounds migration
 """
 
+import argparse
+import json
 import os
 import sys
-import json
-import argparse
 
 # Add the src directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))

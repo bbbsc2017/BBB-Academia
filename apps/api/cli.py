@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 # stdout/stderr reconfig must run before any other import that might print.
 import asyncio
 import os
@@ -13,11 +12,12 @@ for _stream in (sys.stdout, sys.stderr):
         except Exception:
             pass
 
+import typer
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-import typer
+
 from config.config import get_learnhouse_config
 from src.db.organizations import OrganizationCreate
 from src.db.users import UserCreate
@@ -127,7 +127,7 @@ async def _install_async(short: bool) -> None:
 
                 # Show the user how to login
                 print("Installation completed ✅")
-                print("")
+                print()
                 print("Login with the following credentials:")
                 print("email: " + email)
                 print("password: (the password you set in LEARNHOUSE_INITIAL_ADMIN_PASSWORD)")
@@ -171,7 +171,7 @@ async def _install_async(short: bool) -> None:
 
                 # Show the user how to login
                 print("Installation completed ✅")
-                print("")
+                print()
                 print("Login with the following credentials:")
                 print("email: " + email)
                 print("password: The password you entered")
@@ -195,15 +195,16 @@ def backfill_faststart(
     skipped.
     """
     import tempfile
+
     from src.services.courses.transfer.storage_utils import (
-        is_s3_enabled,
-        get_storage_client,
         get_s3_bucket_name,
+        get_storage_client,
+        is_s3_enabled,
     )
     from src.services.utils.video_processing import (
+        _FASTSTART_EXTENSIONS,
         ensure_faststart,
         is_faststart,
-        _FASTSTART_EXTENSIONS,
     )
 
     if not is_s3_enabled():

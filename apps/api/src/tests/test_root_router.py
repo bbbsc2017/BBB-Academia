@@ -17,7 +17,7 @@ def _module(name: str, **attrs):
 
 def _named_router(name: str) -> APIRouter:
     router = APIRouter()
-    setattr(router, "_router_name", name)
+    router._router_name = name
     return router
 
 

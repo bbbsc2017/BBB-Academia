@@ -1,6 +1,6 @@
 """Tests for src/services/api_tokens/api_tokens.py."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from src.db.api_tokens import APIToken, APITokenCreate, APITokenUpdate
 from src.db.roles import Rights
 from src.services.api_tokens.api_tokens import (
+    create_api_token,
     generate_api_token,
     get_api_token,
     hash_token,
@@ -19,7 +20,6 @@ from src.services.api_tokens.api_tokens import (
     validate_api_token_for_auth,
     validate_rights_structure,
     verify_token,
-    create_api_token,
 )
 
 
@@ -424,7 +424,7 @@ class TestValidateApiTokenForAuth:
             token_uuid="apitoken_valid",
             token_hash=hash_token(valid_token),
             token_prefix=valid_token[:12],
-            expires_at=(datetime.now(timezone.utc) + timedelta(days=1)).isoformat(),
+            expires_at=(datetime.now(UTC) + timedelta(days=1)).isoformat(),
         )
         inactive_token = "lh_inactiv_a"
         _inactive = await _make_token(
@@ -442,7 +442,7 @@ class TestValidateApiTokenForAuth:
             token_uuid="apitoken_expired",
             token_hash=hash_token(expired_token),
             token_prefix=expired_token[:12],
-            expires_at=(datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+            expires_at=(datetime.now(UTC) - timedelta(days=1)).isoformat(),
         )
         malformed_token = "lh_malformed"
         malformed = await _make_token(
@@ -478,7 +478,13 @@ class TestUpdateApiTokenRightsObject:
     ):
         """Line 287: when update_data['rights'] is a Rights instance, model_dump() is called."""
         from unittest.mock import MagicMock
-        from src.db.roles import Rights, Permission, PermissionsWithOwn, DashboardPermission
+
+        from src.db.roles import (
+            DashboardPermission,
+            Permission,
+            PermissionsWithOwn,
+            Rights,
+        )
 
         def _full_p():
             return Permission(

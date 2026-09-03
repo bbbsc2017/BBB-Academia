@@ -1,6 +1,9 @@
 """Unit tests for Range helpers in video_streaming (416 / zero-length edges)."""
 
-from src.services.utils.video_streaming import is_range_unsatisfiable, parse_range_header
+from src.services.utils.video_streaming import (
+    is_range_unsatisfiable,
+    parse_range_header,
+)
 
 
 def test_no_range_is_satisfiable():

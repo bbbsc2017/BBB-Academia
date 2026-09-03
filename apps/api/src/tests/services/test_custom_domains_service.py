@@ -2,10 +2,10 @@
 
 import builtins
 import os
+import ssl
 import sys
 import types
 from datetime import datetime
-import ssl
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
@@ -393,28 +393,26 @@ class TestVerificationInfoAndVerifyCustomDomain:
         with patch(
             "src.services.orgs.custom_domains.verify_domain_dns",
             new=AsyncMock(return_value=(False, "TXT record not found")),
-        ):
-            with pytest.raises(HTTPException) as verify_exc:
-                await verify_custom_domain(
-                    mock_request,
-                    db,
-                    org.id,
-                    domain.domain_uuid,
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as verify_exc:
+            await verify_custom_domain(
+                mock_request,
+                db,
+                org.id,
+                domain.domain_uuid,
+                admin_user,
+            )
 
         with patch(
             "src.services.orgs.custom_domains.require_org_membership",
             return_value=None,
-        ):
-            with pytest.raises(HTTPException) as org_exc:
-                await get_domain_verification_info(
-                    mock_request,
-                    db,
-                    999,
-                    domain.domain_uuid,
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as org_exc:
+            await get_domain_verification_info(
+                mock_request,
+                db,
+                999,
+                domain.domain_uuid,
+                admin_user,
+            )
 
         with pytest.raises(HTTPException) as missing_domain_exc:
             await verify_custom_domain(
@@ -907,27 +905,25 @@ class TestResolveAndSslStatus:
         with patch(
             "src.services.orgs.custom_domains.require_org_admin",
             return_value=None,
-        ):
-            with pytest.raises(HTTPException) as verify_org_exc:
-                await verify_custom_domain(
-                    mock_request,
-                    db,
-                    999,
-                    domain.domain_uuid,
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as verify_org_exc:
+            await verify_custom_domain(
+                mock_request,
+                db,
+                999,
+                domain.domain_uuid,
+                admin_user,
+            )
         with patch(
             "src.services.orgs.custom_domains.require_org_membership",
             return_value=None,
-        ):
-            with pytest.raises(HTTPException) as ssl_org_exc:
-                await check_domain_ssl_status(
-                    mock_request,
-                    db,
-                    999,
-                    domain.domain_uuid,
-                    admin_user,
-                )
+        ), pytest.raises(HTTPException) as ssl_org_exc:
+            await check_domain_ssl_status(
+                mock_request,
+                db,
+                999,
+                domain.domain_uuid,
+                admin_user,
+            )
 
         with patch(
             "src.services.orgs.custom_domains.require_org_membership",

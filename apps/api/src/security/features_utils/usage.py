@@ -1,25 +1,27 @@
 from datetime import datetime
-from src.db.organization_config import OrganizationConfig
-from src.db.billing_usage import UsageEvent
-from src.db.user_organizations import UserOrganization
-from src.db.courses.courses import Course
-from src.db.roles import Role, RoleTypeEnum
-from src.db.usergroups import UserGroup
-from src.db.podcasts.podcasts import Podcast
-from src.db.courses.assignments import Assignment
+from typing import Literal, TypeAlias
+
+from fastapi import HTTPException
 from sqlalchemy import or_
+from sqlmodel import func, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.deployment_mode import get_deployment_mode
 from src.core.redis import get_redis_client as _get_redis_pool_client
-from typing import Literal, Optional, TypeAlias
-from fastapi import HTTPException
-from sqlmodel import select, func
-from sqlmodel.ext.asyncio.session import AsyncSession
+from src.db.billing_usage import UsageEvent
+from src.db.courses.assignments import Assignment
+from src.db.courses.courses import Course
+from src.db.organization_config import OrganizationConfig
+from src.db.podcasts.podcasts import Podcast
+from src.db.roles import Role, RoleTypeEnum
+from src.db.user_organizations import UserOrganization
+from src.db.usergroups import UserGroup
 from src.security.features_utils.plans import (
     PlanLevel,
-    get_plan_limit,
     get_ai_credit_limit,
-    plan_meets_requirement,
+    get_plan_limit,
     get_required_plan_for_feature,
+    plan_meets_requirement,
 )
 
 FeatureSet: TypeAlias = Literal[
@@ -211,7 +213,7 @@ async def log_usage_event(
 # Main Usage Check Functions
 # ============================================================================
 
-async def _get_org_config(org_id: int, db_session: AsyncSession) -> Optional[OrganizationConfig]:
+async def _get_org_config(org_id: int, db_session: AsyncSession) -> OrganizationConfig | None:
     """Return OrganizationConfig with a Redis read-aside cache."""
     from src.services.orgs.cache import get_cached_org_config, set_cached_org_config
 
@@ -755,7 +757,7 @@ async def check_admin_seat_limit(
     return await check_limits_with_usage("admin_seats", org_id, db_session)
 
 
-def _role_grants_dashboard_access(role: Optional[Role]) -> bool:
+def _role_grants_dashboard_access(role: Role | None) -> bool:
     """True if a role occupies an admin seat (dashboard.action_access == true).
 
     Mirrors the seat-counting logic in ``_get_actual_admin_seat_count`` so the
@@ -829,7 +831,7 @@ async def enforce_admin_seat_limit_for_role_rights_change(
 async def enforce_admin_seat_limit_for_role_change(
     org_id: int,
     user_id: int,
-    new_role: Optional[Role],
+    new_role: Role | None,
     db_session: AsyncSession,
 ) -> None:
     """Enforce the admin-seat limit when ``user_id`` is being assigned

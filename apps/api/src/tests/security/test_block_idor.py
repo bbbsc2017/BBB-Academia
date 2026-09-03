@@ -33,7 +33,6 @@ from src.services.blocks.block_types.imageBlock.imageBlock import get_image_bloc
 from src.services.blocks.block_types.pdfBlock.pdfBlock import get_pdf_block
 from src.services.blocks.block_types.videoBlock.videoBlock import get_video_block
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

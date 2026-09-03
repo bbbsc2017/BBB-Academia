@@ -1,4 +1,4 @@
-from typing import Optional
+
 from sqlalchemy import Column, ForeignKey, Index, Integer
 from sqlmodel import Field, SQLModel
 
@@ -8,7 +8,7 @@ class UserOrganization(SQLModel, table=True):
         Index("ix_userorg_user_org", "user_id", "org_id"),
         Index("ix_userorg_org_role", "org_id", "role_id"),
     )
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(
         sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
     )

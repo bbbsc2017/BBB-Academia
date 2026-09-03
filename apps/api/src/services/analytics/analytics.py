@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 
@@ -82,7 +82,7 @@ async def _send_event(
 
         payload = {
             "event_name": event_name,
-            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
             "org_id": org_id,
             "user_id": user_id,
             "session_id": session_id,

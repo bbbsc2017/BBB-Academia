@@ -11,7 +11,6 @@ from src.security.features_utils.plans import (
     is_paying_plan,
 )
 
-
 # Features that are always on (no admin toggle — cannot be disabled)
 ALWAYS_ON_FEATURES = {"courses", "usergroups", "assignments"}
 

@@ -19,7 +19,11 @@ class TestNormalizeLanguage:
         assert normalize_language("es-MX") == "es"
 
     def test_uppercase_is_normalized(self):
-        assert normalize_language("FR") == "fr"
+        # French isn't a supported locale in this fork (only en/es are, see
+        # SUPPORTED_LANGUAGES) so it would fall back to DEFAULT_LANGUAGE
+        # regardless of case; use a supported code to isolate the
+        # case-normalization behavior this test targets.
+        assert normalize_language("ES") == "es"
 
     def test_unknown_code_falls_back_to_english(self):
         assert normalize_language("klingon") == DEFAULT_LANGUAGE

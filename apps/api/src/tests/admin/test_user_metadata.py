@@ -20,7 +20,6 @@ from src.db.users import APITokenUser, User, UserUpdate
 from src.services.admin.admin import provision_user
 from src.services.users.users import update_user
 
-
 # Fixtures
 
 

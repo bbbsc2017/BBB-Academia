@@ -4,13 +4,12 @@ import json
 import logging
 import re
 from datetime import datetime, timedelta
-from typing import Optional
 
 import redis
 from fastapi import HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import aliased
-from sqlmodel import select, func
+from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from config.config import get_learnhouse_config
@@ -27,17 +26,17 @@ from src.security.features_utils.usage import (
     decrease_feature_usage,
     enforce_admin_seat_limit_for_role_change,
 )
+from src.security.org_auth import is_org_member
+from src.security.rbac.constants import ADMIN_ROLE_ID
+from src.services.orgs.invites import send_invite_email
+from src.services.orgs.orgs import get_org_default_language, rbac_check
+from src.services.search.normalization import LIKE_ESCAPE_CHAR, build_like_pattern
 from src.services.security.account_age import enforce_free_tier_age_gate
 from src.services.security.rate_limiting import (
     INVITE_MAX_BATCH_SIZE,
     enforce_batch_size_limit,
     enforce_invite_rate_limit,
 )
-from src.security.org_auth import is_org_member
-from src.security.rbac.constants import ADMIN_ROLE_ID
-from src.services.orgs.invites import send_invite_email
-from src.services.orgs.orgs import get_org_default_language, rbac_check
-from src.services.search.normalization import LIKE_ESCAPE_CHAR, build_like_pattern
 from src.services.users.emails import send_role_changed_email
 from src.services.webhooks.dispatch import dispatch_webhooks
 
@@ -158,9 +157,9 @@ async def get_organization_users(
 
     # Apply status filter (verified/unverified)
     if status == "verified":
-        base_statement = base_statement.where(User.email_verified == True)  # noqa: E712
+        base_statement = base_statement.where(User.email_verified == True)
     elif status == "unverified":
-        base_statement = base_statement.where(User.email_verified == False)  # noqa: E712
+        base_statement = base_statement.where(User.email_verified == False)
 
     # Compute group membership counts when usergroup_id is provided (before applying filter)
     in_group_total = None
@@ -200,7 +199,7 @@ async def get_organization_users(
             base_statement = base_statement.outerjoin(
                 ugu_alias,
                 (ugu_alias.user_id == User.id) & (ugu_alias.usergroup_id == usergroup_id),
-            ).where(ugu_alias.id == None)  # noqa: E711
+            ).where(ugu_alias.id == None)
 
     # Get total count using SQL COUNT
     total = (await db_session.execute(select(func.count()).select_from(base_statement.subquery()))).scalar_one()
@@ -355,9 +354,9 @@ async def export_organization_users_csv(
         base_statement = base_statement.where(UserOrganization.role_id == role_id)
 
     if status == "verified":
-        base_statement = base_statement.where(User.email_verified == True)  # noqa: E712
+        base_statement = base_statement.where(User.email_verified == True)
     elif status == "unverified":
-        base_statement = base_statement.where(User.email_verified == False)  # noqa: E712
+        base_statement = base_statement.where(User.email_verified == False)
 
     if usergroup_id is not None and usergroup_filter:
         if usergroup_filter == "in_group":
@@ -370,7 +369,7 @@ async def export_organization_users_csv(
             base_statement = base_statement.outerjoin(
                 ugu_alias,
                 (ugu_alias.user_id == User.id) & (ugu_alias.usergroup_id == usergroup_id),
-            ).where(ugu_alias.id == None)  # noqa: E711
+            ).where(ugu_alias.id == None)
 
     if sort_order == "asc":
         base_statement = base_statement.order_by(UserOrganization.id.asc())
@@ -804,7 +803,7 @@ async def invite_batch_users(
     request: Request,
     org_id: int,
     emails: str,
-    invite_code_uuid: Optional[str],
+    invite_code_uuid: str | None,
     db_session: AsyncSession,
     current_user: PublicUser | AnonymousUser,
 ):
