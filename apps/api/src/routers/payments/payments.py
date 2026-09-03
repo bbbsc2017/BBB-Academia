@@ -3,20 +3,33 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
-from src.security.auth import get_current_user
-from src.security.superadmin import is_user_superadmin
-from src.db.users import AnonymousUser, PublicUser
-from src.db.payments.config import BoldCredentialsUpdate, PaymentProviderEnum, PaymentsConfigRead
+from src.db.payments.config import (
+    BoldCredentialsUpdate,
+    PaymentProviderEnum,
+    PaymentsConfigRead,
+)
 from src.db.payments.enrollments import PaymentsEnrollment, PaymentsEnrollmentRead
-from src.db.payments.groups import PaymentsGroupCreate, PaymentsGroupRead, PaymentsGroupUpdate
-from src.db.payments.offers import PaymentsOfferCreate, PaymentsOfferRead, PaymentsOfferUpdate
-
+from src.db.payments.groups import (
+    PaymentsGroupCreate,
+    PaymentsGroupRead,
+    PaymentsGroupUpdate,
+)
+from src.db.payments.offers import (
+    PaymentsOfferCreate,
+    PaymentsOfferRead,
+    PaymentsOfferUpdate,
+)
+from src.db.users import AnonymousUser, PublicUser
+from src.security.auth import get_current_user
+from src.security.recaptcha import verify_recaptcha
+from src.security.superadmin import is_user_superadmin
 from src.services.payments import config as config_service
 from src.services.payments import enrollments as enrollments_service
 from src.services.payments import groups as groups_service
 from src.services.payments import offers as offers_service
 from src.services.payments.providers import ensure_providers_registered
 from src.services.payments.providers.base import WebhookVerificationError, get_provider
+from src.services.security.rate_limiting import get_client_ip
 
 router = APIRouter()
 public_router = APIRouter()
@@ -180,6 +193,7 @@ async def api_remove_offer_resource(
 @router.post("/{org_id}/offers/{offer_uuid}/checkout", tags=["payments"])
 async def api_create_checkout(
     *, request: Request, org_id: int, offer_uuid: str, redirect_uri: str,
+    recaptcha_token: str | None = None,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
 ):
@@ -187,9 +201,12 @@ async def api_create_checkout(
     and dispatches to that provider's create_checkout(). Returns
     {checkout_url}. 501 if no Bold/OpenPay/Stripe provider is both
     configured AND implemented yet."""
-    from src.security.rbac.rbac import authorization_verify_if_user_is_anon
     from src.db.payments.config import PaymentsConfig
+    from src.security.rbac.rbac import authorization_verify_if_user_is_anon
     from src.services.payments.providers.base import PaymentProviderError
+
+    if not await verify_recaptcha(recaptcha_token, "CHECKOUT", get_client_ip(request)):
+        raise HTTPException(status_code=403, detail="Verification failed. Please try again.")
 
     await authorization_verify_if_user_is_anon(current_user.id)
 

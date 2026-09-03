@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import AuthLayout from '@components/Auth/AuthLayout'
 import { PasswordStrengthIndicator, validatePasswordStrength } from '@components/Auth/PasswordStrengthIndicator'
 import TurnstileWidget, { useTurnstileRequired, verifyTurnstileToken, type TurnstileWidgetHandle } from '@components/Auth/TurnstileWidget'
+import { checkRecaptcha } from '@services/security/recaptcha'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
 const validate = (values: any, t: any) => {
@@ -85,6 +86,11 @@ function ResetPasswordClient({ org }: ResetPasswordClientProps) {
                     setError(t('auth.turnstile_failed', { defaultValue: 'Verification failed. Please try again.' }))
                     setShowMessage(true)
                     turnstileRef.current?.reset()
+                    return
+                }
+                if (!(await checkRecaptcha('RESET_PASSWORD'))) {
+                    setError(t('auth.turnstile_failed', { defaultValue: 'Verification failed. Please try again.' }))
+                    setShowMessage(true)
                     return
                 }
                 track(AnalyticsEvent.PasswordResetSubmitted, { came_from_email_link: Boolean(reset_code) })

@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next'
 import { resendVerificationEmail } from '@services/auth/auth'
 import AuthLayout from '@components/Auth/AuthLayout'
 import TurnstileWidget, { useTurnstileRequired, verifyTurnstileToken, type TurnstileWidgetHandle } from '@components/Auth/TurnstileWidget'
+import { checkRecaptcha } from '@services/security/recaptcha'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
 interface LoginClientProps {
@@ -195,6 +196,15 @@ const LoginClient = (props: LoginClientProps) => {
         setSubmitting(false)
         setIsSubmitting(false)
         turnstileRef.current?.reset()
+        return
+      }
+
+      // reCAPTCHA bot check (active in OSS/self-host, unlike Turnstile above).
+      const recaptchaOk = await checkRecaptcha('LOGIN')
+      if (!recaptchaOk) {
+        setError(t('auth.turnstile_failed', { defaultValue: 'Verification failed. Please try again.' }))
+        setSubmitting(false)
+        setIsSubmitting(false)
         return
       }
 

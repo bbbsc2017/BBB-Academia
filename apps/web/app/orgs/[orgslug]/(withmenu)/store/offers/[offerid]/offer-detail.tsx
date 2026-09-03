@@ -17,6 +17,7 @@ import { useLHAnalytics, useTrackView, AnalyticsEvent } from '@services/analytic
 import { meaningfulMessage } from '@lib/errors/classify'
 import toast from 'react-hot-toast'
 import GuestCheckoutPanel from '@components/Payments/GuestCheckoutPanel'
+import { getRecaptchaToken } from '@services/security/recaptcha'
 
 interface Resource {
   resource_uuid: string
@@ -148,7 +149,8 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
     setLoading(true)
     try {
       const redirectUri = window.location.href
-      const result = await getOfferCheckoutSession(orgId, offerUuid, redirectUri, token)
+      const recaptchaToken = await getRecaptchaToken('CHECKOUT')
+      const result = await getOfferCheckoutSession(orgId, offerUuid, redirectUri, token, recaptchaToken)
       const url = result?.data?.checkout_url
       if (url) {
         track(AnalyticsEvent.CheckoutSessionCreated, { offer_type: offer.offer_type, amount: offer.amount })
