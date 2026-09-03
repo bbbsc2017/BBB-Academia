@@ -16,6 +16,7 @@ import { getErrorMessage } from '@services/utils/ts/errorMessage'
 import { useTranslation } from 'react-i18next'
 import { PasswordStrengthIndicator, validatePasswordStrength } from '@components/Auth/PasswordStrengthIndicator'
 import TurnstileWidget, { useTurnstileRequired, type TurnstileWidgetHandle } from '@components/Auth/TurnstileWidget'
+import { getRecaptchaToken } from '@services/security/recaptcha'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
 const validate = (values: any, t: any) => {
@@ -87,7 +88,8 @@ function InviteOnlySignUpComponent(props: InviteOnlySignUpProps) {
       setIsSubmitting(true)
       track(AnalyticsEvent.SignupSubmitted, { invite_code_present: true, has_bio: !!values.bio })
       try {
-        let res = await signUpWithInviteCode(values, props.inviteCode)
+        const recaptchaToken = await getRecaptchaToken('SIGNUP')
+        let res = await signUpWithInviteCode({ ...values, recaptchaToken }, props.inviteCode)
         let message = await res.json().catch(() => ({}))
         if (res.status == 200) {
           track(AnalyticsEvent.SignupSucceeded, { email_verified: message.email_verified })

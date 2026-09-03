@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerAPIUrl } from '@services/config/config'
 import { isSaaSMode, isCustomDomainRequest } from '@lib/saas'
 import { verifyTurnstile, clientIpFromHeaders } from '@lib/turnstile'
+import { verifyRecaptcha } from '@lib/recaptcha'
 import { validateSignupEmail } from '@services/emails/disposableEmail'
 import { addContactWithLoops, sendLoopsEvent, LOOPS_SIGNED_USERS_GROUP } from '@services/emails/loops'
 
@@ -28,6 +29,7 @@ interface SignupBody {
   last_name?: string
   bio?: string
   turnstileToken?: string | null
+  recaptchaToken?: string | null
   inviteCode?: string
 }
 
@@ -39,10 +41,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ detail: 'Invalid request body' }, { status: 400 })
   }
 
-  const { email, org_id, org_slug: _org_slug, turnstileToken, inviteCode, ...rest } = body
+  const { email, org_id, org_slug: _org_slug, turnstileToken, recaptchaToken, inviteCode, ...rest } = body
 
   if (!email || !rest.password || !rest.username) {
     return NextResponse.json({ detail: 'Missing required fields' }, { status: 400 })
+  }
+
+  // reCAPTCHA runs on EVERY deployment (OSS included) whenever
+  // RECAPTCHA_SECRET_KEY is set — unlike the SaaS-only add-ons below, it's
+  // the primary bot gate for this self-hosted instance.
+  const recaptcha = await verifyRecaptcha(recaptchaToken, 'SIGNUP', clientIpFromHeaders(request.headers))
+  if (!recaptcha.ok) {
+    return NextResponse.json({ detail: 'Verification failed. Please try again.' }, { status: 403 })
   }
 
   // The anti-abuse add-ons run ONLY on the SaaS deployment. On OSS/self-hosted

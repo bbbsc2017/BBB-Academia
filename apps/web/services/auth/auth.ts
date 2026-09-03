@@ -217,6 +217,10 @@ interface NewAccountBody {
   // Cloudflare Turnstile token collected by the signup form. Optional so OSS /
   // Turnstile-disabled deployments keep working.
   turnstileToken?: string | null
+  // Google reCAPTCHA token — the primary bot gate for this deployment
+  // (active in OSS, unlike Turnstile above). Optional so reCAPTCHA-disabled
+  // deployments (no site key configured) keep working.
+  recaptchaToken?: string | null
 }
 
 // Signup goes through the same-origin gateway (app/api/signup/route.ts), which

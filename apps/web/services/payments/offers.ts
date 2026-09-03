@@ -72,10 +72,13 @@ export async function getOfferCheckoutSession(
   orgId: number,
   offerUuid: string,
   redirect_uri: string,
-  access_token: string
+  access_token: string,
+  recaptcha_token?: string | null
 ) {
+  const params = new URLSearchParams({ redirect_uri })
+  if (recaptcha_token) params.set('recaptcha_token', recaptcha_token)
   const result = await secureFetch(
-    `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/offers/${encodeURIComponent(offerUuid)}/checkout?redirect_uri=${encodeURIComponent(redirect_uri)}`,
+    `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/offers/${encodeURIComponent(offerUuid)}/checkout?${params.toString()}`,
     RequestBodyWithAuthHeader('POST', null, null, access_token)
   );
   return getResponseMetadata(result);

@@ -10,6 +10,7 @@ import { generateUsernameFromEmail } from '@services/auth/username'
 import { getErrorMessage } from '@services/utils/ts/errorMessage'
 import { PasswordStrengthIndicator, validatePasswordStrength } from '@components/Auth/PasswordStrengthIndicator'
 import TurnstileWidget, { useTurnstileRequired, verifyTurnstileToken, type TurnstileWidgetHandle } from '@components/Auth/TurnstileWidget'
+import { checkRecaptcha, getRecaptchaToken } from '@services/security/recaptcha'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
 type Mode = 'signup' | 'login'
@@ -96,13 +97,22 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
     setIsSubmitting(true)
     try {
       if (mode === 'login') {
+        // Login has no server-side gateway to verify inline (NextAuth's
+        // credentials provider) — pre-verify here, same as login.tsx.
+        if (!(await checkRecaptcha('GUEST_CHECKOUT_LOGIN'))) {
+          setError(t('auth.turnstile_failed'))
+          return
+        }
         const ok = await doLogin()
         if (ok) onAuthenticated()
         else turnstileRef.current?.reset()
         return
       }
 
-      // mode === 'signup'
+      // mode === 'signup' — /api/signup verifies the token inline (single
+      // verification; a v3 token can only be checked once), so just fetch
+      // it here and pass it along, same as turnstileToken below.
+      const recaptchaToken = await getRecaptchaToken('GUEST_CHECKOUT_SIGNUP')
       const res = await signup({
         email,
         password,
@@ -110,6 +120,7 @@ export default function GuestCheckoutPanel({ orgslug, orgId, offerUuid, onAuthen
         org_slug: orgslug,
         org_id: String(orgId),
         turnstileToken,
+        recaptchaToken,
       })
       const body = await res.json().catch(() => ({}))
 

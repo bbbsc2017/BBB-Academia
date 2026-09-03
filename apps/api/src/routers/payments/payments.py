@@ -4,6 +4,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
 from src.security.auth import get_current_user
+from src.security.recaptcha import verify_recaptcha
+from src.services.security.rate_limiting import get_client_ip
 from src.security.superadmin import is_user_superadmin
 from src.db.users import AnonymousUser, PublicUser
 from src.db.payments.config import BoldCredentialsUpdate, PaymentProviderEnum, PaymentsConfigRead
@@ -180,6 +182,7 @@ async def api_remove_offer_resource(
 @router.post("/{org_id}/offers/{offer_uuid}/checkout", tags=["payments"])
 async def api_create_checkout(
     *, request: Request, org_id: int, offer_uuid: str, redirect_uri: str,
+    recaptcha_token: str | None = None,
     db_session: AsyncSession = Depends(get_db_session),
     current_user: PublicUser = Depends(get_current_user),
 ):
@@ -190,6 +193,9 @@ async def api_create_checkout(
     from src.security.rbac.rbac import authorization_verify_if_user_is_anon
     from src.db.payments.config import PaymentsConfig
     from src.services.payments.providers.base import PaymentProviderError
+
+    if not await verify_recaptcha(recaptcha_token, "CHECKOUT", get_client_ip(request)):
+        raise HTTPException(status_code=403, detail="Verification failed. Please try again.")
 
     await authorization_verify_if_user_is_anon(current_user.id)
 
