@@ -4,7 +4,7 @@ The trickiest correctness point is that ``creation_date`` is a varchar written
 by ``str(datetime.now())`` — a naive, space-separated, server-local timestamp.
 All age math happens in Python; unparseable/legacy dates fail OPEN.
 """
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -19,7 +19,7 @@ from src.services.security.account_age import (
     parse_creation_date,
 )
 
-NOW = datetime(2026, 7, 9, 12, 0, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 7, 9, 12, 0, 0, tzinfo=UTC)
 
 
 def test_parse_creation_date_roundtrips_str_datetime_now():
@@ -81,7 +81,7 @@ async def test_gate_flags_new_free_org_and_account():
     with patch.object(account_age, "_is_non_saas", return_value=False), \
          patch.object(account_age, "_get_org_config", AsyncMock(return_value=object())), \
          patch.object(account_age, "_get_org_plan", return_value="free"):
-        too_new = await is_free_tier_age_gated(1, 2, db)
+        too_new = await is_free_tier_age_gated(1, 2, db, now=NOW)
     assert set(too_new) == {"organization", "account"}
 
 
@@ -116,7 +116,7 @@ async def test_enforce_raises_403_account_too_new():
          patch.object(account_age, "_get_org_config", AsyncMock(return_value=object())), \
          patch.object(account_age, "_get_org_plan", return_value="free"):
         with pytest.raises(HTTPException) as exc:
-            await enforce_free_tier_age_gate(1, 2, db, action="invite members")
+            await enforce_free_tier_age_gate(1, 2, db, action="invite members", now=NOW)
     assert exc.value.status_code == 403
     assert exc.value.detail["code"] == "ACCOUNT_TOO_NEW"
     assert "invite members" in exc.value.detail["message"]
