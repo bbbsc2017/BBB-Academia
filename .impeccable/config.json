@@ -1,0 +1,53 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/app/auth/login/login.tsx"
+        ],
+        "createdAt": "2026-09-03T16:38:27.768Z",
+        "reason": "false positive: this is the standard CSS loading-spinner technique (single-edge border-t-2 + rounded-full + animate-spin creates the rotating-arc loader), not a decorative border accent clashing with rounded corners. Pre-existing pattern identical across all 5 auth forms, not touched by this PR's diff."
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/app/auth/forgot/forgot.tsx"
+        ],
+        "createdAt": "2026-09-03T16:38:27.882Z",
+        "reason": "false positive: this is the standard CSS loading-spinner technique (single-edge border-t-2 + rounded-full + animate-spin creates the rotating-arc loader), not a decorative border accent clashing with rounded corners. Pre-existing pattern identical across all 5 auth forms, not touched by this PR's diff."
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/app/auth/reset/reset.tsx"
+        ],
+        "createdAt": "2026-09-03T16:38:27.987Z",
+        "reason": "false positive: this is the standard CSS loading-spinner technique (single-edge border-t-2 + rounded-full + animate-spin creates the rotating-arc loader), not a decorative border accent clashing with rounded corners. Pre-existing pattern identical across all 5 auth forms, not touched by this PR's diff."
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/app/auth/signup/OpenSignup.tsx"
+        ],
+        "createdAt": "2026-09-03T16:38:28.090Z",
+        "reason": "false positive: this is the standard CSS loading-spinner technique (single-edge border-t-2 + rounded-full + animate-spin creates the rotating-arc loader), not a decorative border accent clashing with rounded corners. Pre-existing pattern identical across all 5 auth forms, not touched by this PR's diff."
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/app/auth/signup/InviteOnlySignUp.tsx"
+        ],
+        "createdAt": "2026-09-03T16:38:28.188Z",
+        "reason": "false positive: this is the standard CSS loading-spinner technique (single-edge border-t-2 + rounded-full + animate-spin creates the rotating-arc loader), not a decorative border accent clashing with rounded corners. Pre-existing pattern identical across all 5 auth forms, not touched by this PR's diff."
+      }
+    ]
+  }
+}
