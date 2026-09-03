@@ -70,7 +70,4 @@ async def verify_recaptcha(
         return False
 
     result_action = result.get("action")
-    if action and result_action and result_action != action:
-        return False
-
-    return True
+    return not (action and result_action and result_action != action)
