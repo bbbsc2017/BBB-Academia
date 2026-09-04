@@ -45,8 +45,16 @@ async def verify_recaptcha(
     if not secret:
         return True  # Disabled deployment — allow through.
 
+    # Fail-OPEN on a missing token too: a real human can end up with no token
+    # for reasons that have nothing to do with being a bot — an ad-blocker or
+    # privacy extension blocking google.com/recaptcha, a slow connection, a
+    # corporate proxy. Blocking checkout for those visitors trades a small
+    # amount of bot pressure for turning away real purchases, which is the
+    # worse outcome. This still stops the far more common case: a bot that
+    # DOES run the JS and gets scored low.
     if not token:
-        return False
+        logger.warning("[recaptcha] no token supplied — allowing through (fail-open), action=%s", action)
+        return True
 
     data = {"secret": secret, "response": token}
     if remote_ip:
