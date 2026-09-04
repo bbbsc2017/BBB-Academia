@@ -50,7 +50,7 @@ function PaidCourseActivityDisclaimer({ course }: PaidCourseActivityProps) {
           )}
           <div className="space-y-3">
             {offers.map((offer: any) => (
-              <OfferCard key={offer.offer_id} offer={offer} orgslug={org.slug} />
+              <OfferCard key={offer.offer_uuid} offer={offer} orgslug={org.slug} />
             ))}
           </div>
         </>
