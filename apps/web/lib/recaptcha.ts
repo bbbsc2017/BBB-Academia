@@ -26,7 +26,7 @@ export function isRecaptchaEnabled(): boolean {
 export interface RecaptchaResult {
   /** Whether the request should be allowed through. */
   ok: boolean
-  /** Machine reason when not ok: 'disabled' never blocks. */
+  /** Machine reason, informational — 'missing_token' and 'error' are fail-open, never block. */
   reason?: 'missing_token' | 'verification_failed' | 'low_score' | 'action_mismatch' | 'error'
   score?: number
 }
@@ -49,7 +49,20 @@ export async function verifyRecaptcha(
   // Disabled deployment — allow through.
   if (!secret) return { ok: true }
 
-  if (!token) return { ok: false, reason: 'missing_token' }
+  // Fail-OPEN on a missing token too: a real human can end up with no token
+  // for reasons that have nothing to do with being a bot — an ad-blocker or
+  // privacy extension blocking google.com/recaptcha, a slow connection, a
+  // corporate proxy. Blocking those visitors trades a small amount of bot
+  // pressure for turning away real signups/logins/checkouts entirely, which
+  // is the worse outcome. This still stops the far more common case: a bot
+  // that DOES run the JS and gets scored low. A bot that skips the script
+  // entirely was already unprotected before this feature existed, so this
+  // isn't a regression — it's declining to make missing-token strictness a
+  // new single point of failure for genuine visitors.
+  if (!token) {
+    console.warn('[recaptcha] no token supplied — allowing through (fail-open)', { action })
+    return { ok: true, reason: 'missing_token' }
+  }
 
   try {
     const body = new URLSearchParams({ secret, response: token })
