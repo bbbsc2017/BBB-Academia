@@ -38,6 +38,12 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "${{ vars.VPS_USER }}@${{ vars.VPS_HOST }}" '
             set -e
             cd ~/bbb-academia-deploy/code
+            # Each build layers new cache on the VPS disk (this builds directly
+            # on the host, not a fresh CI runner) — left unchecked it grows by
+            # several GB per deploy and eventually fails the build with ENOSPC.
+            # Pruning first guarantees headroom; it never touches images/layers
+            # a running container actually needs, only the builder'"'"'s cache.
+            sudo docker builder prune -af
             sudo docker build --build-arg NEXT_PUBLIC_BASE_PATH=/courses -t bbbacademia-courses:latest .
             sudo docker compose \
               --project-directory /root/.learnhouse/bbbacademia-courses \
