@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useOrg } from '@components/Contexts/OrgContext';
 import { getUriWithOrg } from '@services/config/config';
 import { useLHAnalytics, useTrackView, AnalyticsEvent } from '@services/analytics';
+import { formatCurrency } from '@services/utils/ts/formatCurrency';
 
 interface OfferMeta {
   offer_id: number;
@@ -48,10 +49,7 @@ function PaymentWall({ offer, resourceName, resourceThumbnail, orgslug, provider
     'learner',
   );
 
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: offer.currency,
-  }).format(offer.amount);
+  const formattedPrice = formatCurrency(offer.amount, offer.currency);
 
   const storeHref = slug
     ? getUriWithOrg(slug, `/store/offers/${offer.offer_id}`)

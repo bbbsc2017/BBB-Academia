@@ -7,6 +7,7 @@ import { getOffersByResource } from '@services/payments/offers'
 import { LogIn, LogOut, ShoppingCart, Lock, UserPlus } from 'lucide-react'
 import { removeCourse, startCourse } from '@services/courses/activity'
 import { revalidateTags } from '@services/utils/ts/requests'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
 import Link from 'next/link'
@@ -175,7 +176,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
         {linkedOffers.length > 0 ? (() => {
           const offer = linkedOffers[0];
           const formattedPrice = offer?.amount != null
-            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency ?? 'USD' }).format(offer.amount)
+            ? formatCurrency(offer.amount, offer.currency)
             : null;
           const storeHref = org?.slug ? getUriWithOrg(org.slug, `/store/offers/${offer.offer_id}`) : '#';
 
