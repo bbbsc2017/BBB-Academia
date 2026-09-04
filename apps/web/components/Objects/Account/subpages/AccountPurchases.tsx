@@ -12,6 +12,7 @@ import {
 import toast from 'react-hot-toast'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 import { meaningfulMessage } from '@lib/errors/classify'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 
 interface AccountPurchasesProps {
   orgId: number
@@ -28,10 +29,7 @@ function EnrollmentCard({ enrollment, orgslug, onManageBilling, billingLoading }
   const isActive = enrollment.status === 'active'
 
   const formattedPrice = enrollment.amount != null
-    ? new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: enrollment.currency ?? 'USD',
-      }).format(enrollment.amount)
+    ? formatCurrency(enrollment.amount, enrollment.currency)
     : null
 
   const formattedDate = enrollment.creation_date

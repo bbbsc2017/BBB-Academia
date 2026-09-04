@@ -7,6 +7,7 @@ import { queryKeys } from '@/lib/query/keys';
 import { getOffers, updateOffer, archiveOffer } from '@services/payments/offers';
 import { Plus, Pencil, Info, RefreshCcw, SquareCheck, ChevronDown, ChevronUp, Archive, Users, Layers } from 'lucide-react';
 import currencyCodes from 'currency-codes';
+import { formatCurrency } from '@services/utils/ts/formatCurrency';
 import Modal from '@components/Objects/StyledElements/Modal/Modal';
 import ConfirmationModal from '@components/Objects/StyledElements/ConfirmationModal/ConfirmationModal';
 import toast from 'react-hot-toast';
@@ -205,10 +206,7 @@ function PaymentsOffersPage() {
                   <div className="mt-2 flex items-center justify-between bg-gray-100 rounded-md p-2">
                     <span className="text-sm text-gray-600">Price:</span>
                     <span className="font-semibold text-lg">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: offer.currency,
-                      }).format(offer.amount)}
+                      {formatCurrency(offer.amount, offer.currency)}
                     </span>
                   </div>
                 </div>

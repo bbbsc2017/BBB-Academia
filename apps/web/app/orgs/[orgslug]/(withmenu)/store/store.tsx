@@ -7,6 +7,7 @@ import { getCourseThumbnailMediaDirectory } from '@services/media/media'
 import { ShoppingBag, RefreshCcw, SquareCheck, ArrowRight, Sparkles, BookOpen, Mic, Puzzle } from 'lucide-react'
 import { useOrg } from '@components/Contexts/OrgContext'
 import { useLHAnalytics, useTrackView, AnalyticsEvent } from '@services/analytics'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 
 interface Resource {
   resource_uuid: string
@@ -183,7 +184,7 @@ function OfferCard({ offer, orgslug, orgUuid, position }: { offer: Offer; orgslu
           <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between">
             <div>
               <div className={`text-xl font-black ${isSubscription ? 'text-indigo-700' : 'text-gray-900'}`}>
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency }).format(offer.amount)}
+                {formatCurrency(offer.amount, offer.currency)}
               </div>
               {offer.price_type === 'customer_choice' && (
                 <p className="text-xs text-gray-400 leading-none">min.</p>

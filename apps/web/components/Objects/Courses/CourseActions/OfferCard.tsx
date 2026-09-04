@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, RefreshCcw, ShoppingCart, SquareCheck, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { getUriWithOrg } from '@services/config/config'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 
 interface OfferCardProps {
   offer: {
@@ -28,10 +29,7 @@ export function OfferCard({ offer, orgslug }: OfferCardProps) {
     ? offer.benefits.split(',').map((b) => b.trim()).filter(Boolean)
     : []
 
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: offer.currency ?? 'USD',
-  }).format(offer.amount)
+  const formattedPrice = formatCurrency(offer.amount, offer.currency)
 
   return (
     <div className="bg-white rounded-xl nice-shadow overflow-hidden">

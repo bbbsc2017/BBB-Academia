@@ -18,6 +18,7 @@ import { meaningfulMessage } from '@lib/errors/classify'
 import toast from 'react-hot-toast'
 import GuestCheckoutPanel from '@components/Payments/GuestCheckoutPanel'
 import { getRecaptchaToken } from '@services/security/recaptcha'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 
 interface Resource {
   resource_uuid: string
@@ -283,10 +284,7 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
                   {offer.price_type === 'customer_choice' ? 'Paga lo que quieras (mínimo)' : isSubscription ? 'Precio de suscripción' : 'Precio total'}
                 </p>
                 <div className="text-4xl font-black text-[#1c1c1c] tracking-tight">
-                  {new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: offer.currency,
-                  }).format(offer.amount)}
+                  {formatCurrency(offer.amount, offer.currency)}
                 </div>
                 {isSubscription && (
                   <p className="text-sm text-[#00a9bf] font-bold mt-0.5">Cobro recurrente</p>

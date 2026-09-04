@@ -3,6 +3,7 @@ import Link from 'next/link'
 import React, { useEffect, useState, Suspense } from 'react'
 import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { getCourseMetadata } from '@services/courses/courses'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 import { useTrail } from '@/hooks/queries/useTrail'
 import ActivityIndicators from '@components/Pages/Courses/ActivityIndicators'
 import { useRouter } from 'next/navigation'
@@ -560,7 +561,7 @@ const CourseClient = (props: any) => {
                                 {chapter.is_locked && chapter.offer && (
                                   <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
                                     <Lock size={10} />
-                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: chapter.offer.currency }).format(chapter.offer.amount)}
+                                    {formatCurrency(chapter.offer.amount, chapter.offer.currency)}
                                   </span>
                                 )}
                                 {chapter.is_locked && !chapter.offer && (
@@ -604,7 +605,7 @@ const CourseClient = (props: any) => {
                                         {locked && activity.offer && (
                                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-semibold">
                                             <Lock size={10} />
-                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.offer.currency }).format(activity.offer.amount)}
+                                            {formatCurrency(activity.offer.amount, activity.offer.currency)}
                                           </span>
                                         )}
                                         {locked && !activity.offer && (

@@ -40,13 +40,12 @@ import {
   TableHeader,
   TableRow,
 } from '@components/ui/table'
+import { formatCurrency } from '@services/utils/ts/formatCurrency'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-function fmt(amount: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
-}
+const fmt = formatCurrency
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
