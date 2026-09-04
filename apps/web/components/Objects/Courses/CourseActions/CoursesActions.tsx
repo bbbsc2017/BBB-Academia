@@ -452,7 +452,7 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
           </p>
         )}
         {linkedOffers.map((offer: any) => (
-          <OfferCard key={offer.offer_id} offer={offer} orgslug={orgslug} />
+          <OfferCard key={offer.offer_uuid} offer={offer} orgslug={orgslug} />
         ))}
         {renderContributorButton()}
       </div>

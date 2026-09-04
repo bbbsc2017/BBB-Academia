@@ -178,7 +178,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
           const formattedPrice = offer?.amount != null
             ? formatCurrency(offer.amount, offer.currency)
             : null;
-          const storeHref = org?.slug ? getUriWithOrg(org.slug, `/store/offers/${offer.offer_id}`) : '#';
+          const storeHref = org?.slug ? getUriWithOrg(org.slug, `/store/offers/${offer.offer_uuid}`) : '#';
 
           return (
             <div className="space-y-3">
