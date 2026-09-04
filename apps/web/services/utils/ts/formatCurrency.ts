@@ -5,7 +5,7 @@
 // (misconfigured in the dashboard, or a legacy row from before currency was
 // required) would crash the whole page render. Always funnel a price
 // through this instead of calling Intl.NumberFormat directly.
-export function formatCurrency(amount: number, currency: string | null | undefined, locale = 'en-US'): string {
+export function formatCurrency(amount: number, currency?: string | null, locale = 'en-US'): string {
   const safeCurrency = currency && currency.trim() ? currency : 'USD'
   return new Intl.NumberFormat(locale, { style: 'currency', currency: safeCurrency }).format(amount)
 }
