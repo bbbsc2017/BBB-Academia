@@ -50,7 +50,16 @@ export async function POST(request: NextRequest) {
   // reCAPTCHA runs on EVERY deployment (OSS included) whenever
   // RECAPTCHA_SECRET_KEY is set — unlike the SaaS-only add-ons below, it's
   // the primary bot gate for this self-hosted instance.
-  const recaptcha = await verifyRecaptcha(recaptchaToken, 'SIGNUP', clientIpFromHeaders(request.headers))
+  //
+  // No expected action is passed here: this ONE route is the shared gateway
+  // for every signup surface (the standalone /signup page uses action
+  // 'SIGNUP', GuestCheckoutPanel's inline signup uses 'GUEST_CHECKOUT_SIGNUP',
+  // invite signup uses 'SIGNUP' too) — hardcoding one name here caused a
+  // hard 403 for every other caller. Bot detection still fully applies via
+  // the score check inside verifyRecaptcha; action-matching is just an
+  // anti-replay nicety that doesn't fit an endpoint with legitimately
+  // multiple valid action names.
+  const recaptcha = await verifyRecaptcha(recaptchaToken, undefined, clientIpFromHeaders(request.headers))
   if (!recaptcha.ok) {
     return NextResponse.json({ detail: 'Verification failed. Please try again.' }, { status: 403 })
   }
