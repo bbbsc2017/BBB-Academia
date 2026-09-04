@@ -169,6 +169,45 @@ class BoldProvider(PaymentProvider):
             await db_session.commit()
         return url
 
+    async def confirm_payment(
+        self, enrollment: PaymentsEnrollment, db_session: AsyncSession | None = None
+    ) -> bool:
+        """Called when the buyer's browser returns from Bold's checkout page
+        — re-checks the payment link's real status via Bold's own API rather
+        than trusting the `bold-tx-status` query param Bold puts on the
+        redirect (that's client-controllable; anyone could craft that URL for
+        an offer they never paid for). Safety net for when the webhook is
+        misconfigured or hasn't arrived yet by the time the buyer is back.
+        See https://developers.bold.co/pagos-en-linea/api-link-de-pagos —
+        GET /online/link/v1/{payment_link} returns payload.payment_status.
+        """
+        payment_link = (enrollment.provider_specific_data or {}).get("bold_payment_link")
+        if not payment_link:
+            return False
+
+        api_key, _ = await self._resolve_credentials(db_session)
+        if not api_key:
+            return False
+
+        try:
+            response = await self._client.get(
+                f"/online/link/v1/{payment_link}",
+                headers={"Authorization": f"x-api-key {api_key}"},
+            )
+        except httpx.HTTPError as exc:
+            raise PaymentProviderError(f"Bold payment-status lookup failed: {exc}") from exc
+
+        try:
+            data = response.json()
+        except ValueError:
+            return False
+
+        if response.status_code >= 400:
+            return False
+
+        status = str(_get_nested(data, ["payload", "payment_status"]) or "").upper()
+        return status == "APPROVED"
+
     async def verify_and_parse_webhook(
         self, raw_body: bytes, headers: dict[str, str], db_session: AsyncSession | None = None
     ) -> ProviderEvent:
