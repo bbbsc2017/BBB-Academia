@@ -84,6 +84,20 @@ export async function getOfferCheckoutSession(
   return getResponseMetadata(result);
 }
 
+/**
+ * Safety-net re-check for when the buyer's browser returns from the
+ * provider's checkout page — the backend re-verifies with the provider's own
+ * API rather than trusting anything in the return URL. See
+ * api_confirm_payment in routers/payments/payments.py.
+ */
+export async function confirmOfferPayment(orgId: number, offerUuid: string, access_token: string) {
+  const result = await secureFetch(
+    `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/offers/${encodeURIComponent(offerUuid)}/confirm-payment`,
+    RequestBodyWithAuthHeader('POST', null, null, access_token)
+  );
+  return getResponseMetadata(result);
+}
+
 export async function getBillingPortalSession(orgId: number, return_url: string, access_token: string) {
   const result = await secureFetch(
     `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/billing/portal?return_url=${encodeURIComponent(return_url)}`,

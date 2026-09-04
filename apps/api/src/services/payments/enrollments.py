@@ -101,6 +101,38 @@ async def create_pending_enrollment(
     return enrollment
 
 
+async def find_latest_pending_enrollment(
+    user_id: int, offer_id: int, db_session: AsyncSession
+) -> PaymentsEnrollment | None:
+    """The buyer's own most recent pending attempt at this offer — used when
+    they return from the provider's checkout page, to know which enrollment
+    to re-verify (see BoldProvider.confirm_payment). Scoped to user_id so one
+    buyer can never trigger a check against another buyer's enrollment."""
+    return (await db_session.execute(
+        select(PaymentsEnrollment)
+        .where(
+            PaymentsEnrollment.user_id == user_id,
+            PaymentsEnrollment.offer_id == offer_id,
+            PaymentsEnrollment.status == EnrollmentStatusEnum.pending,
+        )
+        .order_by(PaymentsEnrollment.creation_date.desc())
+    )).scalars().first()
+
+
+async def has_active_enrollment(user_id: int, offer_id: int, db_session: AsyncSession) -> bool:
+    """Whether this buyer already has an ACTIVE enrollment for this offer —
+    used to answer "am I already in?" idempotently (e.g. the webhook beat
+    the buyer back from checkout, or they refresh the confirm-payment call)."""
+    enrollment = (await db_session.execute(
+        select(PaymentsEnrollment).where(
+            PaymentsEnrollment.user_id == user_id,
+            PaymentsEnrollment.offer_id == offer_id,
+            PaymentsEnrollment.status == EnrollmentStatusEnum.active,
+        )
+    )).scalars().first()
+    return enrollment is not None
+
+
 async def activate_enrollment(
     enrollment_id: int,
     db_session: AsyncSession,

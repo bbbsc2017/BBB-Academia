@@ -232,6 +232,51 @@ async def api_create_checkout(
     return {"checkout_url": checkout_url}
 
 
+@router.post("/{org_id}/offers/{offer_uuid}/confirm-payment", tags=["payments"])
+async def api_confirm_payment(
+    *, request: Request, org_id: int, offer_uuid: str,
+    db_session: AsyncSession = Depends(get_db_session),
+    current_user: PublicUser = Depends(get_current_user),
+):
+    """Called by the frontend when the buyer's browser returns from the
+    provider's checkout page — a safety net for when the provider's webhook
+    is misconfigured, delayed, or never arrives (this is exactly what
+    happened in production: Bold's webhook was never registered, so every
+    enrollment sat in `pending` forever despite real, successful payments).
+
+    Deliberately does NOT trust any client-supplied "payment succeeded"
+    signal (e.g. Bold's own `bold-tx-status` redirect query param) — that's
+    trivially forgeable by a visitor crafting the URL themselves. Instead it
+    looks up the buyer's own latest pending enrollment for this offer and
+    asks the PROVIDER's API to confirm the real status server-to-server.
+    Idempotent: if the webhook already activated it (or a previous call to
+    this endpoint did), this is a no-op that just reports the current state.
+    """
+    from src.services.payments.providers.base import PaymentProviderError
+
+    offer = await offers_service._get_offer_or_404(offer_uuid, org_id, db_session)
+
+    enrollment = await enrollments_service.find_latest_pending_enrollment(current_user.id, offer.id, db_session)
+    if not enrollment:
+        # No pending attempt — either already active (nothing to do) or the
+        # buyer never actually started a checkout for this offer.
+        already_active = await enrollments_service.has_active_enrollment(current_user.id, offer.id, db_session)
+        return {"status": "active" if already_active else "no_pending_payment"}
+
+    ensure_providers_registered()
+    try:
+        provider = get_provider(enrollment.provider)
+    except PaymentProviderError as e:
+        raise HTTPException(status_code=501, detail=str(e))
+
+    confirmed = await provider.confirm_payment(enrollment, db_session)
+    if not confirmed:
+        return {"status": "pending"}
+
+    await enrollments_service.activate_enrollment(enrollment.id, db_session)
+    return {"status": "active"}
+
+
 # --- Groups -----------------------------------------------------------------
 
 @router.get("/{org_id}/groups", response_model=list[PaymentsGroupRead], tags=["payments"])

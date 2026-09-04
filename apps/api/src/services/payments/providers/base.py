@@ -85,6 +85,24 @@ class PaymentProvider(ABC):
         db_session: see create_checkout — same dashboard-credentials lookup."""
         ...
 
+    async def confirm_payment(
+        self, enrollment: PaymentsEnrollment, db_session: AsyncSession | None = None
+    ) -> bool:
+        """Re-verify, server-side, whether a still-pending enrollment's
+        payment actually succeeded — called when the buyer's browser returns
+        from the provider's checkout page, as a safety net for when the
+        provider's webhook is misconfigured, delayed, or never arrives.
+
+        MUST call back to the provider's own API using data stored on the
+        enrollment (never trust a client-supplied query param claiming
+        success — see PaymentWall/checkout return handling). Returns True
+        only when the provider confirms the payment is genuinely approved;
+        the caller is responsible for calling activate_enrollment() itself.
+
+        Default: not supported (caller falls back to webhook-only). Override
+        in a provider whose API supports looking up a payment by reference."""
+        return False
+
 
 _PROVIDERS: dict[PaymentProviderEnum, PaymentProvider] = {}
 

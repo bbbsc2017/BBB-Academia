@@ -1,11 +1,11 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import GeneralWrapperStyled from '@components/Objects/StyledElements/Wrappers/GeneralWrapper'
 import { getUriWithOrg } from '@services/config/config'
 import { getCourseThumbnailMediaDirectory } from '@services/media/media'
-import { getOfferCheckoutSession } from '@services/payments/offers'
+import { getOfferCheckoutSession, confirmOfferPayment } from '@services/payments/offers'
 import { fromApiProviderValue, getPaymentProvider } from '@services/payments/providers'
 import {
   ArrowLeft, RefreshCcw, SquareCheck, Sparkles, BookOpen,
@@ -105,7 +105,14 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
   const session = useLHSession() as any
   const token = session?.data?.tokens?.access_token ?? access_token
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
+  // Set only by a real, server-confirmed check (confirmOfferPayment) — NEVER
+  // derived from the `bold-tx-status` query param itself, which is fully
+  // client-controllable (anyone could paste `?bold-tx-status=approved` onto
+  // this URL for an offer they never paid for). 'checking'/'pending' replace
+  // the checkout button while we ask the provider's own API to confirm.
+  const [paymentCheck, setPaymentCheck] = useState<'idle' | 'checking' | 'active' | 'pending'>('idle')
   const { track } = useLHAnalytics('learner')
   // Set by GuestCheckoutPanel right after signup/login succeeds. `token` is
   // still the stale (null) value captured in that render, so checkout can't
@@ -179,6 +186,50 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
+
+  // Landed back here from the payment provider's checkout page (Bold appends
+  // its own bold-order-id/bold-tx-status to whatever URL we sent as
+  // callback_url). That param is only a hint to check — the actual
+  // activation decision always comes from confirmOfferPayment re-verifying
+  // with the provider server-to-server (see its own comment for why).
+  useEffect(() => {
+    const returnedFromProvider = searchParams?.has('bold-order-id') || searchParams?.has('bold-tx-status')
+    if (!returnedFromProvider || !token) return
+
+    let cancelled = false
+    const MAX_ATTEMPTS = 5
+    const RETRY_DELAY_MS = 2500
+
+    const check = async (attempt: number) => {
+      if (cancelled) return
+      setPaymentCheck('checking')
+      try {
+        const result = await confirmOfferPayment(orgId, offerUuid, token)
+        const status = result?.data?.status
+        if (cancelled) return
+        if (status === 'active') {
+          setPaymentCheck('active')
+          track(AnalyticsEvent.CheckoutSessionCreated, { offer_type: offer?.offer_type, amount: offer?.amount, via: 'return_confirmation' })
+          return
+        }
+        if (status === 'pending' && attempt < MAX_ATTEMPTS) {
+          setPaymentCheck('pending')
+          setTimeout(() => check(attempt + 1), RETRY_DELAY_MS)
+          return
+        }
+        // 'no_pending_payment', or exhausted retries while still pending —
+        // stop polling forever; the webhook (once fixed) or a manual retry
+        // can still resolve this, we just don't spin indefinitely.
+        setPaymentCheck('pending')
+      } catch {
+        if (!cancelled) setPaymentCheck('pending')
+      }
+    }
+
+    check(1)
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, searchParams])
 
   if (!offer) {
     return (
@@ -294,8 +345,30 @@ export default function OfferDetailClient({ orgslug, orgId, offerUuid, offer, ac
                 )}
               </div>
 
-              {/* Checkout */}
-              {token ? (
+              {/* Checkout / payment-return states */}
+              {paymentCheck === 'active' ? (
+                <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
+                  <CheckCircle2 size={28} className="text-green-600 mx-auto mb-2" />
+                  <p className="font-black text-green-800">¡Pago confirmado!</p>
+                  <p className="text-sm text-green-700 mt-1 mb-3">Ya tienes acceso. Puedes entrar ahora mismo.</p>
+                  <Link
+                    href={resources[0] ? (getResourceUrl(orgslug, resources[0]) ?? getUriWithOrg(orgslug, '/home')) : getUriWithOrg(orgslug, '/home')}
+                    className="inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl font-black text-sm bg-green-600 hover:bg-green-700 text-white transition-all"
+                  >
+                    Ir al curso <ArrowLeft size={15} className="rotate-180" />
+                  </Link>
+                </div>
+              ) : paymentCheck === 'checking' || paymentCheck === 'pending' ? (
+                <div className="rounded-xl border border-[#00a9bf]/25 bg-[#00a9bf]/5 p-4 text-center">
+                  <Loader2 size={22} className="text-[#00a9bf] mx-auto mb-2 animate-spin" />
+                  <p className="font-bold text-[#1c1c1c] text-sm">Confirmando tu pago…</p>
+                  <p className="text-xs text-[#1c1c1c]/60 mt-1">
+                    {paymentCheck === 'pending'
+                      ? 'Tu pago está siendo procesado. Esto puede tardar un momento — no cierres ni recargues esta página.'
+                      : 'Verificando directamente con la pasarela de pago.'}
+                  </p>
+                </div>
+              ) : token ? (
                 <button
                   onClick={handleCheckout}
                   disabled={loading}
