@@ -64,10 +64,15 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
     }
   ) ?? false;
 
-  // Public endpoint — no auth needed, works for unauthenticated visitors too
+  // Public endpoint — works without auth too, but MUST get the access token
+  // when there is one: has_access (whether THIS user already paid) can only
+  // be computed server-side from an authenticated request. Token is part of
+  // the query key so logging in/out (or a token refresh) refetches instead
+  // of serving a cached anonymous result.
+  const accessToken = session?.data?.tokens?.access_token
   const { data: offersResult, isLoading } = useQuery({
-    queryKey: ['offers', 'by-resource', org?.id, resourceUuid],
-    queryFn: () => getOffersByResource(org.id, resourceUuid!),
+    queryKey: ['offers', 'by-resource', org?.id, resourceUuid, accessToken],
+    queryFn: () => getOffersByResource(org.id, resourceUuid!, accessToken),
     enabled: !!org && !!resourceUuid,
     staleTime: 60_000,
   });
@@ -132,7 +137,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
 
   if (isLoading) {
     return (
-      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pt-3 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/70 backdrop-blur-md shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pt-3 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
         <div className="animate-pulse h-16 bg-gray-100 rounded-lg" />
       </div>
     )
@@ -142,7 +147,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
   if (session.data?.user && !isUserPartOfTheOrg) {
     return (
       <div
-        className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
+        className="fixed bottom-0 inset-x-0 z-40 bg-white/70 backdrop-blur-md shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
       >
         <div className="flex flex-col space-y-3">
@@ -169,7 +174,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
 
   return (
     <div
-      className="fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
+      className="fixed bottom-0 inset-x-0 z-40 bg-white/70 backdrop-blur-md shadow-[0_-4px_16px_rgba(0,0,0,0.08)] outline outline-1 outline-neutral-200/40 rounded-t-xl overflow-hidden p-4"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
     >
       <div className="flex flex-col space-y-4">
@@ -194,6 +199,9 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                       <span className="text-green-800 text-sm font-semibold">{t('courses.you_own_this_course')}</span>
                     </div>
+                    <p className="text-green-700 text-xs mt-1">
+                      {t('courses.you_own_this_course_description')}
+                    </p>
                   </div>
                   <button
                     onClick={handleCourseAction}
