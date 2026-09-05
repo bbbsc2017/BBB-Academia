@@ -8,15 +8,24 @@ permissions:
 # drives the UI with Playwright across every feature module under
 # apps/e2e/features/.
 #
-# Because it validates the *published image*, it is intentionally NOT a
-# per-PR gate (a PR's own code isn't in that image yet — chicken-and-egg).
-# It runs on demand and nightly, so it catches regressions in the shipped
-# self-host. To gate a PR on E2E, run it against an image built from the
-# branch (future enhancement).
+# NIGHTLY SCHEDULE DISABLED (2026-09-05): "the published app image" here
+# means ghcr.io/learnhouse/app from the upstream learnhouse/learnhouse
+# project (see apps/cli/src/services/version-check.ts's resolveAppImage) —
+# NOT an image built from this fork. This fork (bbbsc2017/BBB-Academia)
+# never publishes its own image anywhere the CLI can pull, so this suite has
+# never actually tested bbbacademia.com's real, customized behavior (e.g.
+# the optional-due-date checkbox, Bold payments) — it tests vanilla upstream
+# LearnHouse against THIS fork's fork-specific test specs, which fail there
+# by design (the feature they test doesn't exist upstream). The nightly
+# failures were consistently false alarms, not real regressions.
+#
+# Re-enabling the schedule only becomes meaningful once this fork publishes
+# its own image (e.g. push the Dockerfile build to ghcr.io under this repo)
+# and the CLI/E2E setup is pointed at that instead — tracked as a future
+# infra task, not done here. workflow_dispatch is kept so it can still be
+# run manually against upstream if ever useful for comparison.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *' # nightly at 03:00 UTC
 
 jobs:
   e2e:
