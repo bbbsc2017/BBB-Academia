@@ -16,6 +16,7 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -38,6 +39,9 @@ from src.services.webhooks.crypto import decrypt_secret
 
 if TYPE_CHECKING:
     from sqlmodel.ext.asyncio.session import AsyncSession
+
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_headers(headers: dict[str, str]) -> dict[str, str]:
@@ -183,10 +187,12 @@ class BoldProvider(PaymentProvider):
         """
         payment_link = (enrollment.provider_specific_data or {}).get("bold_payment_link")
         if not payment_link:
+            logger.warning("Bold confirm_payment: enrollment %s has no bold_payment_link stored", enrollment.id)
             return False
 
         api_key, _ = await self._resolve_credentials(db_session)
         if not api_key:
+            logger.warning("Bold confirm_payment: no api_key configured, cannot check enrollment %s", enrollment.id)
             return False
 
         try:
@@ -200,13 +206,39 @@ class BoldProvider(PaymentProvider):
         try:
             data = response.json()
         except ValueError:
+            logger.warning(
+                "Bold confirm_payment: non-JSON response for %s, status=%s, body=%s",
+                payment_link, response.status_code, response.text[:500],
+            )
             return False
 
         if response.status_code >= 400:
+            logger.warning(
+                "Bold confirm_payment: HTTP %s for %s: %s",
+                response.status_code, payment_link, data,
+            )
             return False
 
-        status = str(_get_nested(data, ["payload", "payment_status"]) or "").upper()
-        return status == "APPROVED"
+        # Exact field name/nesting per Bold's docs is unconfirmed against a
+        # live response (couldn't test with real credentials in dev) — check
+        # every plausible path/casing rather than a single guess, and always
+        # log the full raw body so a miss here is immediately diagnosable
+        # instead of silently stuck "pending" forever.
+        candidates = [
+            _get_nested(data, ["payload", "payment_status"]),
+            _get_nested(data, ["payload", "status"]),
+            _get_nested(data, ["data", "payment_status"]),
+            _get_nested(data, ["data", "status"]),
+            _get_nested(data, ["status"]),
+            _get_nested(data, ["payment_status"]),
+        ]
+        status = next((str(c).upper() for c in candidates if c), "")
+        approved = status in ("APPROVED", "SUCCESSFUL", "SUCCESS", "PAID", "COMPLETED")
+        logger.info(
+            "Bold confirm_payment: link=%s resolved_status=%r approved=%s raw=%s",
+            payment_link, status, approved, data,
+        )
+        return approved
 
     async def verify_and_parse_webhook(
         self, raw_body: bytes, headers: dict[str, str], db_session: AsyncSession | None = None
