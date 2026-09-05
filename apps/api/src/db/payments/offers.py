@@ -97,6 +97,12 @@ class PaymentsOfferRead(PaymentsOfferBase):
     provider_product_id: str | None = None
     creation_date: str
     update_date: str
+    # Only populated by get_offers_by_resource (the "what can unlock this
+    # course/podcast/etc." listing) — True when the CURRENT caller already
+    # has an active enrollment for this offer. Defaults False so every other
+    # caller of this model (admin offer list/CRUD, anonymous listings) is
+    # unaffected; those never set it and it's meaningless there anyway.
+    has_access: bool = False
 
 
 # Resources attached directly to an offer (independent of a PaymentsGroup).

@@ -421,8 +421,12 @@ async def api_get_public_offers_listing(
 async def api_get_offers_by_resource(
     *, org_id: int, resource_uuid: str,
     db_session: AsyncSession = Depends(get_db_session),
+    current_user: PublicUser = Depends(get_current_user),
 ):
-    return await offers_service.get_offers_by_resource(org_id, resource_uuid, db_session)
+    # get_current_user resolves to AnonymousUser (not a 401) for an
+    # unauthenticated caller — this endpoint stays public either way; a real
+    # user just also gets each offer's has_access filled in.
+    return await offers_service.get_offers_by_resource(org_id, resource_uuid, db_session, current_user)
 
 
 @public_router.post("/webhooks/openpay", tags=["payments"])

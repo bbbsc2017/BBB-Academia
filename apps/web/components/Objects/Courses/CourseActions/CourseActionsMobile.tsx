@@ -179,10 +179,15 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
             ? formatCurrency(offer.amount, offer.currency)
             : null;
           const storeHref = org?.slug ? getUriWithOrg(org.slug, `/store/offers/${offer.offer_uuid}`) : '#';
+          // has_access covers "paid but hasn't clicked Start yet" — isStarted
+          // alone (a trail-run check) can't tell that apart from "never
+          // paid", which showed the buy-now prompt again right after a
+          // successful purchase.
+          const hasAccess = isStarted || linkedOffers.some((o: any) => o.has_access)
 
           return (
             <div className="space-y-3">
-              {isStarted ? (
+              {hasAccess ? (
                 <>
                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center gap-2">
@@ -193,14 +198,23 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
                   <button
                     onClick={handleCourseAction}
                     disabled={isActionLoading}
-                    className="w-full py-2 px-4 rounded-lg bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:bg-red-400"
+                    className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${
+                      isStarted
+                        ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
+                        : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
+                    }`}
                   >
                     {isActionLoading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
+                    ) : isStarted ? (
                       <>
                         <LogOut className="w-4 h-4" />
                         {t('courses.leave_course')}
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="w-4 h-4" />
+                        {t('courses.start_course')}
                       </>
                     )}
                   </button>

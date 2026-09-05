@@ -412,8 +412,14 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
   }
 
   if (linkedOffers.length > 0) {
-    // User already enrolled / started — show "you own this" notice + leave button
-    if (isStarted) {
+    // has_access covers "paid but hasn't clicked Start yet" — isStarted
+    // alone (a trail-run check) can't tell that apart from "never paid",
+    // which showed the buy-now offers again right after a successful
+    // purchase instead of letting the buyer in.
+    const hasAccess = isStarted || linkedOffers.some((o: any) => o.has_access)
+
+    // User already has access — show "you own this" notice + start/leave button
+    if (hasAccess) {
       return (
         <div className="bg-white nice-shadow rounded-lg overflow-hidden p-4">
           <div className="space-y-4">
@@ -429,12 +435,16 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
             <button
               onClick={handleCourseAction}
               disabled={isActionLoading}
-              aria-label={t('courses.leave_course')}
-              className="w-full py-3 rounded-lg nice-shadow font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400"
+              aria-label={isStarted ? t('courses.leave_course') : t('courses.start_course')}
+              className={`w-full py-3 rounded-lg nice-shadow font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+                isStarted
+                  ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
+                  : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
+              }`}
             >
               {isActionLoading
                 ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : renderActionButton('leave')
+                : renderActionButton(isStarted ? 'leave' : 'start')
               }
             </button>
             {renderContributorButton()}
@@ -443,7 +453,7 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
       )
     }
 
-    // Not enrolled — show all available offers
+    // No access yet — show all available offers
     return (
       <div className="space-y-3">
         {linkedOffers.length > 1 && (

@@ -303,11 +303,25 @@ async def get_public_offers_listing(org_id: int, db_session: AsyncSession) -> li
     return [await _to_offer_read(o, db_session) for o in offers]
 
 
-async def get_offers_by_resource(org_id: int, resource_uuid: str, db_session: AsyncSession) -> list[PaymentsOfferRead]:
+async def get_offers_by_resource(
+    org_id: int,
+    resource_uuid: str,
+    db_session: AsyncSession,
+    current_user: PublicUser | AnonymousUser | APITokenUser | None = None,
+) -> list[PaymentsOfferRead]:
     """Every non-archived offer that grants access to a given resource,
     either directly (PaymentsOfferResource) or via its bundled group
     (PaymentsGroupResource) — used to show purchase options on a locked
-    course/podcast/etc."""
+    course/podcast/etc.
+
+    current_user is optional (this is a public, unauthenticated-callable
+    endpoint) — when a real user is present, each returned offer's
+    has_access reflects whether THEY already have an active enrollment for
+    it, so a caller can tell "already paid, just hasn't started yet" apart
+    from "never paid" instead of conflating the two (see the mobile/desktop
+    course-actions bug this fixed: both used "has a trail run" as a stand-in
+    for "has access", so a buyer who paid but hadn't clicked Start yet was
+    shown the buy-now prompt again)."""
     from src.db.payments.groups import PaymentsGroupResource
 
     direct_stmt = (
@@ -331,11 +345,17 @@ async def get_offers_by_resource(org_id: int, resource_uuid: str, db_session: As
     direct = (await db_session.execute(direct_stmt)).scalars().all()
     via_group = (await db_session.execute(via_group_stmt)).scalars().all()
 
+    user_id = current_user.id if isinstance(current_user, (PublicUser, APITokenUser)) else None
+
     seen_ids: set[int] = set()
     result: list[PaymentsOfferRead] = []
     for offer in [*direct, *via_group]:
         if offer.id in seen_ids:
             continue
         seen_ids.add(offer.id)
-        result.append(await _to_offer_read(offer, db_session))
+        offer_read = await _to_offer_read(offer, db_session)
+        if user_id is not None and offer.id is not None:
+            from src.services.payments.enrollments import has_active_enrollment
+            offer_read.has_access = await has_active_enrollment(user_id, offer.id, db_session)
+        result.append(offer_read)
     return result
