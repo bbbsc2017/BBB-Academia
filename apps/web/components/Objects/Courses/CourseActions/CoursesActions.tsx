@@ -77,10 +77,15 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
     }
   ) ?? false;
 
-  // Public endpoint — no auth needed, works for unauthenticated visitors too
+  // Public endpoint — works without auth too, but MUST get the access token
+  // when there is one: has_access (whether THIS user already paid) can only
+  // be computed server-side from an authenticated request. Token is part of
+  // the query key so logging in/out (or a token refresh) refetches instead
+  // of serving a cached anonymous result.
+  const accessToken = session?.data?.tokens?.access_token
   const { data: offersResult, isLoading } = useQuery({
-    queryKey: ['offers', 'by-resource', org?.id, resourceUuid],
-    queryFn: () => getOffersByResource(org.id, resourceUuid!),
+    queryKey: ['offers', 'by-resource', org?.id, resourceUuid, accessToken],
+    queryFn: () => getOffersByResource(org.id, resourceUuid!, accessToken),
     enabled: !!org && !!resourceUuid,
     staleTime: 60_000,
   });

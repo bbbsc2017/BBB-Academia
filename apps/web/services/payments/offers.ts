@@ -58,10 +58,18 @@ export async function getPublicOffers(orgId: number) {
   return getResponseMetadata(result);
 }
 
-export async function getOffersByResource(orgId: number, resourceUuid: string) {
+/**
+ * access_token is optional — this stays callable for anonymous visitors
+ * (they just get has_access: false on every offer, which is correct) — but
+ * MUST be passed by any authenticated caller, or the backend has no way to
+ * tell who's asking and always resolves has_access to false even for a
+ * buyer who already paid. (This was the actual bug: both call sites were
+ * omitting it entirely.)
+ */
+export async function getOffersByResource(orgId: number, resourceUuid: string, access_token?: string) {
   const result = await secureFetch(
     `${getAPIUrl()}payments/${encodeURIComponent(String(orgId))}/offers/by-resource?resource_uuid=${encodeURIComponent(resourceUuid)}`,
-    RequestBodyWithAuthHeader('GET', null, null, '')
+    RequestBodyWithAuthHeader('GET', null, null, access_token || '')
   );
   return getResponseMetadata(result);
 }
