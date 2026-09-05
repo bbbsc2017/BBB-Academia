@@ -16,21 +16,26 @@ logger = logging.getLogger(__name__)
 LOGO_URL = "https://bbbacademia.com/wp-content/uploads/2025/03/L_ACADEMIA_N.webp"
 LOGO_HTML = f'<img src="{LOGO_URL}" alt="BBB Academia" height="40" style="height: 40px; width: auto;" />'
 
-# Shared email styles matching the platform's design system
+# Shared email styles matching the platform's design system — brand teal
+# (#00a9bf) + near-black (#1c1c1c) + tinted-white (#fbfeff), same palette
+# used across the site's course/checkout pages (see e.g. GuestCheckoutPanel,
+# offer-detail). Kept plain-CSS/table-safe (no gradients, no box-shadow —
+# many email clients strip or mishandle those) since this renders inside
+# third-party mail clients, not a browser.
 STYLES = {
-    "body": "margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;",
+    "body": "margin: 0; padding: 0; background-color: #fbfeff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;",
     "wrapper": "padding: 48px 24px;",
-    "container": "max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e5e5;",
-    "header": "padding: 48px 48px 0 48px; text-align: center;",
-    "content": "padding: 36px 48px 48px 48px; text-align: center;",
-    "h1": "margin: 0 0 12px 0; font-size: 22px; font-weight: 900; color: #000000; letter-spacing: -0.02em; line-height: 1.3;",
-    "p": "margin: 0 0 20px 0; font-size: 14px; color: rgba(0,0,0,0.45); font-weight: 500; line-height: 1.7;",
-    "button": "display: inline-block; padding: 14px 32px; background-color: #000000; color: #ffffff; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 700; line-height: 1;",
-    "link_text": "margin: 24px 0 0 0; font-size: 11px; color: rgba(0,0,0,0.2); word-break: break-all; font-weight: 500; line-height: 1.6;",
-    "divider": "margin: 28px 0; border: none; border-top: 1px solid #f0f0f0;",
+    "container": "max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,169,191,0.18); border-top: 3px solid #00a9bf;",
+    "header": "padding: 40px 48px 0 48px; text-align: center;",
+    "content": "padding: 32px 48px 48px 48px; text-align: center;",
+    "h1": "margin: 0 0 12px 0; font-size: 22px; font-weight: 900; color: #1c1c1c; letter-spacing: -0.02em; line-height: 1.3;",
+    "p": "margin: 0 0 20px 0; font-size: 14px; color: rgba(28,28,28,0.55); font-weight: 500; line-height: 1.7;",
+    "button": "display: inline-block; padding: 14px 32px; background-color: #00a9bf; color: #ffffff; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 700; line-height: 1;",
+    "link_text": "margin: 24px 0 0 0; font-size: 11px; color: rgba(28,28,28,0.35); word-break: break-all; font-weight: 500; line-height: 1.6;",
+    "divider": "margin: 28px 0; border: none; border-top: 1px solid rgba(0,169,191,0.15);",
     "footer": "padding: 0 48px 40px 48px; text-align: center;",
-    "footer_text": "margin: 0; font-size: 12px; color: rgba(0,0,0,0.2); font-weight: 500; line-height: 1.6;",
-    "code": "display: inline-block; padding: 14px 28px; background-color: #fafafa; border: 1px solid #e5e5e5; border-radius: 10px; font-size: 28px; font-weight: 900; letter-spacing: 0.12em; color: #000000; font-family: monospace;",
+    "footer_text": "margin: 0; font-size: 12px; color: rgba(28,28,28,0.35); font-weight: 500; line-height: 1.6;",
+    "code": "display: inline-block; padding: 14px 28px; background-color: #e6f8fa; border: 1px solid rgba(0,169,191,0.3); border-radius: 10px; font-size: 28px; font-weight: 900; letter-spacing: 0.12em; color: #007b8d; font-family: monospace;",
 }
 
 
@@ -75,7 +80,7 @@ def send_account_creation_email(
     cta = t(lang, "account_creation.cta")
     academy_link = (
         '<a href="https://bbbacademia.com" '
-        'style="color: rgba(0,0,0,0.35); text-decoration: underline;">'
+        'style="color: #00a9bf; text-decoration: underline;">'
         f'{t(lang, "academy_link_text")}</a>'
     )
 
