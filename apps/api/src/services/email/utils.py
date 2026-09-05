@@ -14,6 +14,26 @@ from config.config import get_learnhouse_config
 logger = logging.getLogger(__name__)
 
 
+def _with_base_path(url: str) -> str:
+    """Append the app's mount-point prefix (e.g. "/courses") to a bare
+    scheme://host URL, when this deployment sits behind a reverse proxy that
+    only routes that sub-path to this app (bbbacademia.com/courses/... —
+    everything else on the domain goes to an unrelated site). Read from
+    NEXT_PUBLIC_BASE_PATH, which is already set as a real runtime env var in
+    this container (not just baked into the Next.js build) for exactly this
+    kind of cross-cutting use.
+
+    Without this, every email link built from get_base_url_from_request /
+    get_trusted_base_url_from_request (password reset, email verification,
+    org invites, admin links) pointed at e.g. https://bbbacademia.com/reset —
+    a path the reverse proxy never routes to this app at all, so it 404'd or
+    hit a completely unrelated site at the domain root."""
+    base_path = os.environ.get("NEXT_PUBLIC_BASE_PATH", "").strip()
+    if not base_path or base_path == "/":
+        return url
+    return url.rstrip("/") + "/" + base_path.strip("/")
+
+
 def _is_allowed_base_url(url: str) -> bool:
     """Validate that a URL is an allowed origin for email links."""
     config = get_learnhouse_config()
@@ -175,7 +195,7 @@ def get_trusted_base_url_from_request(request: Request) -> str | None:
     if origin:
         candidate = origin.rstrip("/")
         if _is_allowed_base_url(candidate):
-            return candidate
+            return _with_base_path(candidate)
         logger.warning("Rejected untrusted Origin header for email URL: %s", candidate)
 
     # Try Referer header as fallback
@@ -184,7 +204,7 @@ def get_trusted_base_url_from_request(request: Request) -> str | None:
         parsed = urlparse(referer)
         candidate = f"{parsed.scheme}://{parsed.netloc}"
         if _is_allowed_base_url(candidate):
-            return candidate
+            return _with_base_path(candidate)
         logger.warning("Rejected untrusted Referer header for email URL: %s", candidate)
 
     return None
@@ -213,10 +233,10 @@ def get_base_url_from_request(request: Request) -> str:
     frontend_domain = config.hosting_config.frontend_domain
     if frontend_domain:
         scheme = "https" if config.hosting_config.ssl else "http"
-        return f"{scheme}://{frontend_domain}"
+        return _with_base_path(f"{scheme}://{frontend_domain}")
 
     # Last resort: construct from request URL
-    return f"{request.url.scheme}://{request.url.netloc}"
+    return _with_base_path(f"{request.url.scheme}://{request.url.netloc}")
 
 
 def send_email(to: EmailStr, subject: str, body: str):
