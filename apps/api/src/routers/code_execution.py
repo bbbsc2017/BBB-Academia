@@ -195,14 +195,17 @@ def _read_storage_file(file_path: str) -> bytes:
         with open(resolved, "rb") as f:
             return f.read()
     elif content_delivery == "s3api":
-        import boto3
         from botocore.exceptions import ClientError
 
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=config.hosting_config.content_delivery.s3api.endpoint_url,
+        from src.services.courses.transfer.storage_utils import (
+            get_s3_bucket_name,
+            get_storage_client,
         )
-        bucket = config.hosting_config.content_delivery.s3api.bucket_name or "learnhouse-media"
+
+        s3 = get_storage_client()
+        if not s3:
+            raise HTTPException(status_code=500, detail="Storage not configured")
+        bucket = get_s3_bucket_name()
         try:
             response = s3.get_object(Bucket=bucket, Key=safe_path)
             return response["Body"].read()
