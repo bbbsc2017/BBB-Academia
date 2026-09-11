@@ -382,10 +382,10 @@ function ActivityIndicators(props: Props) {
 
   // Computed values for mobile compact view
   const completedCount = useMemo(() => {
-    return allActivities.filter((activity: any) => isActivityDone(activity)).length;
-  }, [allActivities, isActivityDone]);
+    return course.chapters.filter((chapter: any) => chapter.activities?.length > 0 && chapter.activities.every((activity: any) => isActivityDone(activity))).length;
+  }, [course.chapters, isActivityDone]);
 
-  const totalCount = allActivities.length;
+  const totalCount = course.chapters.length;
   const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   // Find which chapter the current activity belongs to

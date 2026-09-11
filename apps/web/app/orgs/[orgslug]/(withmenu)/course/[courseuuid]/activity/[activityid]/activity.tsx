@@ -949,19 +949,6 @@ function ActivityClient(props: ActivityClientProps) {
                           </div>
                         </div>
 
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
-                              if (navigator.share) navigator.share({ title: course.name, text: 'Invita a tus amigos a vivir la experiencia', url: shareUrl })
-                              else if (shareUrl) navigator.clipboard?.writeText(shareUrl)
-                            }}
-                            className="rounded-full bg-[#00a9bf] px-4 py-2 text-xs font-bold text-white shadow-md transition hover:-translate-y-0.5"
-                          >
-                            Invita a tus amigos a vivir la experiencia
-                          </button>
-                        </div>
                       </div>
 
                       {activityLoading || !activity ? (
@@ -1049,7 +1036,6 @@ function ActivityClient(props: ActivityClientProps) {
                         />
                       )}
                       
-                      <div style={{ height: '100px' }}></div>
                     </div>
                 )}
               </GeneralWrapperStyled>

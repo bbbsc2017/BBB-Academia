@@ -175,13 +175,13 @@ export default function FixedActivitySecondaryBar(props: FixedActivitySecondaryB
 
   return (
     <div
-      className={`fixed top-[60px] left-0 right-0 bg-white/90 backdrop-blur-xl transition-all duration-300 animate-in fade-in slide-in-from-top ${
+      className={`fixed top-[68px] left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-(--breakpoint-2xl) -translate-x-1/2 rounded-2xl bg-white/90 backdrop-blur-xl transition-all duration-300 animate-in fade-in slide-in-from-top ${
         isScrolled ? 'nice-shadow' : ''
       }`}
       style={{ zIndex: 'var(--z-drag-overlay)' }}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 py-2">
+        <div className="flex h-12 items-center justify-between px-2 py-1">
           <CourseInfo course={props.course} org={org} />
           
           <div className="flex items-center flex-shrink-0">
@@ -197,4 +197,4 @@ export default function FixedActivitySecondaryBar(props: FixedActivitySecondaryB
       </div>
     </div>
   );
-} 
+}

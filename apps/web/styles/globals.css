@@ -5,6 +5,15 @@
 
 @import 'tailwindcss';
 
+/* Keep the graph-paper texture white and moving across every LearnHouse page. */
+html,
+body {
+  background-color: #ffffff;
+  background-image: linear-gradient(rgba(0, 169, 191, 0.11) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 169, 191, 0.11) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: site-grid-pan 12s linear infinite;
+}
+
 /* Activity player visual system: the course grid remains visible through the UI. */
 .activity-glass {
   background: rgba(255, 255, 255, 0.52);
@@ -16,12 +25,6 @@
 
 .activity-page-background {
   background: transparent;
-}
-
-body:has(.activity-page-background) {
-  background-color: #f1fbfc;
-  background-image: linear-gradient(rgba(0, 169, 191, 0.11) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 169, 191, 0.11) 1px, transparent 1px);
-  background-size: 32px 32px;
 }
 
 .activity-course-sidebar-scroll {

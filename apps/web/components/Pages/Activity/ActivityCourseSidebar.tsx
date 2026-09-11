@@ -20,8 +20,8 @@ export default function ActivityCourseSidebar({ course, currentActivityId, orgsl
   const cleanCourseId = course.course_uuid?.replace('course_', '')
   const run = trailData?.runs?.find((item: any) => item.course?.course_uuid?.replace('course_', '') === cleanCourseId)
   const activities = course.chapters.flatMap((chapter: any) => chapter.activities || [])
-  const completed = activities.filter((activity: any) => run?.steps?.some((step: any) => step.activity_id === activity.id && step.complete === true)).length
-  const progress = activities.length ? Math.round((completed / activities.length) * 100) : 0
+  const completedChapters = course.chapters.filter((chapter: any) => chapter.activities?.length > 0 && chapter.activities.every((activity: any) => run?.steps?.some((step: any) => step.activity_id === activity.id && step.complete === true))).length
+  const progress = course.chapters.length ? Math.round((completedChapters / course.chapters.length) * 100) : 0
 
   const iconFor = (type: string) => {
     if (type === 'TYPE_VIDEO') return <PlayCircle size={14} />
@@ -37,7 +37,7 @@ export default function ActivityCourseSidebar({ course, currentActivityId, orgsl
           <ListTree size={17} className="text-[#00a9bf]" />
           <h2 className="text-sm font-bold text-slate-800">{t('courses.course_content')}</h2>
         </div>
-        <span className="text-xs font-semibold text-[#00a9bf]">{completed}/{activities.length}</span>
+        <span className="text-xs font-semibold text-[#00a9bf]">{completedChapters}/{course.chapters.length}</span>
       </div>
       <div className="mb-3 h-2 overflow-hidden rounded-full bg-slate-200/70">
         <div className="h-full rounded-full bg-[#00a9bf] transition-all duration-500" style={{ width: `${progress}%` }} />
