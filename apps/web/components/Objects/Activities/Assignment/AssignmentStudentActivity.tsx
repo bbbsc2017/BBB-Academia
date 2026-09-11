@@ -12,7 +12,7 @@ import TaskNumberAnswerObject from 'app/orgs/[orgslug]/dash/assignments/[assignm
 import toast from 'react-hot-toast';
 import { Backpack, Calendar, CheckCircle2, Download, EllipsisVertical, Info, MessageSquare, RotateCcw, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { InlineAudioPlayer, isAudioFilename } from '@components/Objects/StyledElements/AudioPlayer/InlineAudioPlayer';
 
@@ -48,6 +48,9 @@ function AssignmentStudentActivity() {
   const gradingType = assignments?.assignment_object?.grading_type;
   const passingThreshold =
     gradingType === 'ALPHABET' || gradingType === 'GPA_SCALE' ? 60 : 50;
+  const [activeTaskIndex, setActiveTaskIndex] = useState(0)
+  const sortedTasks = [...(assignments?.assignment_tasks || [])].sort((a: any, b: any) => a.id - b.id)
+  const visibleTasks = sortedTasks.length > 1 ? [sortedTasks[Math.min(activeTaskIndex, sortedTasks.length - 1)]] : sortedTasks
 
   useEffect(() => {
   }, [assignments, org])
@@ -112,7 +115,18 @@ function AssignmentStudentActivity() {
       )}
       
       
-      {assignments && assignments?.assignment_tasks?.sort((a: any, b: any) => a.id - b.id).map((task: any, index: number) => {
+      {sortedTasks.length > 1 && (
+        <div className="activity-glass flex flex-wrap gap-2 rounded-2xl p-2" role="tablist" aria-label={t('assignments.task')}>
+          {sortedTasks.map((task: any, index: number) => (
+            <button key={task.assignment_task_uuid} type="button" role="tab" aria-selected={activeTaskIndex === index} onClick={() => setActiveTaskIndex(index)} className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${activeTaskIndex === index ? 'bg-teal-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/70'}`}>
+              {t('assignments.task')} {index + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {assignments && visibleTasks.map((task: any) => {
+        const index = sortedTasks.findIndex((item: any) => item.assignment_task_uuid === task.assignment_task_uuid)
         const taskSubmission = taskSubmissionsMap ? taskSubmissionsMap[task.assignment_task_uuid] : null;
         const taskGrade = taskSubmission?.grade ?? 0;
         const taskMax = task.max_grade_value || 0;

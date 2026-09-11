@@ -29,6 +29,7 @@ import PaidCourseActivityDisclaimer from '@components/Objects/Courses/CourseActi
 import { useContributorStatus } from '../../../../../../../../hooks/useContributorStatus'
 import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 import ActivityChapterDropdown from '@components/Pages/Activity/ActivityChapterDropdown'
+import ActivityCourseSidebar from '@components/Pages/Activity/ActivityCourseSidebar'
 import ActivityShareDropdown from '@components/Pages/Activity/ActivityShareDropdown'
 import FixedActivitySecondaryBar from '@components/Pages/Activity/FixedActivitySecondaryBar'
 import CourseEndView from '@components/Pages/Activity/CourseEndView'
@@ -657,12 +658,6 @@ function ActivityClient(props: ActivityClientProps) {
                               />
                             </div>
                           )}
-                          <ActivityChapterDropdown
-                            course={course}
-                            currentActivityId={activity ? (activity.activity_uuid ? activity.activity_uuid.replace('activity_', '') : activityid.replace('activity_', '')) : activityid.replace('activity_', '')}
-                            orgslug={orgslug}
-                            trailData={trailData}
-                          />
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -770,7 +765,7 @@ function ActivityClient(props: ActivityClientProps) {
                 </motion.div>
               </AnimatePresence>
             ) : (
-              <GeneralWrapperStyled>
+              <GeneralWrapperStyled className="activity-page-background">
                 {/* Original non-focus mode UI */}
                 {activityid === 'end' ? (
                   <CourseEndView 
@@ -953,6 +948,24 @@ function ActivityClient(props: ActivityClientProps) {
                             )}
                           </div>
                         </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/35 px-4 py-3 backdrop-blur-md">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700">{t('assignments.assignment_description')}</p>
+                            <p className="truncate text-sm font-semibold text-slate-700">{assignment?.assignment_object?.description || displayName}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+                              if (navigator.share) navigator.share({ title: course.name, text: 'Invita a tus amigos a vivir la experiencia', url: shareUrl })
+                              else if (shareUrl) navigator.clipboard?.writeText(shareUrl)
+                            }}
+                            className="rounded-full bg-gradient-to-r from-teal-600 to-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-md transition hover:-translate-y-0.5"
+                          >
+                            Invita a tus amigos a vivir la experiencia
+                          </button>
+                        </div>
                       </div>
 
                       {activityLoading || !activity ? (
@@ -970,7 +983,13 @@ function ActivityClient(props: ActivityClientProps) {
                           {activity.content.paid_access == false ? (
                             <PaidCourseActivityDisclaimer course={course} />
                           ) : (
-                            <div className="flex gap-6">
+                            <div className="flex flex-col items-stretch gap-5 lg:flex-row">
+                              <ActivityCourseSidebar
+                                course={course}
+                                currentActivityId={activityid}
+                                orgslug={orgslug}
+                                trailData={trailData}
+                              />
                               <div className={`flex-1 min-w-0 ${activity.activity_type === 'TYPE_SCORM' ? 'rounded-xl overflow-hidden' : 'p-3 sm:p-7 rounded-lg'} ${bgColor} relative isolate`} style={{ zIndex: 'var(--z-base)' }}>
                                 <button
                                   onClick={() => setIsFocusMode(true)}

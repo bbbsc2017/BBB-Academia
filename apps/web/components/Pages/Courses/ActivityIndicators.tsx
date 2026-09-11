@@ -455,8 +455,8 @@ function ActivityIndicators(props: Props) {
         )}
       </div>
 
-      {/* Desktop full view */}
-      <div className="hidden sm:flex items-center gap-4">
+      {/* Desktop progress view */}
+      <div className="hidden sm:flex items-center gap-4 activity-glass rounded-2xl px-4 py-3">
         {enableNavigation && (
           <button
             onClick={navigateToPrevious}
@@ -468,103 +468,12 @@ function ActivityIndicators(props: Props) {
           </button>
         )}
 
-        <div className="flex items-center w-full min-w-0 overflow-x-auto scrollbar-hide gap-2">
-          {course.chapters.map((chapter: any, chapterIndex: number) => {
-            const completedActivities = getChapterProgress(chapter.activities);
-            const isChapterComplete = completedActivities === chapter.activities.length;
-            const firstActivity = chapter.activities[0];
-            const firstActivityId = firstActivity?.activity_uuid?.replace('activity_', '');
-            const chapterLinkHref =
-              firstActivityId
-                ? getUriWithOrg(orgslug, '') + `/course/${courseid}/activity/${firstActivityId}`
-                : undefined;
-
-            return (
-              <div key={chapter.id} className="flex-1 flex items-center min-w-0">
-                {/* Chapter circle — glued to the left of the bar */}
-                <ToolTip
-                  sideOffset={8}
-                  unstyled
-                  content={
-                    <ChapterTooltipContent
-                      chapter={chapter}
-                      chapterNumber={chapterIndex + 1}
-                      totalActivities={chapter.activities.length}
-                      completedActivities={completedActivities}
-                    />
-                  }
-                >
-                  {chapterLinkHref ? (
-                    <Link href={chapterLinkHref} prefetch={false} className="relative z-10 shrink-0 flex items-center cursor-pointer focus:outline-none">
-                      <div className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold transition-all border-2 border-white ${
-                        isChapterComplete
-                          ? 'bg-teal-500 text-white'
-                          : 'bg-gray-200 text-gray-500'
-                      }`}>
-                        {chapterIndex + 1}
-                      </div>
-                    </Link>
-                  ) : (
-                    <div className="relative z-10 shrink-0 flex items-center cursor-not-allowed">
-                      <div className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold transition-all border-2 border-white ${
-                        isChapterComplete
-                          ? 'bg-teal-500 text-white'
-                          : 'bg-gray-200 text-gray-500'
-                      }`}>
-                        {chapterIndex + 1}
-                      </div>
-                    </div>
-                  )}
-                </ToolTip>
-
-                {/* Activity segments — glued to circle, flush together */}
-                <div className="flex-1 flex items-center min-w-0 -ml-[4px]">
-                  {chapter.activities.map((activity: any, activityIndex: number) => {
-                    const isDone = isActivityDone(activity)
-                    const isCurrent = isActivityCurrent(activity)
-                    const isLast = activityIndex === chapter.activities.length - 1
-                    return (
-                      <ToolTip
-                        sideOffset={8}
-                        unstyled
-                        content={
-                          <ActivityTooltipContent
-                            activity={activity}
-                            isDone={isDone}
-                            isCurrent={isCurrent}
-                          />
-                        }
-                        key={activity.activity_uuid}
-                      >
-                        <Link
-                          prefetch={false}
-                          href={
-                            getUriWithOrg(orgslug, '') +
-                            `/course/${courseid}/activity/${activity.activity_uuid.replace(
-                              'activity_',
-                              ''
-                            )}`
-                          }
-                          className={`${isCurrent ? 'flex-2' : 'flex-1'} min-w-[12px] ${!isLast ? 'border-r-[1.5px] border-white' : ''}`}
-                        >
-                          <div
-                            className={`h-[7px] ${getActivityClass(activity)} ${isLast ? 'rounded-r-full' : ''} transition-all hover:brightness-110`}
-                          ></div>
-                        </Link>
-                      </ToolTip>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-
-          {/* Certification Badge */}
-          <CertificationBadge
-            courseid={courseid}
-            orgslug={orgslug}
-            isCompleted={isCourseCompleted}
-          />
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="h-3 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200/80 shadow-inner">
+            <div className="h-full rounded-full bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+          </div>
+          <span className="shrink-0 text-xs font-bold text-slate-600">{completedCount}/{totalCount}</span>
+          <CertificationBadge courseid={courseid} orgslug={orgslug} isCompleted={isCourseCompleted} />
         </div>
 
         {enableNavigation && (
