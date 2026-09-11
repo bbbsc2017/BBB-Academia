@@ -431,7 +431,7 @@ function ActivityIndicators(props: Props) {
           </div>
           <div className="w-full bg-zinc-200/80 rounded-full h-[6px] overflow-hidden">
             <div
-              className="h-full bg-teal-500 rounded-full transition-all duration-300"
+              className="h-full bg-[#00a9bf] rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -470,7 +470,7 @@ function ActivityIndicators(props: Props) {
 
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="h-3 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200/80 shadow-inner">
-            <div className="h-full rounded-full bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+            <div className="h-full rounded-full bg-[#00a9bf] transition-all duration-500" style={{ width: `${progressPercent}%` }} />
           </div>
           <span className="shrink-0 text-xs font-bold text-slate-600">{completedCount}/{totalCount}</span>
           <CertificationBadge courseid={courseid} orgslug={orgslug} isCompleted={isCourseCompleted} />

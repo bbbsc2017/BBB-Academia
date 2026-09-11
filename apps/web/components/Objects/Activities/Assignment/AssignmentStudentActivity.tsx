@@ -118,7 +118,7 @@ function AssignmentStudentActivity() {
       {sortedTasks.length > 1 && (
         <div className="activity-glass flex flex-wrap gap-2 rounded-2xl p-2" role="tablist" aria-label={t('assignments.task')}>
           {sortedTasks.map((task: any, index: number) => (
-            <button key={task.assignment_task_uuid} type="button" role="tab" aria-selected={activeTaskIndex === index} onClick={() => setActiveTaskIndex(index)} className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${activeTaskIndex === index ? 'bg-teal-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/70'}`}>
+            <button key={task.assignment_task_uuid} type="button" role="tab" aria-selected={activeTaskIndex === index} onClick={() => setActiveTaskIndex(index)} className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${activeTaskIndex === index ? 'bg-[#00a9bf] text-white shadow-md' : 'text-slate-600 hover:bg-white/70'}`}>
               {t('assignments.task')} {index + 1}
             </button>
           ))}

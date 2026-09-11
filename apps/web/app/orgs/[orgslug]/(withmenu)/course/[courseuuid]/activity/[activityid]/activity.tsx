@@ -949,11 +949,7 @@ function ActivityClient(props: ActivityClientProps) {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/35 px-4 py-3 backdrop-blur-md">
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700">{t('assignments.assignment_description')}</p>
-                            <p className="truncate text-sm font-semibold text-slate-700">{assignment?.assignment_object?.description || displayName}</p>
-                          </div>
+                        <div className="flex justify-end">
                           <button
                             type="button"
                             onClick={() => {
@@ -961,7 +957,7 @@ function ActivityClient(props: ActivityClientProps) {
                               if (navigator.share) navigator.share({ title: course.name, text: 'Invita a tus amigos a vivir la experiencia', url: shareUrl })
                               else if (shareUrl) navigator.clipboard?.writeText(shareUrl)
                             }}
-                            className="rounded-full bg-gradient-to-r from-teal-600 to-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-md transition hover:-translate-y-0.5"
+                            className="rounded-full bg-[#00a9bf] px-4 py-2 text-xs font-bold text-white shadow-md transition hover:-translate-y-0.5"
                           >
                             Invita a tus amigos a vivir la experiencia
                           </button>
