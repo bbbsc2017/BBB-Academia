@@ -527,13 +527,13 @@ const CourseClient = (props: any) => {
                 {/* Course lessons */}
                 <div className="w-full my-5 mb-10">
                   <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.course_lessons')}</h2>
-                  <div className="bg-white shadow-md shadow-gray-300/25 outline outline-1 outline-neutral-200/40 rounded-lg overflow-hidden">
+                  <div className="activity-glass rounded-2xl overflow-hidden p-2">
                     {(course.chapters ?? []).map((chapter: any, idx: number) => {
                       const isExpanded = expandedChapters[chapter.chapter_uuid] ?? (idx === 0); // Default to expanded for first chapter
                       return (
-                        <div key={chapter.chapter_uuid || `chapter-${chapter.name}`} className="">
+                        <div key={chapter.chapter_uuid || `chapter-${chapter.name}`} className="mb-2 overflow-hidden rounded-xl border border-white/70 bg-white/35 last:mb-0">
                           <div
-                            className="flex items-start py-4 px-4 outline outline-1 outline-neutral-200/40 font-bold bg-neutral-50 text-neutral-600 cursor-pointer hover:bg-neutral-100 transition-colors"
+                            className="flex cursor-pointer items-start rounded-xl bg-white/35 px-4 py-4 font-bold text-neutral-600 transition-colors hover:bg-white/55"
                             onClick={() => setExpandedChapters(prev => ({
                               ...prev,
                               [chapter.chapter_uuid]: !isExpanded
@@ -554,7 +554,7 @@ const CourseClient = (props: any) => {
                             <div className="flex flex-col items-start w-full">
                               <div className="flex items-center flex-wrap mb-1 w-full min-w-0">
                                 {/* Numbered badge */}
-                                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-neutral-200 text-neutral-600 text-xs font-semibold mr-2 border border-neutral-300 flex-shrink-0">
+                                <span className="mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#00a9bf] text-xs font-semibold text-white shadow-sm">
                                   {idx + 1}
                                 </span>
                                 <h3 className="text-lg font-bold leading-tight truncate min-w-0 sm:text-base md:text-lg" style={{lineHeight: '1.2'}}>{chapter.name}</h3>
@@ -577,8 +577,8 @@ const CourseClient = (props: any) => {
                               </div>
                             </div>
                           </div>
-                          <div className={`transition-all duration-200 ${isExpanded ? 'block' : 'hidden'}`}>
-                            <div className="">
+                          <div className={`border-t border-white/70 transition-all duration-200 ${isExpanded ? 'block' : 'hidden'}`}>
+                            <div className="bg-white/15 py-1">
                               {chapter.activities.map((activity: any) => {
                                 const locked = !!activity.is_locked
                                 const RowInner = (
@@ -648,7 +648,7 @@ const CourseClient = (props: any) => {
                                       key={activity.activity_uuid}
                                       href={getUriWithOrg(orgslug, `/store/offers/${activity.offer.offer_id}`)}
                                       prefetch={false}
-                                      className="block group activity-container transition-all duration-200 px-4 py-4"
+                                      className="activity-container group block px-4 py-3 transition-all duration-200 hover:bg-white/70"
                                       title={t('course.activity_locked_offer_hint', 'Purchase access to unlock this.')}
                                     >
                                       {RowInner}
@@ -660,7 +660,7 @@ const CourseClient = (props: any) => {
                                   return (
                                     <div
                                       key={activity.activity_uuid}
-                                      className="block activity-container px-4 py-4 cursor-not-allowed select-none"
+                                      className="activity-container block cursor-not-allowed select-none px-4 py-3"
                                       title={t('course.activity_locked_hint', 'Sign in or join the right user group to unlock this.')}
                                     >
                                       {RowInner}
@@ -677,7 +677,7 @@ const CourseClient = (props: any) => {
                                     }
                                     rel="noopener noreferrer"
                                     prefetch={false}
-                                    className="block group activity-container transition-all duration-200 px-4 py-4"
+                                    className="activity-container group block px-4 py-3 transition-all duration-200 hover:bg-white/70"
                                     onMouseEnter={() => handleActivityMouseEnter(activity)}
                                   >
                                     {RowInner}
