@@ -442,6 +442,29 @@ async def login(
             },
         )
 
+    # Step 4b: Reject login if the user's org membership has been deactivated
+    # by an admin (see set_user_org_active_status) — checked against the
+    # default org, same resolution used by bbbsc provisioning. A user with no
+    # membership row yet (e.g. mid-signup) is never blocked here.
+    from src.db.user_organizations import UserOrganization
+    from src.services.auth.bbbsc import _get_default_org_id
+    default_org_id = await _get_default_org_id(db_session)
+    if default_org_id is not None:
+        user_org = (await db_session.execute(
+            select(UserOrganization).where(
+                UserOrganization.user_id == user.id,
+                UserOrganization.org_id == default_org_id,
+            )
+        )).scalars().first()
+        if user_org is not None and not user_org.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "ACCOUNT_DEACTIVATED",
+                    "message": "Your account has been deactivated. Contact an administrator.",
+                },
+            )
+
     # Step 5: Reset failed attempts and update login info
     await reset_failed_attempts(user, db_session)
     client_ip = get_client_ip(request)

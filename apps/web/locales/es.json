@@ -2938,12 +2938,17 @@
           "roles": "Roles",
           "signups": "Inscripciones y códigos de invitación",
           "add": "Invitar miembros",
+          "bbbsc_import": "Importar de bbbsc",
           "audit_logs": "Registros de auditoría"
         },
         "pages": {
           "users": {
             "title": "Usuarios",
             "subtitle": "Gestiona los usuarios de tu organización, asigna roles y permisos"
+          },
+          "bbbsc_import": {
+            "title": "Importar de bbbsc",
+            "subtitle": "Trae participantes ya registrados en bbbsc y crea sus cuentas de LearnHouse"
           },
           "signups": {
             "title": "Inscripciones y códigos de invitación",
@@ -2989,7 +2994,19 @@
           "remove_error": "Error al eliminar al usuario",
           "updating_role": "Actualizando rol...",
           "role_update_success": "Rol actualizado con éxito",
-          "role_update_error": "Error al actualizar el rol"
+          "role_update_error": "Error al actualizar el rol",
+          "activate": "Clic para activar",
+          "deactivate": "Clic para desactivar",
+          "activating": "Activando...",
+          "deactivating": "Desactivando...",
+          "activate_success": "Usuario activado",
+          "deactivate_success": "Usuario desactivado",
+          "active_status_error": "Error al actualizar el estado",
+          "pick_group": "Agregar a grupo...",
+          "add_to_group": "Agregar a grupo",
+          "adding_to_group": "Agregando {{count}} usuario(s) al grupo...",
+          "add_to_group_success": "Usuarios agregados al grupo",
+          "add_to_group_error": "Error al agregar usuarios al grupo"
         },
         "modals": {
           "update_role": {
@@ -3008,6 +3025,31 @@
         "pagination": {
           "showing": "Mostrando {{start}}-{{end}} de {{total}}",
           "page": "Página {{current}} de {{total}}"
+        }
+      },
+      "bbbsc_import": {
+        "title": "Importar de bbbsc",
+        "subtitle": "Trae participantes ya registrados en bbbsc y crea sus cuentas de LearnHouse",
+        "no_permission": "Solo los administradores y encargados pueden importar participantes de bbbsc.",
+        "search_placeholder": "Buscar participantes...",
+        "unreachable": "bbbsc no está disponible en este momento — intenta de nuevo en un momento.",
+        "no_results": "No se encontraron participantes que coincidan con tu búsqueda",
+        "no_participants": "No se encontraron participantes en bbbsc",
+        "selected": "seleccionado(s)",
+        "table": {
+          "name": "Nombre",
+          "email": "Correo",
+          "student_code": "Código",
+          "status": "Estado",
+          "already_in_learnhouse": "Ya está en LearnHouse",
+          "not_imported": "No importado"
+        },
+        "actions": {
+          "importing": "Importando {{count}} participante(s)...",
+          "imported_now": "usuario(s) importado(s).",
+          "import_selected": "Importar seleccionados",
+          "pick_group": "Habilitar acceso vía grupo...",
+          "add_to_group": "Agregar a grupo"
         }
       },
       "signups": {

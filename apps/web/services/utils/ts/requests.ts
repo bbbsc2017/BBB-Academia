@@ -62,7 +62,7 @@ export const RequestBodyWithAuthHeader = (
     redirect: 'follow',
     credentials: 'include',
     cache: 'no-store',
-    body: (method === 'POST' || method === 'PUT' || method === 'DELETE') && data !== null ? JSON.stringify(data) : null,
+    body: (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') && data !== null ? JSON.stringify(data) : null,
   }
 }
 

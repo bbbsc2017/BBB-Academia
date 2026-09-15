@@ -16,5 +16,6 @@ class UserOrganization(SQLModel, table=True):
         sa_column=Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), nullable=False, index=True)
     )
     role_id: int = Field(default=None, foreign_key="role.id", index=True)
+    is_active: bool = Field(default=True)
     creation_date: str
     update_date: str

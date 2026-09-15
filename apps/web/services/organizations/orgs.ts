@@ -105,6 +105,20 @@ export async function updateUserRole(
   return res
 }
 
+export async function setUserOrgActiveStatus(
+  org_id: any,
+  user_id: any,
+  is_active: boolean,
+  access_token: string
+) {
+  const result = await fetch(
+    `${getAPIUrl()}orgs/${org_id}/users/${user_id}/active`,
+    RequestBodyWithAuthHeader('PATCH', { is_active }, null, access_token)
+  )
+  const res = await getResponseMetadata(result)
+  return res
+}
+
 export async function updateOrgLanding(
   org_id: any,
   landing_object: any,

@@ -78,6 +78,39 @@ async def verify_bbbsc_credentials(email: str, password: str) -> dict | None:
     return body.get("user")
 
 
+async def fetch_bbbsc_participants(
+    page: int = 1, limit: int = 50, search: str = ""
+) -> dict | None:
+    """
+    Ask bbbsc for a page of its "Participante" (role=STUDENT) users, for the
+    LearnHouse dashboard's bulk-import feature. Same defensive posture as
+    verify_bbbsc_credentials: never raises, returns None on any misconfiguration
+    or network/HTTP error so the caller can surface a clean "bbbsc unreachable"
+    message instead of a stack trace.
+    """
+    api_url = os.environ.get("BBBSC_API_URL")
+    secret = os.environ.get("BBBSC_INTEGRATION_SECRET")
+    if not api_url or not secret:
+        return None
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(
+                f"{api_url.rstrip('/')}/integrations/learnhouse/participants",
+                params={"page": page, "limit": limit, "search": search},
+                headers={"X-Internal-Secret": secret},
+            )
+    except httpx.HTTPError:
+        logger.warning("bbbsc participants endpoint unreachable")
+        return None
+
+    if r.status_code < 200 or r.status_code >= 300:
+        logger.warning("bbbsc participants endpoint returned %s", r.status_code)
+        return None
+
+    return r.json()
+
+
 async def _get_default_org_id(db_session: AsyncSession) -> int | None:
     """Same lookup as GET /instance/info: slug=='default', else first org."""
     stmt = select(Organization).where(Organization.slug == "default")
