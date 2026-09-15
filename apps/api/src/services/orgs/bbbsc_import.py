@@ -8,7 +8,10 @@ from src.db.organizations import Organization
 from src.db.users import AnonymousUser, PublicUser, User
 from src.security.auth import resolve_acting_user_id
 from src.security.org_auth import is_org_admin, is_org_member
-from src.services.auth.bbbsc import fetch_bbbsc_participants, provision_or_sync_bbbsc_user
+from src.services.auth.bbbsc import (
+    fetch_bbbsc_participants,
+    provision_or_sync_bbbsc_user,
+)
 
 logger = logging.getLogger(__name__)
 
