@@ -122,7 +122,7 @@ class TestUploadContentService:
                 "src.services.utils.upload_content.get_learnhouse_config",
                 return_value=fake_config,
             ), patch(
-                "src.services.utils.upload_content.boto3.client",
+                "src.services.utils.upload_content.get_storage_client",
                 return_value=s3_client,
             ):
                 await upload_content(
@@ -146,7 +146,7 @@ class TestUploadContentService:
                 "src.services.utils.upload_content.get_learnhouse_config",
                 return_value=fake_config,
             ), patch(
-                "src.services.utils.upload_content.boto3.client",
+                "src.services.utils.upload_content.get_storage_client",
                 return_value=s3_client,
             ), pytest.raises(HTTPException) as exc:
                 await upload_content(
@@ -216,7 +216,7 @@ class TestUploadContentService:
             "src.services.utils.upload_content.get_learnhouse_config",
             return_value=fake_config,
         ), patch(
-            "src.services.utils.upload_content.boto3.client",
+            "src.services.utils.upload_content.get_storage_client",
             return_value=s3_client,
         ):
             data = await read_content("ai_images", "orgs", "org_uuid", "img.png")
@@ -234,7 +234,7 @@ class TestUploadContentService:
             "src.services.utils.upload_content.get_learnhouse_config",
             return_value=fake_config,
         ), patch(
-            "src.services.utils.upload_content.boto3.client",
+            "src.services.utils.upload_content.get_storage_client",
             return_value=s3_client,
         ), pytest.raises(HTTPException) as exc:
             await read_content("ai_images", "orgs", "org_uuid", "img.png")
@@ -263,7 +263,7 @@ class TestUploadContentService:
                 "src.services.utils.upload_content.get_learnhouse_config",
                 return_value=fake_config,
             ), patch(
-                "src.services.utils.upload_content.boto3.client",
+                "src.services.utils.upload_content.get_storage_client",
                 return_value=s3_client,
             ), patch(
                 "src.services.utils.upload_content.os.remove",

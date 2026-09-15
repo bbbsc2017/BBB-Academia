@@ -279,8 +279,8 @@ class TestOrgUsersService:
             )
 
         csv_text = await _streaming_response_text(response)
-        assert "Name,Username,Email,Groups,Role,Joined,Email Verified,Signup Method,Last Login" in csv_text
-        assert 'CSV Person,csvuser,csv@test.com,Export Group,Member,"Jan 02, 2024",No,oauth,' in csv_text
+        assert "Name,Username,Email,Groups,Role,Active,Joined,Email Verified,Signup Method,Last Login" in csv_text
+        assert 'CSV Person,csvuser,csv@test.com,Export Group,Member,Yes,"Jan 02, 2024",No,oauth,' in csv_text
 
         verified_user = await _make_user(
             db,
@@ -324,7 +324,7 @@ class TestOrgUsersService:
             )
 
         verified_csv = await _streaming_response_text(verified_response)
-        assert "Verified Person,verifieduser,verified@test.com,,Member,\"Mar 04, 2024\",Yes,email," in verified_csv
+        assert "Verified Person,verifieduser,verified@test.com,,Member,Yes,\"Mar 04, 2024\",Yes,email," in verified_csv
 
     @pytest.mark.asyncio
     async def test_remove_user_and_batch_missing_org_and_missing_user(

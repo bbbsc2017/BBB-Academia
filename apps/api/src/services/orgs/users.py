@@ -155,11 +155,15 @@ async def get_organization_users(
     if role_id is not None:
         base_statement = base_statement.where(UserOrganization.role_id == role_id)
 
-    # Apply status filter (verified/unverified)
+    # Apply status filter (verified/unverified/active/inactive)
     if status == "verified":
         base_statement = base_statement.where(User.email_verified == True)
     elif status == "unverified":
         base_statement = base_statement.where(User.email_verified == False)
+    elif status == "active":
+        base_statement = base_statement.where(UserOrganization.is_active == True)
+    elif status == "inactive":
+        base_statement = base_statement.where(UserOrganization.is_active == False)
 
     # Compute group membership counts when usergroup_id is provided (before applying filter)
     in_group_total = None
@@ -276,6 +280,7 @@ async def get_organization_users(
                 role=role_read,
                 usergroups=usergroups,
                 joined_at=user_org.creation_date,
+                is_active=user_org.is_active,
             )
 
             org_users_list.append(org_user)
@@ -357,6 +362,10 @@ async def export_organization_users_csv(
         base_statement = base_statement.where(User.email_verified == True)
     elif status == "unverified":
         base_statement = base_statement.where(User.email_verified == False)
+    elif status == "active":
+        base_statement = base_statement.where(UserOrganization.is_active == True)
+    elif status == "inactive":
+        base_statement = base_statement.where(UserOrganization.is_active == False)
 
     if usergroup_id is not None and usergroup_filter:
         if usergroup_filter == "in_group":
@@ -380,7 +389,7 @@ async def export_organization_users_csv(
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["Name", "Username", "Email", "Groups", "Role", "Joined", "Email Verified", "Signup Method", "Last Login"])
+    writer.writerow(["Name", "Username", "Email", "Groups", "Role", "Active", "Joined", "Email Verified", "Signup Method", "Last Login"])
 
     if users:
         user_ids = [user.id for user in users]
@@ -433,6 +442,7 @@ async def export_organization_users_csv(
                 _csv_safe(user.email or ""),
                 _csv_safe(groups),
                 _csv_safe(role.name if role else ""),
+                "Yes" if user_org.is_active else "No",
                 fmt_date(user_org.creation_date),
                 "Yes" if user.email_verified else "No",
                 _csv_safe(user.signup_method or ""),
@@ -797,6 +807,78 @@ async def update_user_role(
             logger.warning("record_org_admin_in_loops failed for user %s", user_id)
 
     return {"detail": "User role updated"}
+
+
+async def set_user_org_active_status(
+    request: Request,
+    org_id: int,
+    user_id: int,
+    is_active: bool,
+    db_session: AsyncSession,
+    current_user: PublicUser | AnonymousUser,
+):
+    """
+    Activate or deactivate a user's membership in an org. Unlike
+    remove_user_from_org, this never deletes the membership/enrollment/group
+    history — it just blocks future logins (checked in the login route) and,
+    when deactivating, immediately revokes any live session so access ends
+    right away rather than at next token expiry.
+    """
+    statement = select(Organization).where(Organization.id == org_id)
+    org = (await db_session.execute(statement)).scalars().first()
+
+    if not org:
+        raise HTTPException(
+            status_code=404,
+            detail="Organization not found",
+        )
+
+    # RBAC check
+    await rbac_check(request, org.org_uuid, current_user, "update", db_session)
+
+    statement = select(UserOrganization).where(
+        UserOrganization.user_id == user_id, UserOrganization.org_id == org.id
+    )
+    user_org = (await db_session.execute(statement)).scalars().first()
+
+    if not user_org:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    if not is_active:
+        # Same last-admin protection as remove_user_from_org/update_user_role
+        statement = select(UserOrganization).where(
+            UserOrganization.org_id == org.id, UserOrganization.role_id == ADMIN_ROLE_ID
+        )
+        admins = (await db_session.execute(statement)).scalars().all()
+
+        if len(admins) == 1 and admins[0].user_id == user_id:
+            raise HTTPException(
+                status_code=400,
+                detail="You can't deactivate the last admin of the organization",
+            )
+
+    user_org.is_active = is_active
+    db_session.add(user_org)
+    await db_session.commit()
+    await db_session.refresh(user_org)
+
+    from src.routers.users import _invalidate_session_cache
+    _invalidate_session_cache(user_id)
+
+    if not is_active:
+        from src.security.auth import revoke_user_sessions_before
+        revoke_user_sessions_before(user_id)
+
+    await dispatch_webhooks(
+        event_name="user_active_status_changed",
+        org_id=org_id,
+        data={"user_id": user_id, "org_id": org_id, "is_active": is_active},
+    )
+
+    return {"detail": "User active status updated", "is_active": is_active}
 
 
 async def invite_batch_users(

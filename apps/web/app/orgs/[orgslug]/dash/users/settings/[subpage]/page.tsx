@@ -2,13 +2,14 @@
 import React, { useEffect, use } from 'react';
 import { motion } from 'motion/react'
 import { getUriWithOrg } from '@services/config/config'
-import { ScanEye, SquareUserRound, UserPlus, Users, Shield } from 'lucide-react'
+import { ScanEye, SquareUserRound, UserPlus, Users, Shield, Import } from 'lucide-react'
 import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
 import OrgUsers from '@components/Dashboard/Pages/Users/OrgUsers/OrgUsers'
 import OrgAccess from '@components/Dashboard/Pages/Users/OrgAccess/OrgAccess'
 import OrgUsersAdd from '@components/Dashboard/Pages/Users/OrgUsersAdd/OrgUsersAdd'
 import OrgUserGroups from '@components/Dashboard/Pages/Users/OrgUserGroups/OrgUserGroups'
 import OrgRoles from '@components/Dashboard/Pages/Users/OrgRoles/OrgRoles'
+import OrgBbbscImport from '@components/Dashboard/Pages/Users/OrgBbbscImport/OrgBbbscImport'
 import { useTranslation } from 'react-i18next'
 import { DashTabBar, DashTabItem } from '@components/Dashboard/Shared/DashTabBar/DashTabBar'
 
@@ -43,6 +44,10 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
     if (params.subpage == 'roles') {
       setH1Label(t('dashboard.users.settings.pages.roles.title'))
       setH2Label(t('dashboard.users.settings.pages.roles.subtitle'))
+    }
+    if (params.subpage == 'bbbsc-import') {
+      setH1Label(t('dashboard.users.settings.pages.bbbsc_import.title'))
+      setH2Label(t('dashboard.users.settings.pages.bbbsc_import.subtitle'))
     }
   }
 
@@ -88,6 +93,13 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
       href: getUriWithOrg(params.orgslug, '') + `/dash/users/settings/add`,
       active: params.subpage === 'add',
     },
+    {
+      key: 'bbbsc-import',
+      label: t('dashboard.users.settings.tabs.bbbsc_import'),
+      icon: <Import size={16} />,
+      href: getUriWithOrg(params.orgslug, '') + `/dash/users/settings/bbbsc-import`,
+      active: params.subpage === 'bbbsc-import',
+    },
   ]
 
   return (
@@ -122,6 +134,7 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
         {params.subpage == 'add' ? <OrgUsersAdd /> : ''}
         {params.subpage == 'usergroups' ? <><div className="h-6"></div><OrgUserGroups /></> : ''}
         {params.subpage == 'roles' ? <><div className="h-6"></div><OrgRoles /></> : ''}
+        {params.subpage == 'bbbsc-import' ? <><div className="h-6"></div><OrgBbbscImport /></> : ''}
       </motion.div>
     </div>
   )

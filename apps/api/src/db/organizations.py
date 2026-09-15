@@ -73,6 +73,7 @@ class OrganizationUser(BaseModel):
     role: RoleRead
     usergroups: list[UserGroupRead] = []
     joined_at: str | None = None
+    is_active: bool = True
 
 
 # Rebuild models to resolve forward references after all classes are defined

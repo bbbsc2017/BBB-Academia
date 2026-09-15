@@ -3390,12 +3390,17 @@
           "roles": "Roles",
           "signups": "Signups & Invite Codes",
           "add": "Invite Members",
+          "bbbsc_import": "Import from bbbsc",
           "audit_logs": "Audit Logs"
         },
         "pages": {
           "users": {
             "title": "Users",
             "subtitle": "Manage your organization users, assign roles and permissions"
+          },
+          "bbbsc_import": {
+            "title": "Import from bbbsc",
+            "subtitle": "Bring in participants already registered in bbbsc and create their LearnHouse accounts"
           },
           "signups": {
             "title": "Signups & Invite Codes",
@@ -3444,7 +3449,19 @@
           "remove_error": "Error removing user",
           "updating_role": "Updating role...",
           "role_update_success": "Role updated successfully",
-          "role_update_error": "Error updating role"
+          "role_update_error": "Error updating role",
+          "activate": "Click to activate",
+          "deactivate": "Click to deactivate",
+          "activating": "Activating...",
+          "deactivating": "Deactivating...",
+          "activate_success": "User activated",
+          "deactivate_success": "User deactivated",
+          "active_status_error": "Error updating status",
+          "pick_group": "Add to group...",
+          "add_to_group": "Add to group",
+          "adding_to_group": "Adding {{count}} user(s) to group...",
+          "add_to_group_success": "Users added to group",
+          "add_to_group_error": "Error adding users to group"
         },
         "pagination": {
           "showing": "Showing {{start}}-{{end}} of {{total}}",
@@ -3460,6 +3477,31 @@
             "message": "Are you sure you want remove this user from the organization?",
             "button": "Remove User"
           }
+        }
+      },
+      "bbbsc_import": {
+        "title": "Import from bbbsc",
+        "subtitle": "Bring in participants already registered in bbbsc and create their LearnHouse accounts",
+        "no_permission": "Only administrators and maintainers can import bbbsc participants.",
+        "search_placeholder": "Search participants...",
+        "unreachable": "bbbsc is unreachable right now — try again in a moment.",
+        "no_results": "No participants found matching your search",
+        "no_participants": "No participants found in bbbsc",
+        "selected": "selected",
+        "table": {
+          "name": "Name",
+          "email": "Email",
+          "student_code": "Code",
+          "status": "Status",
+          "already_in_learnhouse": "Already in LearnHouse",
+          "not_imported": "Not imported"
+        },
+        "actions": {
+          "importing": "Importing {{count}} participant(s)...",
+          "imported_now": "user(s) imported.",
+          "import_selected": "Import selected",
+          "pick_group": "Grant access via group...",
+          "add_to_group": "Add to group"
         }
       },
       "signups": {

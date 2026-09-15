@@ -9,9 +9,10 @@ import UserAvatar from '@components/Objects/UserAvatar'
 import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 import { getAPIUrl } from '@services/config/config'
 import { getUserAvatarMediaDirectory } from '@services/media/media'
-import { removeUserFromOrg, removeUsersFromOrg, updateUserRole } from '@services/organizations/orgs'
+import { removeUserFromOrg, removeUsersFromOrg, setUserOrgActiveStatus, updateUserRole } from '@services/organizations/orgs'
+import { linkUsersToUserGroup } from '@services/usergroups/usergroups'
 import { apiFetch } from '@services/utils/ts/requests'
-import { LogOut, Search, ChevronLeft, ChevronRight, Shield, User, Crown, Users, CheckCircle2, XCircle, Mail, Globe, ArrowUp, ArrowDown, X, Filter, Download } from 'lucide-react'
+import { LogOut, Search, ChevronLeft, ChevronRight, Shield, User, Crown, Users, UserCheck, UserX, CheckCircle2, XCircle, Mail, Globe, ArrowUp, ArrowDown, X, Filter, Download } from 'lucide-react'
 import React, { useState, useCallback, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -182,6 +183,63 @@ function OrgUsers() {
       toast.success(`${ids.length} user(s) removed successfully`, {id:toastId});
     } else {
       toast.error('Error removing users', {id:toastId});
+    }
+  }
+
+  const handleToggleActive = async (user_id: any, next_is_active: boolean) => {
+    const toastId = toast.loading(
+      next_is_active
+        ? t('dashboard.users.active_users.actions.activating') || 'Activating...'
+        : t('dashboard.users.active_users.actions.deactivating') || 'Deactivating...'
+    )
+    const res = await setUserOrgActiveStatus(org.id, user_id, next_is_active, access_token)
+    if (res.status === 200) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.org.users(org.id) })
+      toast.success(
+        next_is_active
+          ? t('dashboard.users.active_users.actions.activate_success') || 'User activated'
+          : t('dashboard.users.active_users.actions.deactivate_success') || 'User deactivated',
+        { id: toastId }
+      )
+    } else {
+      toast.error(
+        res.data?.detail
+          ? String(res.data.detail)
+          : t('dashboard.users.active_users.actions.active_status_error') || 'Error updating status',
+        { id: toastId }
+      )
+    }
+  }
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+  const [isAddingToGroup, setIsAddingToGroup] = useState(false)
+
+  const handleAddSelectedToGroup = async () => {
+    if (!selectedGroupId) return
+    const ids = Array.from(selectedUserIds)
+    setIsAddingToGroup(true)
+    const toastId = toast.loading(
+      t('dashboard.users.active_users.actions.adding_to_group', { count: ids.length }) ||
+        `Adding ${ids.length} user(s) to group...`
+    )
+    try {
+      const res = await linkUsersToUserGroup(selectedGroupId, ids, org.id, access_token)
+      if (res.status === 200 || res.status === 201) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.org.users(org.id) })
+        setSelectedUserIds(new Set())
+        setSelectedGroupId('')
+        toast.success(
+          t('dashboard.users.active_users.actions.add_to_group_success') || 'Users added to group',
+          { id: toastId }
+        )
+      } else {
+        toast.error(
+          t('dashboard.users.active_users.actions.add_to_group_error') || 'Error adding users to group',
+          { id: toastId }
+        )
+      }
+    } finally {
+      setIsAddingToGroup(false)
     }
   }
 
@@ -359,6 +417,30 @@ function OrgUsers() {
                   >
                     Clear selection
                   </button>
+                  {canManageOrg && (
+                    <>
+                      <Select value={selectedGroupId || undefined} onValueChange={setSelectedGroupId}>
+                        <SelectTrigger className="h-8 w-[170px] text-xs border-indigo-200 bg-white">
+                          <SelectValue placeholder={t('dashboard.users.active_users.actions.pick_group', { defaultValue: 'Add to group...' })} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {usergroups?.map((group: any) => (
+                            <SelectItem key={group.id} value={group.id.toString()}>
+                              {group.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <button
+                        onClick={handleAddSelectedToGroup}
+                        disabled={!selectedGroupId || isAddingToGroup}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-md text-xs font-medium transition-all"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>{t('dashboard.users.active_users.actions.add_to_group', { defaultValue: 'Add to group' })}</span>
+                      </button>
+                    </>
+                  )}
                   {canManageOrg && (
                     <ConfirmationModal
                       confirmationButtonText={`Remove ${selectedUserIds.size} user${selectedUserIds.size !== 1 ? 's' : ''}`}
@@ -560,10 +642,43 @@ function OrgUsers() {
                           </span>
                         </td>
 
-                        {/* Status (Verified + Sign-up method + Last login) */}
+                        {/* Status (Active toggle + Verified + Sign-up method + Last login) */}
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2">
+                              {canManageOrg ? (
+                                <ToolTip
+                                  content={
+                                    user.is_active === false
+                                      ? t('dashboard.users.active_users.actions.activate', { defaultValue: 'Click to activate' })
+                                      : t('dashboard.users.active_users.actions.deactivate', { defaultValue: 'Click to deactivate' })
+                                  }
+                                  side="top"
+                                >
+                                  <button
+                                    onClick={() => handleToggleActive(user.user.id, user.is_active === false)}
+                                    className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium transition-all ${
+                                      user.is_active === false
+                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                    }`}
+                                  >
+                                    {user.is_active === false ? (
+                                      <UserX className="w-3.5 h-3.5" />
+                                    ) : (
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                    )}
+                                    <span>{user.is_active === false ? 'Inactive' : 'Active'}</span>
+                                  </button>
+                                </ToolTip>
+                              ) : (
+                                <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium ${
+                                  user.is_active === false ? 'bg-gray-100 text-gray-600' : 'bg-emerald-50 text-emerald-700'
+                                }`}>
+                                  {user.is_active === false ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
+                                  <span>{user.is_active === false ? 'Inactive' : 'Active'}</span>
+                                </span>
+                              )}
                               {user.user.email_verified ? (
                                 <span className="inline-flex items-center gap-1 text-xs text-emerald-600" title="Email verified">
                                   <CheckCircle2 className="w-3.5 h-3.5" />

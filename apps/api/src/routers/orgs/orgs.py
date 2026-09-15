@@ -1,6 +1,7 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, UploadFile
+from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
@@ -71,6 +72,7 @@ from src.services.orgs.users import (
     remove_batch_users_from_org,
     remove_invited_user,
     remove_user_from_org,
+    set_user_org_active_status,
     update_user_role,
 )
 
@@ -299,6 +301,40 @@ async def api_update_user_role(
     """
     return await update_user_role(
         request, org_id, user_id, role_uuid, db_session, current_user
+    )
+
+
+class SetUserActiveStatusRequest(BaseModel):
+    is_active: bool
+
+
+@router.patch(
+    "/{org_id}/users/{user_id}/active",
+    summary="Activate or deactivate a user's organization membership",
+    description="Toggle a user's active status in the organization. Deactivating "
+    "immediately revokes their live sessions and blocks future logins; it does not "
+    "delete their account, membership, enrollments, or group history.",
+    responses={
+        200: {"description": "Active status updated."},
+        400: {"description": "Cannot deactivate the last admin"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Caller lacks permission"},
+        404: {"description": "Organization or user not found"},
+    },
+)
+async def api_set_user_active_status(
+    request: Request,
+    org_id: int,
+    user_id: int,
+    body: SetUserActiveStatusRequest,
+    current_user: PublicUser = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db_session),
+):
+    """
+    Activate or deactivate a user's org membership
+    """
+    return await set_user_org_active_status(
+        request, org_id, user_id, body.is_active, db_session, current_user
     )
 
 
