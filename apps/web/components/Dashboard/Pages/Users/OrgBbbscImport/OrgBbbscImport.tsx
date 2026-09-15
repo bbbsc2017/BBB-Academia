@@ -55,8 +55,8 @@ function OrgBbbscImport() {
     staleTime: 60_000,
   })
 
-  const participants = data?.data?.items || data?.items || []
-  const total = data?.data?.total ?? data?.total ?? 0
+  const participants = data?.data?.items || []
+  const total = data?.data?.total ?? 0
   const isInitialLoading = !data && isFetching
 
   const importableEmails: string[] = participants
