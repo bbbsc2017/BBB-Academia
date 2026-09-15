@@ -40,6 +40,18 @@ body {
   border-radius: 999px;
 }
 
+.course-lessons-scroll {
+  max-height: min(70vh, 760px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 169, 191, 0.45) transparent;
+}
+
+.course-lessons-scroll::-webkit-scrollbar { width: 6px; }
+.course-lessons-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 169, 191, 0.45);
+  border-radius: 999px;
+}
+
 @media (max-width: 1023px) {
   .activity-course-sidebar-scroll { max-height: 42vh; }
 }

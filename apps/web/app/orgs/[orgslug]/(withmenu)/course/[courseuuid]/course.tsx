@@ -527,7 +527,7 @@ const CourseClient = (props: any) => {
                 {/* Course lessons */}
                 <div className="w-full my-5 mb-10">
                   <h2 className="py-5 text-xl md:text-2xl font-bold">{t('courses.course_lessons')}</h2>
-                  <div className="activity-glass rounded-2xl overflow-hidden p-2">
+                  <div className="course-lessons-scroll activity-glass rounded-2xl overflow-y-auto p-2">
                     {(course.chapters ?? []).map((chapter: any, idx: number) => {
                       const isExpanded = expandedChapters[chapter.chapter_uuid] ?? (idx === 0); // Default to expanded for first chapter
                       return (
