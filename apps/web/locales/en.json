@@ -386,6 +386,7 @@
     "loading_courses": "Loading courses...",
     "no_featured_courses": "No featured courses selected",
     "start_course": "Start Course",
+    "continue_course": "Continue",
     "leave_course": "Leave Course",
     "leave_course_success": "Successfully left the course",
     "start_course_success": "Successfully started the course",

@@ -70,12 +70,30 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
   const cleanCourseUuid = course.course_uuid?.replace('course_', '');
   const resourceUuid = cleanCourseUuid ? `course_${cleanCourseUuid}` : null;
 
-  const isStarted = trailData?.runs?.find(
+  const currentRun = trailData?.runs?.find(
     (run: any) => {
       const cleanRunCourseUuid = run.course?.course_uuid?.replace('course_', '');
       return cleanRunCourseUuid === cleanCourseUuid;
     }
-  ) ?? false;
+  );
+  const isStarted = currentRun ?? false;
+
+  // Where "Continue" should take the learner: the first activity with no
+  // completion step yet, in chapter/activity order — i.e. resume right
+  // after whatever was last finished. Falls back to the last activity once
+  // everything is complete, and to the very first activity if the course
+  // has no chapters loaded yet.
+  const allActivities = (course.chapters ?? []).flatMap((chapter: any) => chapter.activities ?? [])
+  const nextIncompleteActivity = allActivities.find(
+    (activity: any) => !currentRun?.steps?.some((step: any) => step.activity_id === activity.id)
+  )
+  const continueActivity = nextIncompleteActivity ?? allActivities[allActivities.length - 1]
+
+  const handleContinueCourse = () => {
+    if (!continueActivity) return
+    const activityId = continueActivity.activity_uuid.replace('activity_', '')
+    router.push(getUriWithOrg(orgslug, '') + `/course/${courseuuid}/activity/${activityId}`)
+  }
 
   // Public endpoint — works without auth too, but MUST get the access token
   // when there is one: has_access (whether THIS user already paid) can only
@@ -437,21 +455,28 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
                 {t('courses.you_own_this_course_description')}
               </p>
             </div>
-            <button
-              onClick={handleCourseAction}
-              disabled={isActionLoading}
-              aria-label={isStarted ? t('courses.leave_course') : t('courses.start_course')}
-              className={`w-full py-3 rounded-lg nice-shadow font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer ${
-                isStarted
-                  ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
-                  : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
-              }`}
-            >
-              {isActionLoading
-                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : renderActionButton(isStarted ? 'leave' : 'start')
-              }
-            </button>
+            {isStarted ? (
+              <button
+                onClick={handleContinueCourse}
+                aria-label={t('courses.continue_course')}
+                className="w-full py-3 rounded-lg nice-shadow font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer bg-neutral-900 text-white hover:bg-neutral-800"
+              >
+                <span>{t('courses.continue_course')}</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={handleCourseAction}
+                disabled={isActionLoading}
+                aria-label={t('courses.start_course')}
+                className="w-full py-3 rounded-lg nice-shadow font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700"
+              >
+                {isActionLoading
+                  ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : renderActionButton('start')
+                }
+              </button>
+            )}
             {renderContributorButton()}
           </div>
         </div>

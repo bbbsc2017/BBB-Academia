@@ -4,7 +4,7 @@ import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useOrg, useOrgMembership } from '@components/Contexts/OrgContext'
 import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
 import { getOffersByResource } from '@services/payments/offers'
-import { LogIn, LogOut, ShoppingCart, Lock, UserPlus } from 'lucide-react'
+import { LogIn, LogOut, ArrowRight, ShoppingCart, Lock, UserPlus } from 'lucide-react'
 import { removeCourse, startCourse } from '@services/courses/activity'
 import { revalidateTags } from '@services/utils/ts/requests'
 import { formatCurrency } from '@services/utils/ts/formatCurrency'
@@ -57,12 +57,29 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
   const resourceUuid = cleanCourseUuid ? `course_${cleanCourseUuid}` : null;
     const { t } = useTranslation()
 
-  const isStarted = trailData?.runs?.find(
+  const currentRun = trailData?.runs?.find(
     (run: any) => {
       const cleanRunCourseUuid = run.course?.course_uuid?.replace('course_', '');
       return cleanRunCourseUuid === cleanCourseUuid;
     }
-  ) ?? false;
+  );
+  const isStarted = currentRun ?? false;
+
+  // Where "Continue" should take the learner: the first activity with no
+  // completion step yet, in chapter/activity order — resumes right after
+  // whatever was last finished, falling back to the last activity once
+  // everything is complete.
+  const allActivities = (course.chapters ?? []).flatMap((chapter: any) => chapter.activities ?? [])
+  const nextIncompleteActivity = allActivities.find(
+    (activity: any) => !currentRun?.steps?.some((step: any) => step.activity_id === activity.id)
+  )
+  const continueActivity = nextIncompleteActivity ?? allActivities[allActivities.length - 1]
+
+  const handleContinueCourse = () => {
+    if (!continueActivity) return
+    const activityId = continueActivity.activity_uuid.replace('activity_', '')
+    router.push(getUriWithOrg(orgslug, '') + `/course/${courseuuid}/activity/${activityId}`)
+  }
 
   // Public endpoint — works without auth too, but MUST get the access token
   // when there is one: has_access (whether THIS user already paid) can only
@@ -203,29 +220,30 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
                       {t('courses.you_own_this_course_description')}
                     </p>
                   </div>
-                  <button
-                    onClick={handleCourseAction}
-                    disabled={isActionLoading}
-                    className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${
-                      isStarted
-                        ? 'bg-red-500 text-white hover:bg-red-600 disabled:bg-red-400'
-                        : 'bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-700'
-                    }`}
-                  >
-                    {isActionLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : isStarted ? (
-                      <>
-                        <LogOut className="w-4 h-4" />
-                        {t('courses.leave_course')}
-                      </>
-                    ) : (
-                      <>
-                        <LogIn className="w-4 h-4" />
-                        {t('courses.start_course')}
-                      </>
-                    )}
-                  </button>
+                  {isStarted ? (
+                    <button
+                      onClick={handleContinueCourse}
+                      className="w-full py-2 px-4 rounded-lg bg-neutral-900 text-white font-semibold text-sm hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {t('courses.continue_course')}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleCourseAction}
+                      disabled={isActionLoading}
+                      className="w-full py-2 px-4 rounded-lg bg-neutral-900 text-white font-semibold text-sm hover:bg-neutral-800 disabled:bg-neutral-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {isActionLoading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <LogIn className="w-4 h-4" />
+                          {t('courses.start_course')}
+                        </>
+                      )}
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
