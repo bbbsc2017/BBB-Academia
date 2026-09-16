@@ -15,6 +15,7 @@ from src.db.payments.offers import (
     PaymentsOfferResource,
     PaymentsOfferUpdate,
 )
+from src.db.usergroup_user import UserGroupUser
 from src.db.usergroups import UserGroupCreate
 from src.db.users import AnonymousUser, APITokenUser, InternalUser, PublicUser
 from src.security.org_auth import require_org_membership, require_org_role_permission
@@ -356,6 +357,20 @@ async def get_offers_by_resource(
         offer_read = await _to_offer_read(offer, db_session)
         if user_id is not None and offer.id is not None:
             from src.services.payments.enrollments import has_active_enrollment
-            offer_read.has_access = await has_active_enrollment(user_id, offer.id, db_session)
+            has_enrollment = await has_active_enrollment(user_id, offer.id, db_session)
+            # An enrollment row isn't the only way in: an admin can also grant
+            # access by adding the user straight to the offer's usergroup
+            # (bulk "add to group" action, or the bbbsc participant-import
+            # flow) without ever creating a PaymentsEnrollment. RBAC already
+            # honors that membership (check_usergroup_access), so has_access
+            # must too, or the UI keeps showing "buy now" to someone who can
+            # already open every lesson.
+            is_group_member = offer.usergroup_id is not None and (await db_session.execute(
+                select(UserGroupUser).where(
+                    UserGroupUser.usergroup_id == offer.usergroup_id,
+                    UserGroupUser.user_id == user_id,
+                )
+            )).scalars().first() is not None
+            offer_read.has_access = has_enrollment or is_group_member
         result.append(offer_read)
     return result
