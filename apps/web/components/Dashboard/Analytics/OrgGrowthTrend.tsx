@@ -68,7 +68,7 @@ export default function OrgGrowthTrend({ days = '90' }: { days?: string }) {
               <Line
                 type="monotone"
                 dataKey="enrollments"
-                stroke="#8b5cf6"
+                stroke="#00a9bf"
                 strokeWidth={2}
                 dot={false}
               />

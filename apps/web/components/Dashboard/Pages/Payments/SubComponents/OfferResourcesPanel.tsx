@@ -15,7 +15,7 @@ interface OfferResourcesPanelProps {
 }
 
 function resourceIcon(uuid: string) {
-  if (uuid.startsWith('course_')) return <BookOpen size={14} className="text-indigo-500" />;
+  if (uuid.startsWith('course_')) return <BookOpen size={14} className="text-[#00a9bf]" />;
   if (uuid.startsWith('podcast_')) return <Mic size={14} className="text-pink-400" />;
   return <Puzzle size={14} className="text-gray-400" />;
 }
@@ -115,7 +115,7 @@ function OfferResourcesPanel({ offerId, offerName }: OfferResourcesPanelProps) {
       {/* Course picker */}
       {!showPicker ? (
         <button
-          className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 mt-1"
+          className="flex items-center gap-1.5 text-xs text-[#00a9bf] hover:text-[#007b8d] mt-1"
           onClick={() => setShowPicker(true)}
         >
           <Plus size={12} /> Link a Course
@@ -145,7 +145,7 @@ function OfferResourcesPanel({ offerId, offerName }: OfferResourcesPanelProps) {
                     onClick={() => handleLinkCourse(course)}
                     className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-white flex items-center gap-2 disabled:opacity-50"
                   >
-                    <BookOpen size={12} className="text-indigo-500 shrink-0" />
+                    <BookOpen size={12} className="text-[#00a9bf] shrink-0" />
                     <span className="truncate">{course.name}</span>
                   </button>
                 </li>

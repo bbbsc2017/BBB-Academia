@@ -213,7 +213,7 @@ function OrgUsersAdd() {
             value={invitedUsers}
             onChange={(e) => setInvitedUsers(e.target.value)}
             aria-label={t('dashboard.users.invite_members.email_placeholder')}
-            className="w-full h-[140px] rounded-lg border border-gray-200 px-4 py-3 bg-gray-50/50 placeholder:italic placeholder:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all resize-none"
+            className="w-full h-[140px] rounded-lg border border-gray-200 px-4 py-3 bg-gray-50/50 placeholder:italic placeholder:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all resize-none"
             placeholder={t('dashboard.users.invite_members.email_placeholder')}
           />
           <div className="flex flex-wrap gap-3 items-center justify-between mt-4">
@@ -225,7 +225,7 @@ function OrgUsersAdd() {
                 onChange={(e) => setSelectedInviteCode(e.target.value || undefined)}
                 value={selectedInviteCode || ''}
                 aria-label={t('dashboard.users.invite_members.invite_code_label')}
-                className="text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                className="text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all"
               >
                 <option value="">{t('dashboard.users.invite_members.no_invite_code') || 'None'}</option>
                 {invites?.map((invite: any) => (
@@ -342,7 +342,7 @@ function OrgUsersAdd() {
                   t('dashboard.users.invite_members.invited_users.search_placeholder') ||
                   'Search by email...'
                 }
-                className="pl-10 pr-4 py-2 w-full sm:w-[200px] border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                className="pl-10 pr-4 py-2 w-full sm:w-[200px] border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all"
                 value={searchValue}
                 onChange={(e) => handleSearchChange(e.target.value)}
               />

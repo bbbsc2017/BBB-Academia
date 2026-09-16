@@ -510,7 +510,7 @@ export default function OrgEditImages() {
                   <div
                     className={cn(
                       "w-[200px] sm:w-[250px] h-[100px] sm:h-[125px] bg-contain bg-no-repeat bg-center rounded-lg shadow-md bg-white",
-                      "border-2 border-gray-100 hover:border-purple-200 transition-all duration-300",
+                      "border-2 border-gray-100 hover:border-[#00a9bf]/25 transition-all duration-300",
                       isThumbnailUploading && "opacity-50"
                     )}
                     style={{ backgroundImage: `url(${localThumbnail || getOrgThumbnailMediaDirectory(org?.org_uuid, org?.thumbnail_image)})` }}
@@ -530,8 +530,8 @@ export default function OrgEditImages() {
                     disabled={isThumbnailUploading}
                     className={cn(
                       "font-medium text-sm px-6 py-2.5 rounded-full",
-                      "bg-linear-to-r from-purple-500 to-purple-600 text-white",
-                      "hover:from-purple-600 hover:to-purple-700",
+                      "bg-[#00a9bf] text-white",
+                      "hover:bg-[#008da0]",
                       "shadow-xs hover:shadow-sm transition-all duration-300",
                       "flex items-center space-x-2",
                       isThumbnailUploading && "opacity-75 cursor-not-allowed"
@@ -543,7 +543,7 @@ export default function OrgEditImages() {
                   </button>
 
                   <div className="flex flex-col text-xs space-y-2 items-center text-gray-500">
-                    <div className="flex items-center space-x-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full">
+                    <div className="flex items-center space-x-2 bg-[#00a9bf]/10 text-[#007b8d] px-3 py-1.5 rounded-full">
                       <Info size={14} />
                       <p className="font-medium">{t('dashboard.organization.images.accepted_files')}</p>
                     </div>

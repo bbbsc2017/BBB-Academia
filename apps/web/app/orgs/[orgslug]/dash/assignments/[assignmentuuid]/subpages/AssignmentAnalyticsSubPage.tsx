@@ -281,8 +281,8 @@ function AssignmentAnalyticsSubPage({ assignment_uuid }: { assignment_uuid: stri
                 {/* KPI row */}
                 <div className="grid grid-cols-4 gap-3">
                     <KpiCard
-                        icon={<Target size={14} className="text-indigo-600" />}
-                        iconBg="bg-indigo-50"
+                        icon={<Target size={14} className="text-[#00a9bf]" />}
+                        iconBg="bg-[#00a9bf]/10"
                         label={t('dashboard.assignments.analytics.kpis.average')}
                         value={noGraded ? '—' : avgFmt.primary}
                         sub={noGraded ? undefined : avgFmt.secondary}

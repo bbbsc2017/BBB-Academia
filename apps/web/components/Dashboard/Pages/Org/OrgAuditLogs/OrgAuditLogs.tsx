@@ -180,7 +180,7 @@ const OrgAuditLogs = () => {
           <div className="flex flex-wrap gap-3 justify-between items-start">
             <div>
               <h1 className="font-bold text-xl text-gray-800 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                <ShieldCheck className="w-5 h-5 text-[#00a9bf]" />
                 {t('dashboard.organization.audit_logs.title')}
               </h1>
               <h2 className="text-gray-500 text-md">
@@ -445,7 +445,7 @@ const OrgAuditLogs = () => {
                         }
                         dialogTrigger={
                           <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors group">
-                            <Eye className="w-4 h-4 text-gray-400 group-hover:text-indigo-600" />
+                            <Eye className="w-4 h-4 text-gray-400 group-hover:text-[#00a9bf]" />
                           </button>
                         }
                       />

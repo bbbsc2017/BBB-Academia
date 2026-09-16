@@ -39,7 +39,7 @@ const AccessCard = React.forwardRef<HTMLDivElement, AccessCardProps>(
                     flex flex-col items-center justify-center text-center
                     transition-all duration-150
                     ${selected
-                        ? 'bg-white border border-indigo-200 ring-1 ring-indigo-100 shadow-xs'
+                        ? 'bg-white border border-[#00a9bf]/25 ring-1 ring-[#00a9bf]/10 shadow-xs'
                         : 'bg-gray-50/80 border border-gray-100 hover:bg-gray-50 hover:border-gray-200'
                     }
                     ${className || ''}
@@ -47,8 +47,8 @@ const AccessCard = React.forwardRef<HTMLDivElement, AccessCardProps>(
                 style={{ minHeight: 180 }}
             >
                 {selected && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full pl-1 pr-2 py-0.5">
-                        <span className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center">
+                    <div className="absolute top-3 right-3 flex items-center gap-1 text-[11px] font-semibold text-[#007b8d] bg-[#00a9bf]/10 border border-[#00a9bf]/15 rounded-full pl-1 pr-2 py-0.5">
+                        <span className="w-4 h-4 rounded-full bg-[#00a9bf] flex items-center justify-center">
                             <Check size={10} strokeWidth={3.5} className="text-white" />
                         </span>
                         <span>Active</span>
@@ -58,7 +58,7 @@ const AccessCard = React.forwardRef<HTMLDivElement, AccessCardProps>(
                 <div
                     className={`
                         w-12 h-12 rounded-xl flex items-center justify-center transition-colors duration-150
-                        ${selected ? 'bg-indigo-50 text-indigo-600' : 'bg-white border border-gray-100 text-gray-400'}
+                        ${selected ? 'bg-[#00a9bf]/10 text-[#00a9bf]' : 'bg-white border border-gray-100 text-gray-400'}
                     `}
                 >
                     <Icon size={24} strokeWidth={1.75} />
@@ -323,7 +323,7 @@ function UserGroupsSection({ usergroups }: { usergroups: any[] }) {
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-[#00a9bf]/10 text-[#00a9bf] flex items-center justify-center flex-shrink-0">
                                                 <Users className="w-4 h-4" />
                                             </div>
                                             <div className="flex flex-col min-w-0">

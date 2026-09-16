@@ -65,7 +65,7 @@ export default function CourseLearnerProgress({
 
   return (
     <CourseWidgetCard
-      icon={<WidgetIcon icon={ChartBar} bg="bg-purple-50" color="text-purple-500" />}
+      icon={<WidgetIcon icon={ChartBar} bg="bg-[#00a9bf]/10" color="text-[#00a9bf]" />}
       title={t('analytics.course_analytics.learner_progress.title')}
       subtitle={t('analytics.course_analytics.learner_progress.subtitle')}
       modalContent={

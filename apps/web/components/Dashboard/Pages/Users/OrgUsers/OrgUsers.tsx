@@ -328,7 +328,7 @@ function OrgUsers() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     placeholder={t('dashboard.users.active_users.search_placeholder') || 'Search users...'}
-                    className="pl-10 pr-4 py-2 w-full sm:w-[220px] border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                    className="pl-10 pr-4 py-2 w-full sm:w-[220px] border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all"
                     value={searchValue}
                     onChange={(e) => handleSearchChange(e.target.value)}
                   />
@@ -406,21 +406,21 @@ function OrgUsers() {
 
             {/* Selection Action Bar */}
             {selectedUserIds.size > 0 && (
-              <div className="flex items-center justify-between px-6 py-3 bg-indigo-50 border-b border-indigo-100">
-                <span className="text-sm font-medium text-indigo-700">
+              <div className="flex items-center justify-between px-6 py-3 bg-[#00a9bf]/10 border-b border-[#00a9bf]/15">
+                <span className="text-sm font-medium text-[#007b8d]">
                   {selectedUserIds.size} user{selectedUserIds.size !== 1 ? 's' : ''} selected
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSelectedUserIds(new Set())}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-3 py-1.5 rounded-md hover:bg-indigo-100 transition-all"
+                    className="text-xs text-[#00a9bf] hover:text-[#007b8d] font-medium px-3 py-1.5 rounded-md hover:bg-[#00a9bf]/10 transition-all"
                   >
                     Clear selection
                   </button>
                   {canManageOrg && (
                     <>
                       <Select value={selectedGroupId || undefined} onValueChange={setSelectedGroupId}>
-                        <SelectTrigger className="h-8 w-[170px] text-xs border-indigo-200 bg-white">
+                        <SelectTrigger className="h-8 w-[170px] text-xs border-[#00a9bf]/25 bg-white">
                           <SelectValue placeholder={t('dashboard.users.active_users.actions.pick_group', { defaultValue: 'Add to group...' })} />
                         </SelectTrigger>
                         <SelectContent>
@@ -434,7 +434,7 @@ function OrgUsers() {
                       <button
                         onClick={handleAddSelectedToGroup}
                         disabled={!selectedGroupId || isAddingToGroup}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-md text-xs font-medium transition-all"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00a9bf] text-white hover:bg-[#008da0] disabled:opacity-40 disabled:cursor-not-allowed rounded-md text-xs font-medium transition-all"
                       >
                         <Users className="w-3.5 h-3.5" />
                         <span>{t('dashboard.users.active_users.actions.add_to_group', { defaultValue: 'Add to group' })}</span>
@@ -515,7 +515,7 @@ function OrgUsers() {
                     {hasActiveFilters && (
                       <button
                         onClick={resetFilters}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                        className="text-xs text-[#00a9bf] hover:text-[#007b8d] font-medium"
                       >
                         Clear all filters
                       </button>
@@ -537,7 +537,7 @@ function OrgUsers() {
                           type="checkbox"
                           checked={allVisibleSelected}
                           onChange={toggleSelectAll}
-                          className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                          className="w-4 h-4 rounded border-gray-300 text-[#00a9bf] focus:ring-[#00a9bf] cursor-pointer"
                         />
                       </th>
                       <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">
@@ -574,7 +574,7 @@ function OrgUsers() {
                     {orgUsers?.map((user: any) => (
                       <tr
                         key={user.user.id}
-                        className={`hover:bg-gray-50 transition-colors ${selectedUserIds.has(user.user.id) ? 'bg-indigo-50/40' : ''}`}
+                        className={`hover:bg-gray-50 transition-colors ${selectedUserIds.has(user.user.id) ? 'bg-[#00a9bf]/10' : ''}`}
                       >
                         {/* Checkbox */}
                         <td className="px-6 py-4 w-10">
@@ -582,7 +582,7 @@ function OrgUsers() {
                             type="checkbox"
                             checked={selectedUserIds.has(user.user.id)}
                             onChange={() => toggleSelectUser(user.user.id)}
-                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            className="w-4 h-4 rounded border-gray-300 text-[#00a9bf] focus:ring-[#00a9bf] cursor-pointer"
                           />
                         </td>
 

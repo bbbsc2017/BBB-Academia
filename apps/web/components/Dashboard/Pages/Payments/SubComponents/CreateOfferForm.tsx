@@ -230,7 +230,7 @@ const CreateOfferForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => 
                       return (
                         <li key={uuid} className="flex items-center justify-between bg-white rounded px-2 py-1 text-xs border">
                           <div className="flex items-center gap-1.5">
-                            <BookOpen size={11} className="text-indigo-500" />
+                            <BookOpen size={11} className="text-[#00a9bf]" />
                             <span>{course?.name ?? uuid}</span>
                           </div>
                           <button
@@ -301,7 +301,7 @@ const CreateOfferForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => 
                     {groups.map((g: any) => (
                       <SelectItem key={g.id} value={String(g.id)}>
                         <div className="flex items-center gap-1.5">
-                          <Layers size={11} className="text-indigo-500" />
+                          <Layers size={11} className="text-[#00a9bf]" />
                           {g.name}
                         </div>
                       </SelectItem>
