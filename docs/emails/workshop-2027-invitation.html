@@ -20,6 +20,12 @@
       .card { background:rgba(255,255,255,.94); border:1px solid rgba(0,169,191,.30); border-radius:24px; box-shadow:0 12px 28px rgba(0,169,191,.14); }
       .access { background:rgba(0,169,191,.09); border:1px solid rgba(0,169,191,.32); border-radius:20px; }
       .button { display:inline-block; background:linear-gradient(135deg, #00a9bf 0%, rgba(0,169,191,.70) 100%); border-radius:999px; color:#ffffff !important; font-size:15px; font-weight:700; line-height:50px; padding:0 30px; text-decoration:none; }
+      .whatsapp-button { display:inline-block; background:#00a9bf; border:1px solid rgba(255,255,255,.55); border-radius:999px; color:#ffffff !important; font-size:13px; font-weight:700; line-height:42px; padding:0 24px; text-decoration:none; }
+      .nav { animation:bannerGlow 7s ease-in-out infinite alternate; }
+      .button, .whatsapp-button { animation:buttonLift 2.8s ease-in-out infinite; }
+      @keyframes bannerGlow { from { background-position:0% 50%; } to { background-position:100% 50%; } }
+      @keyframes buttonLift { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2px); } }
+      @media (prefers-reduced-motion:reduce) { .nav, .button, .whatsapp-button { animation:none !important; } }
       @media screen and (max-width:640px) {
         .container { width:100% !important; }
         .pad { padding-left:22px !important; padding-right:22px !important; }
@@ -45,6 +51,7 @@
               <td colspan="2" class="font" style="padding-top:18px; color:#ffffff; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:13px; font-weight:500; line-height:1.55;">Preparación en inglés para tu experiencia<br />Summer Work and Travel USA.</td>
             </tr></table>
           </td></tr>
+          <tr><td height="16" style="height:16px; line-height:16px; font-size:0;">&nbsp;</td></tr>
           <tr><td class="card pad" style="background:rgba(255,255,255,.94); border:1px solid rgba(0,169,191,.30); border-radius:24px; box-shadow:0 12px 28px rgba(0,169,191,.14); margin-top:16px; padding:42px 46px 38px;">
             <p class="font" style="margin:0 0 12px; color:#00a9bf; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:12px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase;">Summer Work and Travel USA 2027</p>
             <h1 class="title font" style="margin:0; color:#1c1c1c; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:38px; font-weight:800; letter-spacing:-1.3px; line-height:1.12;">Tu preparación en inglés<br /><span style="color:#00a9bf;">empieza hoy.</span></h1>
@@ -58,8 +65,10 @@
             </td></tr></table>
             <table role="presentation" width="100%"><tr><td align="center" style="padding-top:28px;"><a class="button font" href="{{course_url}}" target="_blank" style="background:linear-gradient(135deg,#00a9bf 0%,rgba(0,169,191,.70) 100%); border-radius:999px; color:#ffffff; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:15px; font-weight:700; line-height:50px; padding:0 30px; text-decoration:none;">Entrar a mi curso&nbsp; →</a></td></tr></table>
           </td></tr>
+          <tr><td height="16" style="height:16px; line-height:16px; font-size:0;">&nbsp;</td></tr>
           <tr><td class="card pad" style="background:rgba(255,255,255,.94); border:1px solid rgba(0,169,191,.30); border-radius:24px; box-shadow:0 12px 28px rgba(0,169,191,.14); margin-top:16px; padding:22px 32px;">
             <p class="font" style="margin:0; color:#1c1c1c; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:12px; line-height:1.65;">No compartas tus datos de acceso. Si tienes problemas para ingresar, escríbenos por WhatsApp al <a href="https://wa.me/573208885357" style="color:#00a9bf; font-weight:700; text-decoration:none;">+57 320 888 5357</a>.</p>
+            <table role="presentation" width="100%"><tr><td align="center" style="padding-top:16px;"><a class="whatsapp-button font" href="https://wa.me/573208885357" target="_blank" style="display:inline-block; background:#00a9bf; border:1px solid rgba(255,255,255,.55); border-radius:999px; color:#ffffff; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; line-height:42px; padding:0 24px; text-decoration:none;">Escríbenos por WhatsApp&nbsp; →</a></td></tr></table>
           </td></tr>
           <tr><td align="center" class="font" style="padding:25px 18px 0; color:#1c1c1c; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:11px;">© 2026 BBB Academia · Todos los derechos reservados</td></tr>
         </table>
