@@ -38,13 +38,10 @@ import {
 import { SiYoutube } from '@icons-pack/react-simple-icons'
 import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 import React from 'react'
-import Image from 'next/image'
 import LinkInputTooltip from './LinkInputTooltip'
-import lrnaiIcon from 'public/lrnai_icon.png'
-import { useOrg } from '@components/Contexts/OrgContext'
 import { useTranslation } from 'react-i18next'
 
-export const ToolbarButtons = React.memo(({ editor, props }: any) => {
+export const ToolbarButtons = React.memo(({ editor }: any) => {
   const { t } = useTranslation()
   const [showTableMenu, setShowTableMenu] = React.useState(false)
   const [showListMenu, setShowListMenu] = React.useState(false)
@@ -52,11 +49,6 @@ export const ToolbarButtons = React.memo(({ editor, props }: any) => {
   const [showCalloutMenu, setShowCalloutMenu] = React.useState(false)
   const [showLinkInput, setShowLinkInput] = React.useState(false)
   const linkButtonRef = React.useRef<HTMLDivElement>(null)
-
-  // Get AI feature from resolved_features
-  const orgContext = useOrg() as any
-  const rf = orgContext?.config?.config?.resolved_features
-  const canUseAI = rf?.ai?.enabled === true
 
   if (!editor) {
     return null
@@ -123,7 +115,6 @@ export const ToolbarButtons = React.memo(({ editor, props }: any) => {
     const { from, to } = editor.state.selection
 
     if (editor.isActive('link')) {
-      const currentLink = editor.getAttributes('link')
       setShowLinkInput(true)
     } else {
       setShowLinkInput(true)
@@ -616,25 +607,8 @@ export const ToolbarButtons = React.memo(({ editor, props }: any) => {
           <GitBranch size={15} weight="fill" />
         </div>
       </ToolTip>
-      <ToolTip content={canUseAI ? t('editor.blocks.magic_block') : t('editor.blocks.magic_block_disabled')}>
-        {canUseAI ? (
-          <div
-            className="editor-tool-btn editor-tool-btn-magic"
-            onClick={() =>
-              editor.chain().focus().insertContent({
-                type: 'blockMagic',
-              }).run()
-            }
-            aria-label={t('editor.blocks.magic_block')}
-          >
-            <Image src={lrnaiIcon} alt="Magic Block" width={15} height={15} />
-          </div>
-        ) : (
-          <div className="editor-tool-btn editor-tool-btn-magic editor-tool-btn-magic-disabled" aria-label={t('editor.blocks.magic_block_disabled')}>
-            <Image src={lrnaiIcon} alt="Magic Block" width={15} height={15} />
-          </div>
-        )}
-      </ToolTip>
     </div>
   )
 })
+
+ToolbarButtons.displayName = 'ToolbarButtons'

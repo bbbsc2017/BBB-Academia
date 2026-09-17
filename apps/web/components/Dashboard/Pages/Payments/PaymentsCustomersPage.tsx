@@ -142,10 +142,10 @@ function OverviewTab({ orgId, accessToken }: { orgId: number; accessToken: strin
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <MetricCard label="MRR"               value={fmt(d.mrr)}            icon={TrendingUp}  color="bg-blue-100 text-blue-600" />
-        <MetricCard label="ARR"               value={fmt(d.arr)}            icon={TrendingUp}  color="bg-indigo-100 text-indigo-600" />
+        <MetricCard label="ARR"               value={fmt(d.arr)}            icon={TrendingUp}  color="bg-[#00a9bf]/20 text-[#00a9bf]" />
         <MetricCard label="Total revenue"     value={fmt(d.total_revenue)}  icon={DollarSign}  color="bg-green-100 text-green-600" />
         <MetricCard label="Active subscribers" value={String(d.active_subscribers)} icon={RefreshCcw} color="bg-cyan-100 text-[#00879a]" />
-        <MetricCard label="Total customers"   value={String(d.total_customers)} icon={Users}   color="bg-purple-100 text-purple-600" />
+        <MetricCard label="Total customers"   value={String(d.total_customers)} icon={Users}   color="bg-[#00a9bf]/10 text-[#007b8d]" />
         <MetricCard label="Churned (30d)"     value={String(d.churn_30d)}   icon={Activity}    color="bg-red-100 text-red-500" />
       </div>
 

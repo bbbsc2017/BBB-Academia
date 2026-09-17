@@ -11,7 +11,6 @@ import {
   PencilSimple,
   Square,
   YoutubeLogo,
-  Sparkle,
   BookOpen,
   Code,
   Globe,
@@ -29,16 +28,16 @@ import { cn } from '@/lib/utils'
 import type { Editor } from '@tiptap/core'
 import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 
-type ToolMode = 'select' | 'pan' | 'draw' | 'card' | 'youtube' | 'playground' | 'activity' | 'embed' | 'webpage' | 'sticker' | 'frame' | 'note' | 'todo' | 'podcast'
+type ToolMode = 'select' | 'pan' | 'draw' | 'card' | 'youtube' | 'activity' | 'embed' | 'webpage' | 'sticker' | 'frame' | 'note' | 'todo' | 'podcast'
 
 interface BoardToolbarProps {
   toolMode: ToolMode
-  onToolModeChange: (mode: ToolMode) => void
+  onToolModeChange: (_mode: ToolMode) => void
   editor: Editor
   drawColor: string
   drawWidth: number
-  onDrawColorChange: (color: string) => void
-  onDrawWidthChange: (width: number) => void
+  onDrawColorChange: (_color: string) => void
+  onDrawWidthChange: (_width: number) => void
 }
 
 const DRAW_COLORS = [
@@ -62,7 +61,6 @@ const tools = [
   { mode: 'todo' as const, icon: CheckSquare, label: 'boards.toolbar.todo', colorClass: 'editor-tool-btn-info' },
   { mode: 'sticker' as const, icon: Smiley, label: 'boards.toolbar.sticker', colorClass: 'editor-tool-btn-warning' },
   { mode: 'youtube' as const, icon: YoutubeLogo, label: 'boards.toolbar.youtube', colorClass: 'editor-tool-btn-interactive' },
-  { mode: 'playground' as const, icon: Sparkle, label: 'boards.toolbar.ai_playground', colorClass: 'editor-tool-btn-tip' },
   { mode: 'activity' as const, icon: BookOpen, label: 'boards.toolbar.activity', colorClass: 'editor-tool-btn-info' },
   { mode: 'embed' as const, icon: Code, label: 'boards.toolbar.embed', colorClass: 'editor-tool-btn-interactive' },
   { mode: 'webpage' as const, icon: Globe, label: 'boards.toolbar.webpage', colorClass: 'editor-tool-btn-info' },

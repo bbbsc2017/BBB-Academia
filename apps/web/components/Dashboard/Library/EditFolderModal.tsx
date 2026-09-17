@@ -109,7 +109,7 @@ function EditFolderModal({ folder, closeModal, onChanged }: Props) {
             onClick={() => formik.setFieldValue('public', true)}
             className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
               formik.values.public
-                ? 'bg-white border-indigo-200 ring-1 ring-indigo-100 text-gray-900'
+                ? 'bg-white border-[#00a9bf]/25 ring-1 ring-[#00a9bf]/10 text-gray-900'
                 : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'
             }`}
           >
@@ -120,7 +120,7 @@ function EditFolderModal({ folder, closeModal, onChanged }: Props) {
             onClick={() => formik.setFieldValue('public', false)}
             className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
               !formik.values.public
-                ? 'bg-white border-indigo-200 ring-1 ring-indigo-100 text-gray-900'
+                ? 'bg-white border-[#00a9bf]/25 ring-1 ring-[#00a9bf]/10 text-gray-900'
                 : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'
             }`}
           >

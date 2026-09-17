@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { UploadCloud, Info, Plus, X, GripVertical, Images, StarIcon, ImageIcon, Share2, Link as LinkIcon, Palette, LogIn } from 'lucide-react'
+import { UploadCloud, Info, Plus, X, GripVertical, Images, StarIcon, ImageIcon, Share2, Palette, LogIn } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useOrg } from '@components/Contexts/OrgContext'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
@@ -151,7 +151,7 @@ export default function OrgEditBranding() {
         toast.success(t('dashboard.organization.images.toasts.logo_success'), { id: loadingToast })
         queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
         router.refresh()
-      } catch (err) {
+      } catch {
         toast.error(t('dashboard.organization.images.toasts.logo_error'), { id: loadingToast })
       } finally {
         setIsLogoUploading(false)
@@ -171,7 +171,7 @@ export default function OrgEditBranding() {
         toast.success(t('dashboard.organization.images.toasts.thumbnail_success'), { id: loadingToast })
         queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
         router.refresh()
-      } catch (err) {
+      } catch {
         toast.error(t('dashboard.organization.images.toasts.thumbnail_error'), { id: loadingToast })
       } finally {
         setIsThumbnailUploading(false)
@@ -192,7 +192,7 @@ export default function OrgEditBranding() {
         await revalidateTags(['organizations'], org.slug)
         queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
         router.refresh()
-      } catch (err) {
+      } catch {
         toast.error(t('dashboard.organization.images.toasts.logo_error'), { id: loadingToast })
       } finally {
         setIsFaviconUploading(false)
@@ -262,7 +262,7 @@ export default function OrgEditBranding() {
           : t('dashboard.organization.images.toasts.preview_added_plural', { count: files.length }), { id: loadingToast })
         queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
         router.refresh()
-      } catch (err) {
+      } catch {
         toast.error(t('dashboard.organization.images.toasts.preview_error'), { id: loadingToast })
       } finally {
         setIsPreviewUploading(false)
@@ -286,14 +286,14 @@ export default function OrgEditBranding() {
       toast.success(t('dashboard.organization.images.toasts.preview_removed'), { id: loadingToast })
       queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
       router.refresh()
-    } catch (err) {
+    } catch {
       toast.error(t('dashboard.organization.images.toasts.preview_remove_error'), { id: loadingToast })
     }
   }
 
   const extractVideoId = (url: string, type: 'youtube' | 'loom'): string | null => {
     if (type === 'youtube') {
-      const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+      const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
       const match = url.match(regex)
       return match ? match[1] : null
     } else if (type === 'loom') {
@@ -359,7 +359,7 @@ export default function OrgEditBranding() {
       toast.success(t('dashboard.organization.images.toasts.video_preview_added'), { id: loadingToast });
       queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) });
       router.refresh();
-    } catch (err) {
+    } catch {
       toast.error(t('dashboard.organization.images.toasts.video_preview_error'), { id: loadingToast });
     }
   };
@@ -402,7 +402,7 @@ export default function OrgEditBranding() {
       toast.success(t('dashboard.organization.images.toasts.order_updated'), { id: loadingToast });
       queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) });
       router.refresh();
-    } catch (err) {
+    } catch {
       toast.error(t('dashboard.organization.images.toasts.order_update_error'), { id: loadingToast });
       setPreviews(previews);
     }
@@ -426,7 +426,7 @@ export default function OrgEditBranding() {
       queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
       toast.success(t('dashboard.organization.settings.update_success'), { id: loadingToast })
       router.refresh()
-    } catch (err) {
+    } catch {
       toast.error(t('dashboard.organization.settings.update_error'), { id: loadingToast })
     } finally {
       setIsThemeSaving(false)
@@ -455,7 +455,7 @@ export default function OrgEditBranding() {
 
       queryClient.invalidateQueries({ queryKey: queryKeys.org.detail(org.slug) })
       toast.success(t('dashboard.organization.settings.update_success'), { id: loadingToast })
-    } catch (err) {
+    } catch {
       toast.error(t('dashboard.organization.settings.update_error'), { id: loadingToast })
     }
   }
@@ -631,7 +631,7 @@ export default function OrgEditBranding() {
                       <div
                         className={cn(
                           "w-[200px] sm:w-[250px] h-[100px] sm:h-[125px] bg-contain bg-no-repeat bg-center rounded-lg shadow-md bg-white",
-                          "border-2 border-gray-100 hover:border-purple-200 transition-all duration-300",
+                          "border-2 border-gray-100 hover:border-[#00a9bf]/25 transition-all duration-300",
                           isThumbnailUploading && "opacity-50"
                         )}
                         style={{ backgroundImage: `url(${localThumbnail || getOrgThumbnailMediaDirectory(org?.org_uuid, org?.thumbnail_image)})` }}
@@ -651,8 +651,8 @@ export default function OrgEditBranding() {
                         disabled={isThumbnailUploading}
                         className={cn(
                           "font-medium text-sm px-6 py-2.5 rounded-full",
-                          "bg-linear-to-r from-purple-500 to-purple-600 text-white",
-                          "hover:from-purple-600 hover:to-purple-700",
+                          "bg-[#00a9bf] text-white",
+                          "hover:bg-[#008da0]",
                           "shadow-xs hover:shadow-sm transition-all duration-300",
                           "flex items-center space-x-2",
                           isThumbnailUploading && "opacity-75 cursor-not-allowed"
@@ -664,7 +664,7 @@ export default function OrgEditBranding() {
                       </button>
 
                       <div className="flex flex-col text-xs space-y-2 items-center text-gray-500">
-                        <div className="flex items-center space-x-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full">
+                        <div className="flex items-center space-x-2 bg-[#00a9bf]/10 text-[#007b8d] px-3 py-1.5 rounded-full">
                           <Info size={14} />
                           <p className="font-medium">{t('dashboard.organization.images.accepted_files')}</p>
                         </div>

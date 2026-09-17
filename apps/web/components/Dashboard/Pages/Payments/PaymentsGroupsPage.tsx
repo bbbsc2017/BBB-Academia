@@ -92,9 +92,9 @@ function GroupResourcePanel({ group, orgId, token }: { group: any; orgId: number
       ) : (
         <ul className="space-y-1">
           {rawList.map((uuid: string) => (
-            <li key={uuid} className="flex items-center justify-between bg-indigo-50 rounded-lg px-3 py-2">
+            <li key={uuid} className="flex items-center justify-between bg-[#00a9bf]/10 rounded-lg px-3 py-2">
               <div className="flex items-center gap-2">
-                <BookOpen size={13} className="text-indigo-500 shrink-0" />
+                <BookOpen size={13} className="text-[#00a9bf] shrink-0" />
                 <span className="text-sm font-medium text-gray-800 truncate max-w-[200px]">
                   {nameMap[uuid] ?? uuid}
                 </span>
@@ -115,7 +115,7 @@ function GroupResourcePanel({ group, orgId, token }: { group: any; orgId: number
       {!pickerOpen ? (
         <button
           onClick={() => setPickerOpen(true)}
-          className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors py-1"
+          className="flex items-center gap-1.5 text-xs font-medium text-[#00a9bf] hover:text-[#007b8d] transition-colors py-1"
         >
           <Plus size={12} /> Add course
         </button>
@@ -139,9 +139,9 @@ function GroupResourcePanel({ group, orgId, token }: { group: any; orgId: number
                   <li key={uuid}>
                     <button
                       onClick={() => handleAdd(uuid)}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-2 transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-[#00a9bf]/10 flex items-center gap-2 transition-colors"
                     >
-                      <BookOpen size={13} className="text-indigo-400 shrink-0" />
+                      <BookOpen size={13} className="text-[#00a9bf]/60 shrink-0" />
                       <span className="truncate">{c.name}</span>
                     </button>
                   </li>
@@ -251,16 +251,16 @@ function GroupSyncPanel({ group, orgId, token }: { group: any; orgId: number; to
 
 function GroupCard({ group, orgId, token, onEdit, onDelete }: {
   group: any; orgId: number; token: string;
-  onEdit: (g: any) => void;
-  onDelete: (id: number) => void;
+  onEdit: (_g: any) => void;
+  onDelete: (_id: number) => void;
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 nice-shadow overflow-hidden flex flex-col">
       {/* Card header */}
       <div className="flex items-start justify-between px-4 pt-4 pb-3 border-b border-gray-50">
         <div className="flex items-start gap-2.5 min-w-0">
-          <div className="mt-0.5 w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-            <Layers size={14} className="text-indigo-500" />
+          <div className="mt-0.5 w-7 h-7 rounded-lg bg-[#00a9bf]/10 flex items-center justify-center shrink-0">
+            <Layers size={14} className="text-[#00a9bf]" />
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-sm text-gray-900 leading-snug">{group.name}</h3>
@@ -296,7 +296,7 @@ function GroupCard({ group, orgId, token, onEdit, onDelete }: {
         {/* Courses section */}
         <div className="px-4 py-3">
           <div className="flex items-center gap-1.5 mb-2.5">
-            <BookOpen size={12} className="text-indigo-400" />
+            <BookOpen size={12} className="text-[#00a9bf]/60" />
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Courses</span>
           </div>
           <GroupResourcePanel group={group} orgId={orgId} token={token} />
@@ -321,7 +321,7 @@ function GroupCard({ group, orgId, token, onEdit, onDelete }: {
 
 function GroupForm({ initial, onSubmit, onCancel }: {
   initial?: { name: string; description: string };
-  onSubmit: (data: { name: string; description: string }) => Promise<void>;
+  onSubmit: (_data: { name: string; description: string }) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
@@ -489,8 +489,8 @@ export default function PaymentsGroupsPage() {
 
       {list.length === 0 ? (
         <div className="border border-dashed border-gray-200 rounded-xl p-12 text-center">
-          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Layers size={22} className="text-indigo-300" />
+          <div className="w-12 h-12 bg-[#00a9bf]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Layers size={22} className="text-[#00a9bf]/50" />
           </div>
           <p className="font-semibold text-gray-600 mb-1">No groups yet</p>
           <p className="text-sm text-gray-400 mb-4 max-w-xs mx-auto">

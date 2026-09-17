@@ -440,7 +440,7 @@ function TaskFormObject({ view, assignmentTaskUUID, user_id }: TaskFormObjectPro
                 autoGradable={true}
             >
                 {view === 'grading' && (
-                    <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-[#00a9bf]/10 rounded-lg border border-blue-200">
                         <h3 className="text-sm font-semibold text-gray-800 mb-2">Submission Summary</h3>
                         <div className="grid grid-cols-3 gap-4 text-sm">
                             <div className="text-center">

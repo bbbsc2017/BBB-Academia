@@ -76,9 +76,6 @@ export const queryKeys = {
     meta: (uuid: string) => ['podcast', uuid, 'meta'] as const,
     episodes: (uuid: string) => ['podcast', uuid, 'episodes'] as const,
   },
-  ai: {
-    ragSessions: (orgSlug: string) => ['ai', 'rag', 'sessions', orgSlug] as const,
-  },
   certifications: {
     detail: (uuid: string) => ['certification', uuid] as const,
     byCourse: (courseUuid: string) => ['certification', 'byCourse', courseUuid] as const,

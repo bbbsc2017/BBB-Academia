@@ -23,7 +23,6 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import {  UploadCloud, Image as ImageIcon, Clipboard } from 'lucide-react'
 import UnsplashImagePicker from "@components/Dashboard/Pages/Course/EditCourseGeneral/UnsplashImagePicker"
-import AIImageButton from '@components/Objects/AI/AIImageButton'
 import FormTagInput from "@components/Objects/StyledElements/Form/TagInput"
 import { useTranslation } from "react-i18next"
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
@@ -191,10 +190,6 @@ function CreateCourseModal({ closeModal, orgslug }: any) {
     setIsUploading(false)
   }
 
-  const handleAIImageFile = async (file: File) => {
-    formik.setFieldValue('thumbnail', file)
-  }
-
   const handlePasteFromClipboard = async () => {
     try {
       const clipboardItems = await navigator.clipboard.read()
@@ -305,11 +300,6 @@ function CreateCourseModal({ closeModal, orgslug }: any) {
                   <Clipboard size={16} className="mr-2" />
                   <span>{t('courses.paste_from_clipboard')}</span>
                 </button>
-                <AIImageButton
-                  onSelect={handleUnsplashSelect}
-                  onSelectFile={handleAIImageFile}
-                  className="font-bold antialiased items-center text-gray text-sm rounded-md px-4 mt-6 flex gap-2"
-                />
               </div>
             </div>
           </div>

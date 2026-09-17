@@ -96,7 +96,7 @@ function UploadMediaModal({ folderUuid, closeModal, onChanged }: Props) {
           onClick={() => setMode('UPLOAD')}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
             mode === 'UPLOAD'
-              ? 'bg-white border-indigo-200 ring-1 ring-indigo-100 text-gray-900'
+              ? 'bg-white border-[#00a9bf]/25 ring-1 ring-[#00a9bf]/10 text-gray-900'
               : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'
           }`}
         >
@@ -107,7 +107,7 @@ function UploadMediaModal({ folderUuid, closeModal, onChanged }: Props) {
           onClick={() => setMode('EMBED')}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
             mode === 'EMBED'
-              ? 'bg-white border-indigo-200 ring-1 ring-indigo-100 text-gray-900'
+              ? 'bg-white border-[#00a9bf]/25 ring-1 ring-[#00a9bf]/10 text-gray-900'
               : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'
           }`}
         >

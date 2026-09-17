@@ -13,7 +13,7 @@ import {
 } from 'recharts'
 
 const BRACKETS = ['0%', '1-25%', '26-50%', '51-75%', '76-100%']
-const COLORS = ['#e5e7eb', '#c4b5fd', '#a78bfa', '#8b5cf6', '#6d28d9']
+const COLORS = ['#e5e7eb', '#b2e4ea', '#66c6d3', '#00a9bf', '#00707d']
 
 export default function UserProgressSnapshot({ days = '90' }: { days?: string }) {
   const { data, isLoading } = useAnalyticsPipe('user_progress_snapshot', { days })

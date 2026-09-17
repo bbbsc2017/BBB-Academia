@@ -42,42 +42,9 @@ export default function CourseAvgSessionDuration({
 
   const empty = !isLoading && rows.length === 0
 
-  const MiniChart = () => (
-    <ResponsiveContainer width="100%" height={160}>
-      <BarChart data={rows}>
-        <XAxis dataKey="shortDate" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-        <Tooltip
-          formatter={(value = 0) => [`${value} min ${t('analytics.course_analytics.units.avg_per_learner')}`, '']}
-          contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
-        />
-        <Bar dataKey="minutes" name={t('analytics.course_analytics.avg_session_duration.minutes_label')} fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  )
-
-  const ModalChart = () => (
-    <ResponsiveContainer width="100%" height={380}>
-      <BarChart data={rows}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-        <XAxis dataKey="shortDate" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-        <YAxis
-          tick={{ fontSize: 11 }}
-          axisLine={false}
-          tickLine={false}
-          label={{ value: t('analytics.course_analytics.avg_session_duration.minutes_label'), angle: -90, position: 'insideLeft', fontSize: 10 }}
-        />
-        <Tooltip
-          formatter={(value = 0) => [`${value} min ${t('analytics.course_analytics.units.avg_per_learner')}`, '']}
-          contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
-        />
-        <Bar dataKey="minutes" name={t('analytics.course_analytics.avg_session_duration.minutes_label')} fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  )
-
   return (
     <CourseWidgetCard
-      icon={<WidgetIcon icon={ClockCountdown} bg="bg-purple-50" color="text-purple-500" />}
+      icon={<WidgetIcon icon={ClockCountdown} bg="bg-[#00a9bf]/10" color="text-[#00a9bf]" />}
       title={t('analytics.course_analytics.avg_session_duration.title')}
       subtitle={t('analytics.course_analytics.avg_session_duration.subtitle')}
       modalContent={
@@ -88,16 +55,32 @@ export default function CourseAvgSessionDuration({
         ) : (
           <div className="space-y-5">
             <div className="flex gap-8">
-              <div className="bg-purple-50 rounded-xl px-5 py-3">
-                <p className="text-[10px] uppercase tracking-wider text-purple-400 font-semibold">{t('analytics.course_analytics.avg_session_duration.total_time')}</p>
-                <p className="text-2xl font-bold text-purple-600">{formatSeconds(totalSeconds)}</p>
+              <div className="bg-[#00a9bf]/10 rounded-xl px-5 py-3">
+                <p className="text-[10px] uppercase tracking-wider text-[#00a9bf]/60 font-semibold">{t('analytics.course_analytics.avg_session_duration.total_time')}</p>
+                <p className="text-2xl font-bold text-[#00a9bf]">{formatSeconds(totalSeconds)}</p>
               </div>
               <div className="bg-gray-50 rounded-xl px-5 py-3">
                 <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{t('analytics.course_analytics.avg_session_duration.avg_per_day')}</p>
                 <p className="text-2xl font-bold text-gray-700">{avgMinutes}m</p>
               </div>
             </div>
-            <ModalChart />
+            <ResponsiveContainer width="100%" height={380}>
+              <BarChart data={rows}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="shortDate" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  label={{ value: t('analytics.course_analytics.avg_session_duration.minutes_label'), angle: -90, position: 'insideLeft', fontSize: 10 }}
+                />
+                <Tooltip
+                  formatter={(value = 0) => [`${value} min ${t('analytics.course_analytics.units.avg_per_learner')}`, '']}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
+                />
+                <Bar dataKey="minutes" name={t('analytics.course_analytics.avg_session_duration.minutes_label')} fill="#00a9bf" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         )
       }
@@ -113,9 +96,18 @@ export default function CourseAvgSessionDuration({
               <span className="text-2xl font-bold text-gray-900">{avgMinutes}m</span>
               <span className="text-xs text-gray-400">{t('analytics.course_analytics.units.avg_per_day')}</span>
             </div>
-            <span className="text-xs text-purple-400">{formatSeconds(totalSeconds)} {t('analytics.course_analytics.units.total')}</span>
+            <span className="text-xs text-[#00a9bf]/60">{formatSeconds(totalSeconds)} {t('analytics.course_analytics.units.total')}</span>
           </div>
-          <MiniChart />
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={rows}>
+              <XAxis dataKey="shortDate" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                formatter={(value = 0) => [`${value} min ${t('analytics.course_analytics.units.avg_per_learner')}`, '']}
+                contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
+              />
+              <Bar dataKey="minutes" name={t('analytics.course_analytics.avg_session_duration.minutes_label')} fill="#00a9bf" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
     </CourseWidgetCard>

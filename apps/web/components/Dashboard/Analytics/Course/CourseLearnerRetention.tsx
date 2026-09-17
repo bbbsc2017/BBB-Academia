@@ -28,63 +28,9 @@ export default function CourseLearnerRetention({
 
   const empty = !isLoading && chartRows.length === 0
 
-  const MiniChart = () => (
-    <ResponsiveContainer width="100%" height={160}>
-      <AreaChart data={chartRows}>
-        <defs>
-          <linearGradient id="retentionGradientMini" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity={0.2} />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        <XAxis dataKey="day" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-        <Tooltip
-          formatter={(value = 0) => [`${value}% ${t('analytics.course_analytics.units.retention')}`, '']}
-          labelFormatter={(label) => t('analytics.course_analytics.learner_retention.day_label', { day: label })}
-          contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
-        />
-        <Area type="monotone" dataKey="retention" stroke="#6366f1" strokeWidth={2} fill="url(#retentionGradientMini)" dot={false} />
-      </AreaChart>
-    </ResponsiveContainer>
-  )
-
-  const ModalChart = () => (
-    <ResponsiveContainer width="100%" height={380}>
-      <AreaChart data={chartRows}>
-        <defs>
-          <linearGradient id="retentionGradientModal" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-        <XAxis
-          dataKey="day"
-          tick={{ fontSize: 11 }}
-          axisLine={false}
-          tickLine={false}
-          label={{ value: t('analytics.course_analytics.learner_retention.days_since_first'), position: 'insideBottom', offset: -5, fontSize: 10 }}
-        />
-        <YAxis
-          domain={[0, 100]}
-          tick={{ fontSize: 11 }}
-          axisLine={false}
-          tickLine={false}
-          tickFormatter={(v) => `${v}%`}
-        />
-        <Tooltip
-          formatter={(value = 0) => [`${value}% ${t('analytics.course_analytics.units.retention')}`, '']}
-          labelFormatter={(label) => t('analytics.course_analytics.learner_retention.day_label', { day: label })}
-          contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
-        />
-        <Area type="monotone" dataKey="retention" stroke="#6366f1" strokeWidth={2.5} fill="url(#retentionGradientModal)" dot={{ r: 3, fill: '#6366f1', strokeWidth: 0 }} />
-      </AreaChart>
-    </ResponsiveContainer>
-  )
-
   return (
     <CourseWidgetCard
-      icon={<WidgetIcon icon={UsersFour} bg="bg-indigo-50" color="text-indigo-500" />}
+      icon={<WidgetIcon icon={UsersFour} bg="bg-[#00a9bf]/10" color="text-[#00a9bf]" />}
       title={t('analytics.course_analytics.learner_retention.title')}
       subtitle={t('analytics.course_analytics.learner_retention.subtitle')}
       modalContent={
@@ -95,16 +41,46 @@ export default function CourseLearnerRetention({
         ) : (
           <div className="space-y-5">
             <div className="flex gap-8">
-              <div className="bg-indigo-50 rounded-xl px-5 py-3">
-                <p className="text-[10px] uppercase tracking-wider text-indigo-400 font-semibold">{t('analytics.course_analytics.learner_retention.cohort_size')}</p>
-                <p className="text-2xl font-bold text-indigo-600">{cohortSize}</p>
+              <div className="bg-[#00a9bf]/10 rounded-xl px-5 py-3">
+                <p className="text-[10px] uppercase tracking-wider text-[#00a9bf]/60 font-semibold">{t('analytics.course_analytics.learner_retention.cohort_size')}</p>
+                <p className="text-2xl font-bold text-[#00a9bf]">{cohortSize}</p>
               </div>
               <div className="bg-gray-50 rounded-xl px-5 py-3">
                 <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{t('analytics.course_analytics.learner_retention.current_retention')}</p>
                 <p className="text-2xl font-bold text-gray-700">{latestRetention}%</p>
               </div>
             </div>
-            <ModalChart />
+            <ResponsiveContainer width="100%" height={380}>
+              <AreaChart data={chartRows}>
+                <defs>
+                  <linearGradient id="retentionGradientModal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00a9bf" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#00a9bf" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  label={{ value: t('analytics.course_analytics.learner_retention.days_since_first'), position: 'insideBottom', offset: -5, fontSize: 10 }}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <Tooltip
+                  formatter={(value = 0) => [`${value}% ${t('analytics.course_analytics.units.retention')}`, '']}
+                  labelFormatter={(label) => t('analytics.course_analytics.learner_retention.day_label', { day: label })}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
+                />
+                <Area type="monotone" dataKey="retention" stroke="#00a9bf" strokeWidth={2.5} fill="url(#retentionGradientModal)" dot={{ r: 3, fill: '#00a9bf', strokeWidth: 0 }} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         )
       }
@@ -120,9 +96,25 @@ export default function CourseLearnerRetention({
               <span className="text-2xl font-bold text-gray-900"><AnimatedNumber value={latestRetention} suffix="%" /></span>
               <span className="text-xs text-gray-400">{t('analytics.course_analytics.units.retention')}</span>
             </div>
-            <span className="text-xs text-indigo-400">{cohortSize} {t('analytics.course_analytics.units.in_cohort')}</span>
+            <span className="text-xs text-[#00a9bf]/60">{cohortSize} {t('analytics.course_analytics.units.in_cohort')}</span>
           </div>
-          <MiniChart />
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={chartRows}>
+              <defs>
+                <linearGradient id="retentionGradientMini" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00a9bf" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#00a9bf" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="day" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                formatter={(value = 0) => [`${value}% ${t('analytics.course_analytics.units.retention')}`, '']}
+                labelFormatter={(label) => t('analytics.course_analytics.learner_retention.day_label', { day: label })}
+                contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }}
+              />
+              <Area type="monotone" dataKey="retention" stroke="#00a9bf" strokeWidth={2} fill="url(#retentionGradientMini)" dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       )}
     </CourseWidgetCard>

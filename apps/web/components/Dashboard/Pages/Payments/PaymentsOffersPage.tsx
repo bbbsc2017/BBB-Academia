@@ -196,7 +196,7 @@ function PaymentsOffersPage() {
                   <div className="mt-2">
                     <button
                       onClick={() => setResourcesPanelOffer(offer)}
-                      className="text-sm flex items-center space-x-1 text-indigo-600 hover:text-indigo-800"
+                      className="text-sm flex items-center space-x-1 text-[#00a9bf] hover:text-[#007b8d]"
                     >
                       <Users size={14} />
                       <span>Manage Resources</span>

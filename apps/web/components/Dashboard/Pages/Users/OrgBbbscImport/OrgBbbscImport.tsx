@@ -176,7 +176,7 @@ function OrgBbbscImport() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 placeholder={t('dashboard.users.bbbsc_import.search_placeholder') || 'Search participants...'}
-                className="pl-10 pr-4 py-2 w-full sm:w-[220px] border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                className="pl-10 pr-4 py-2 w-full sm:w-[220px] border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00a9bf]/20 focus:border-[#00a9bf] transition-all"
                 value={searchValue}
                 onChange={(e) => handleSearchChange(e.target.value)}
               />
@@ -224,21 +224,21 @@ function OrgBbbscImport() {
 
         {/* Selection action bar */}
         {selectedEmails.size > 0 && (
-          <div className="flex items-center justify-between px-6 py-3 bg-indigo-50 border-b border-indigo-100">
-            <span className="text-sm font-medium text-indigo-700">
+          <div className="flex items-center justify-between px-6 py-3 bg-[#00a9bf]/10 border-b border-[#00a9bf]/15">
+            <span className="text-sm font-medium text-[#007b8d]">
               {selectedEmails.size} {t('dashboard.users.bbbsc_import.selected', { defaultValue: 'selected' })}
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedEmails(new Set())}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-3 py-1.5 rounded-md hover:bg-indigo-100 transition-all"
+                className="text-xs text-[#00a9bf] hover:text-[#007b8d] font-medium px-3 py-1.5 rounded-md hover:bg-[#00a9bf]/10 transition-all"
               >
                 {t('common.clear_selection', { defaultValue: 'Clear selection' })}
               </button>
               <button
                 onClick={handleImport}
                 disabled={isImporting}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-md text-xs font-medium transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00a9bf] text-white hover:bg-[#008da0] disabled:opacity-40 disabled:cursor-not-allowed rounded-md text-xs font-medium transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>{t('dashboard.users.bbbsc_import.actions.import_selected', { defaultValue: 'Import selected' })}</span>
@@ -277,7 +277,7 @@ function OrgBbbscImport() {
                       type="checkbox"
                       checked={allImportableSelected}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      className="w-4 h-4 rounded border-gray-300 text-[#00a9bf] focus:ring-[#00a9bf] cursor-pointer"
                     />
                   </th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">
@@ -302,7 +302,7 @@ function OrgBbbscImport() {
                       p.already_exists_in_learnhouse
                         ? 'opacity-50'
                         : selectedEmails.has(p.email)
-                        ? 'bg-indigo-50/40'
+                        ? 'bg-[#00a9bf]/10'
                         : 'hover:bg-gray-50'
                     }`}
                   >
@@ -312,7 +312,7 @@ function OrgBbbscImport() {
                         checked={selectedEmails.has(p.email)}
                         disabled={p.already_exists_in_learnhouse}
                         onChange={() => toggleSelectOne(p.email)}
-                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:cursor-not-allowed"
+                        className="w-4 h-4 rounded border-gray-300 text-[#00a9bf] focus:ring-[#00a9bf] cursor-pointer disabled:cursor-not-allowed"
                       />
                     </td>
                     <td className="px-6 py-4">

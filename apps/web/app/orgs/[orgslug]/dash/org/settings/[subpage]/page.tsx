@@ -10,7 +10,6 @@ import OrgEditGeneral from '@components/Dashboard/Pages/Org/OrgEditGeneral/OrgEd
 import OrgEditBranding from '@components/Dashboard/Pages/Org/OrgEditBranding/OrgEditBranding'
 import OrgEditLanding from '@components/Dashboard/Pages/Org/OrgEditLanding/OrgEditLanding'
 import OrgEditOther from '@components/Dashboard/Pages/Org/OrgEditOther/OrgEditOther'
-import OrgEditAI from '@components/Dashboard/Pages/Org/OrgEditAI/OrgEditAI'
 import OrgEditUsage from '@components/Dashboard/Pages/Org/OrgEditUsage/OrgEditUsage'
 import OrgEditMenu from '@components/Dashboard/Pages/Org/OrgEditMenu/OrgEditMenu'
 import OrgEditDangerZone from '@components/Dashboard/Pages/Org/OrgEditDangerZone/OrgEditDangerZone'
@@ -47,7 +46,6 @@ const getSettingTabs = (t: any): TabConfig[] => [
   { id: 'branding', label: t('dashboard.organization.settings.tabs.branding'), icon: Palette },
   { id: 'menu', label: t('dashboard.organization.settings.tabs.menu') || 'Menu', icon: MenuIcon },
   { id: 'landing', label: t('dashboard.organization.settings.tabs.landing'), icon: LayoutDashboardIcon },
-  { id: 'ai', label: t('dashboard.organization.settings.tabs.ai') || 'AI', customIcon: '/learnhouse_ai_simple_colored.png', requiredPlan: 'standard' },
   { id: 'usage', label: t('dashboard.organization.settings.tabs.usage') || 'Usage', icon: BarChart3 },
   { id: 'other', label: t('dashboard.organization.settings.tabs.other'), icon: CodeIcon },
   { id: 'danger', label: t('dashboard.organization.settings.tabs.danger') || 'Danger Zone', icon: AlertTriangle },
@@ -80,9 +78,6 @@ function OrgPage(props: { params: Promise<OrgParams> }) {
     } else if (params.subpage == 'landing') {
       setH1Label(t('dashboard.organization.settings.pages.landing.title'))
       setH2Label(t('dashboard.organization.settings.pages.landing.subtitle'))
-    } else if (params.subpage == 'ai') {
-      setH1Label(t('dashboard.organization.settings.pages.ai.title') || 'AI Features')
-      setH2Label(t('dashboard.organization.settings.pages.ai.subtitle') || 'Configure AI capabilities for your organization')
     } else if (params.subpage == 'usage') {
       setH1Label(t('dashboard.organization.settings.pages.usage.title') || 'Usage')
       setH2Label(t('dashboard.organization.settings.pages.usage.subtitle') || 'Monitor your organization\'s resource usage and plan limits')
@@ -148,7 +143,6 @@ function OrgPage(props: { params: Promise<OrgParams> }) {
         {params.subpage == 'branding' ? <OrgEditBranding /> : ''}
         {params.subpage == 'menu' ? <OrgEditMenu /> : ''}
         {params.subpage == 'landing' ? <OrgEditLanding /> : ''}
-        {params.subpage == 'ai' ? <OrgEditAI /> : ''}
         {params.subpage == 'usage' ? <OrgEditUsage /> : ''}
         {params.subpage == 'other' ? <OrgEditOther /> : ''}
         {params.subpage == 'danger' ? <OrgEditDangerZone /> : ''}

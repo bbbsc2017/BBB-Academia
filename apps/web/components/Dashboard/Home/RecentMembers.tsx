@@ -35,7 +35,7 @@ export default function RecentMembers() {
             {t('dashboard.home.recent_members')}
           </h3>
           {totalMembers > 0 && (
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#00a9bf]/10 text-[#00a9bf]">
               {totalMembers} {t('dashboard.home.total')}
             </span>
           )}
@@ -93,8 +93,8 @@ export default function RecentMembers() {
                 className="flex items-center gap-3 px-5 py-3"
               >
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-indigo-100 shrink-0 flex items-center justify-center">
-                  <span className="text-[11px] font-semibold text-indigo-600">
+                <div className="w-8 h-8 rounded-full bg-[#00a9bf]/20 shrink-0 flex items-center justify-center">
+                  <span className="text-[11px] font-semibold text-[#00a9bf]">
                     {initials}
                   </span>
                 </div>
