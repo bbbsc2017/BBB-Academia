@@ -23,6 +23,7 @@
       .whatsapp-button { display:inline-block; background:#00a9bf; border:1px solid rgba(255,255,255,.55); border-radius:999px; color:#ffffff !important; font-size:13px; font-weight:700; line-height:42px; padding:0 24px; text-decoration:none; }
       .nav-link { display:inline-block; background:#ffffff; border-radius:999px; color:#00a9bf !important; padding:6px 11px; text-decoration:none; }
       .nav-item { padding-left:10px; }
+      .nav-logo { padding:4px 10px 4px 4px; }
       .nav { animation:bannerGlow 7s ease-in-out infinite alternate; }
       .button, .whatsapp-button { animation:buttonLift 2.8s ease-in-out infinite; }
       @keyframes gridMove { from { background-position:0 0, 0 0; } to { background-position:32px 32px, 32px 32px; } }
@@ -32,10 +33,17 @@
       @media screen and (max-width:640px) {
         .container { width:100% !important; }
         .pad { padding-left:22px !important; padding-right:22px !important; }
+        .nav { padding:7px 12px !important; }
+        .nav-logo { padding:4px 8px 4px 4px !important; }
+        .nav-logo img { width:40px !important; }
+        .nav-link { font-size:9px !important; padding:6px 8px !important; }
+        .nav-item { padding-left:6px !important; }
         .title { font-size:30px !important; line-height:1.18 !important; }
         .stack, .stack td { display:block !important; width:100% !important; padding-left:0 !important; padding-right:0 !important; }
         .stack td + td { padding-top:14px !important; }
-        .button { display:block !important; }
+        .button { display:block !important; padding-left:18px !important; padding-right:18px !important; }
+        .whatsapp-button { font-size:12px !important; padding-left:18px !important; padding-right:18px !important; }
+        .card { border-radius:20px !important; }
       }
     </style>
   </head>
@@ -45,7 +53,7 @@
         <table role="presentation" class="container" width="640" style="width:100%; max-width:640px;">
           <tr><td class="nav pad" style="background:linear-gradient(135deg,#00a9bf 0%,rgba(0,169,191,.70) 100%); border-radius:16px; padding:7px 20px;">
             <table role="presentation" width="100%"><tr>
-              <td style="vertical-align:middle; white-space:nowrap;"><a href="https://bbbacademia.com" target="_blank"><img src="https://bbbacademia.com/courses/bbb_academia_logo_white.png" width="44" alt="BBB Academia" style="display:block; width:44px; height:auto; border:0;" /></a></td>
+              <td class="nav-logo" style="vertical-align:middle; white-space:nowrap; padding:4px 10px 4px 4px;"><a href="https://bbbacademia.com" target="_blank"><img src="https://bbbacademia.com/courses/bbb_academia_logo_white.png" width="44" alt="BBB Academia" style="display:block; width:44px; height:auto; border:0;" /></a></td>
               <td align="right" class="font" style="vertical-align:middle; color:#ffffff; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:10px; font-weight:700; white-space:nowrap;">
                 <a class="nav-link font" href="https://bbbacademia.com" target="_blank" style="display:inline-block; background:#ffffff; border-radius:999px; color:#00a9bf; font-family:'Poppins',Arial,Helvetica,sans-serif; padding:6px 11px; text-decoration:none;">BBB Academia</a>
                 <span class="nav-item" style="display:inline-block; padding-left:12px;"><a class="nav-link font" href="https://bbbacademia.com/courses" target="_blank" style="display:inline-block; background:#ffffff; border-radius:999px; color:#00a9bf; font-family:'Poppins',Arial,Helvetica,sans-serif; padding:6px 11px; text-decoration:none;">BBB Learning</a></span>
