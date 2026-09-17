@@ -34,7 +34,6 @@ import AudioBlock from '@components/Objects/Editor/Extensions/Audio/AudioBlock'
 import MathEquationBlock from '@components/Objects/Editor/Extensions/MathEquation/MathEquationBlock'
 import PDFBlock from '@components/Objects/Editor/Extensions/PDF/PDFBlock'
 import QuizBlock from '@components/Objects/Editor/Extensions/Quiz/QuizBlock'
-import MagicBlock from '@components/Objects/Editor/Extensions/MagicBlocks/MagicBlock'
 
 // Lowlight — slim grammar set; see editorLowlight.ts
 import { lowlight } from '@components/Objects/Editor/editorLowlight'
@@ -56,7 +55,6 @@ import { getLinkExtension } from '@components/Objects/Editor/EditorConf'
 import TableOfContents from './TableOfContents'
 import { CustomHeading } from './CustomHeadingExtenstion'
 import WebPreview from '@components/Objects/Editor/Extensions/WebPreview/WebPreview'
-import AICanvaToolkit from './AI/AICanvaToolkit'
 
 interface Editor {
   content: string
@@ -188,10 +186,6 @@ function Canva(props: Editor) {
         editable: false,
         activity: props.activity,
       }),
-      MagicBlock.configure({
-        editable: false,
-        activity: props.activity,
-      }),
       TableRow,
       TableHeader,
       TableCell,
@@ -203,7 +197,6 @@ function Canva(props: Editor) {
   return (
     <EditorOptionsProvider options={{ isEditable: false }}>
       <div className="w-full mx-auto">
-        <AICanvaToolkit activity={props.activity} editor={editor} />
         <div className="canva-content-wrapper">
           {!props.hideTableOfContents && <TableOfContents editor={editor} />}
           <EditorContent editor={editor} />

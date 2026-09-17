@@ -23,19 +23,7 @@ from src.routers import (
     users,
     webhooks,
 )
-from src.routers.ai import (
-    ai,
-    assignment_gen,
-    audio,
-    courseplanning,
-    images,
-    magicblocks,
-    quiz,
-    rag,
-    scenario,
-)
 from src.routers.boards import boards as boards_router_module
-from src.routers.boards import boards_playground
 from src.routers.communities import communities as communities_router_module
 from src.routers.communities import discussions as discussions_router_module
 from src.routers.courses import assignments, certifications, chapters, courses
@@ -45,7 +33,7 @@ from src.routers.folders import folders as folders_router_module
 from src.routers.integrations import bbbsc as bbbsc_integration
 from src.routers.integrations import zapier as zapier_integration
 from src.routers.media import media as media_router_module
-from src.routers.orgs import ai_credits, bbbsc_import, custom_domains, org_plan, packs
+from src.routers.orgs import bbbsc_import, custom_domains, org_plan, packs
 from src.routers.payments import payments as payments_router_module
 from src.routers.playgrounds import playgrounds as playgrounds_router_module
 from src.routers.playgrounds import (
@@ -116,12 +104,6 @@ v1_router.include_router(
     prefix="/orgs",
     tags=["orgs"],
     dependencies=[Depends(get_non_api_token_user)]
-)
-v1_router.include_router(
-    ai_credits.router,
-    prefix="/orgs",
-    tags=["ai-credits"],
-    dependencies=[Depends(require_authenticated_user)]
 )
 v1_router.include_router(
     bbbsc_import.router,
@@ -285,66 +267,6 @@ v1_router.include_router(
     prefix="/trail",
     tags=["trail"],
     dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    ai.router,
-    prefix="/ai",
-    tags=["ai"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    magicblocks.router,
-    prefix="/ai",
-    tags=["ai", "magicblocks"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    courseplanning.router,
-    prefix="/ai",
-    tags=["ai", "courseplanning"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    rag.router,
-    prefix="/ai",
-    tags=["ai", "rag"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    images.router,
-    prefix="/ai",
-    tags=["ai", "images"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    audio.router,
-    prefix="/ai",
-    tags=["ai", "audio"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    quiz.router,
-    prefix="/ai",
-    tags=["ai", "quiz"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    assignment_gen.router,
-    prefix="/ai",
-    tags=["ai", "assignment-gen"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    scenario.router,
-    prefix="/ai",
-    tags=["ai", "scenario"],
-    dependencies=[Depends(require_authenticated_user)]
-)
-v1_router.include_router(
-    boards_playground.router,
-    prefix="/boards",
-    tags=["boards", "boards-playground"],
-    dependencies=[Depends(require_authenticated_user), Depends(require_plan_for_boards("personal", "Boards"))]
 )
 v1_router.include_router(
     playgrounds_router_module.router,

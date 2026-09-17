@@ -287,25 +287,6 @@ export async function updateHostedVideoActivity(
   return getResponseMetadata(result)
 }
 
-export interface CaptionsConfigPayload {
-  enabled: boolean
-  source_language: string
-  languages: { code: string; label?: string }[]
-}
-
-/** Enable/disable AI captions + choose target languages (queues generation). */
-export async function updateVideoCaptions(
-  activityUuid: string,
-  config: CaptionsConfigPayload,
-  access_token: string,
-) {
-  const result = await fetch(
-    `${getAPIUrl()}activities/video/${activityUuid}/captions`,
-    RequestBodyWithAuthHeader('POST', config, null, access_token)
-  )
-  return getResponseMetadata(result)
-}
-
 export async function updateExternalVideoActivity(
   activityUuid: string,
   youtubeUrl: string,

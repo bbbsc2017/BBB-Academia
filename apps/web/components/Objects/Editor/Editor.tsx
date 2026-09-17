@@ -12,12 +12,6 @@ const ToolbarButtons = dynamic(
 import { motion } from 'motion/react'
 import Image from 'next/image'
 import { DividerVerticalIcon, SlashIcon } from '@radix-ui/react-icons'
-import learnhouseAI_icon from 'public/learnhouse_ai_simple.png'
-import {
-  AIEditorStateTypes,
-  useAIEditor,
-  useAIEditorDispatch,
-} from '@components/Contexts/AI/AIEditorContext'
 import { useTranslation } from 'react-i18next'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
@@ -47,11 +41,6 @@ import WebPreview from './Extensions/WebPreview/WebPreview'
 import { lowlight } from './editorLowlight'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { CourseProvider } from '@components/Contexts/CourseContext'
-const AIEditorToolkit = dynamic(() => import('./AI/AIEditorToolkit'), { ssr: false, loading: () => null })
-const AIEditorSidePanel = dynamic(() => import('./AI/AIEditorSidePanel'), { ssr: false, loading: () => null })
-import AIStreamingMark from './Extensions/AIStreaming/AIStreamingMark'
-import AISelectionHighlight from './Extensions/AISelectionHighlight/AISelectionHighlight'
-import useGetAIFeatures from '@components/Hooks/useGetAIFeatures'
 import { getUriWithOrg, withBasePath, withBasePathOnRelative } from '@services/config/config'
 import EmbedObjects from './Extensions/EmbedObjects/EmbedObjects'
 import Badges from './Extensions/Badges/Badges'
@@ -65,7 +54,6 @@ import UserBlock from './Extensions/Users/UserBlock'
 import DragHandle from './Extensions/DragHandle/DragHandle'
 import { SlashCommands } from './Extensions/SlashCommands'
 import PasteFileHandler from './Extensions/PasteFileHandler/PasteFileHandler'
-import MagicBlock from './Extensions/MagicBlocks/MagicBlock'
 import PlanBadge from '@components/Dashboard/Shared/PlanRestricted/PlanBadge'
 import { PlanLevel } from '@services/plans/plans'
 import { useOrg } from '@components/Contexts/OrgContext'
@@ -103,9 +91,6 @@ interface EditorProps {
 function Editor(props: EditorProps) {
   const { t } = useTranslation()
   const { track } = useLHAnalytics('editor')
-  const dispatchAIEditor = useAIEditorDispatch() as any
-  const aiEditorState = useAIEditor() as AIEditorStateTypes
-  const is_ai_feature_enabled = useGetAIFeatures({ feature: 'editor' })
   const [editorReady, setEditorReady] = React.useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false)
   const savedContentSnapshotRef = React.useRef(getEditorContentSnapshot(props.content))
@@ -125,9 +110,7 @@ function Editor(props: EditorProps) {
   const orgContext = useOrg() as any
   const currentPlan = usePlan()
   const rf = orgContext?.config?.config?.resolved_features
-  const canUseAI = rf?.ai?.enabled === true
   const canUseVersioning = rf?.versioning?.enabled === true
-  const isButtonAvailable = is_ai_feature_enabled
 
   // remove course_ from course_uuid
   const course_uuid = props.course.course_uuid.substring(7)
@@ -193,9 +176,6 @@ function Editor(props: EditorProps) {
         activity: stableActivity,
         getAccessToken,
       }),
-      MagicBlock.configure({ editable: true, activity: stableActivity }),
-      AIStreamingMark,
-      AISelectionHighlight,
     ],
     [stableActivity, currentPlan, getAccessToken]
   )
@@ -292,7 +272,7 @@ function Editor(props: EditorProps) {
       // state before any real edit.
       savedContentSnapshotRef.current = getEditorContentSnapshot(editor.getJSON())
       setHasUnsavedChanges(false)
-      track(AnalyticsEvent.ActivityEditorOpened, { ai_enabled: canUseAI })
+      track(AnalyticsEvent.ActivityEditorOpened)
       setTimeout(() => {
         setEditorReady(true)
         props.onReady?.()
@@ -464,64 +444,6 @@ function Editor(props: EditorProps) {
               </div>
             </div>
             <div className="activity-editor-users-section space-x-2">
-              <div>
-                <div className="transition-all ease-linear text-teal-100 rounded-md hover:cursor-pointer">
-                  {isButtonAvailable && canUseAI && (
-                    <div
-                      onClick={() => {
-                        if (!aiEditorState.isSidePanelOpen) {
-                          track(AnalyticsEvent.AiEditorPanelOpened)
-                        }
-                        dispatchAIEditor({
-                          type: aiEditorState.isSidePanelOpen
-                            ? 'setSidePanelClose'
-                            : 'setSidePanelOpen',
-                        })
-                      }}
-                      style={{
-                        background:
-                          'conic-gradient(from 32deg at 53.75% 50%, rgb(35, 40, 93) 4deg, rgba(20, 0, 52, 0.95) 59deg, rgba(164, 45, 238, 0.88) 281deg)',
-                      }}
-                      className="rounded-md px-3 py-2 drop-shadow-md flex  items-center space-x-1.5 text-sm text-white hover:cursor-pointer transition delay-150 duration-300 ease-in-out hover:scale-105"
-                    >
-                      {' '}
-                      <i>
-                        <Image
-                          className=""
-                          width={20}
-                          src={learnhouseAI_icon}
-                          alt=""
-                        />
-                      </i>{' '}
-                      <i className="not-italic text-xs font-bold">{t('editor.ai_editor')}</i>
-                    </div>
-                  )}
-                  {isButtonAvailable && !canUseAI && (
-                    <div
-                      className="rounded-md px-3 py-2 drop-shadow-md flex items-center space-x-1.5 text-sm text-gray-400 bg-gray-200 cursor-not-allowed opacity-70"
-                    >
-                      <i>
-                        <Image
-                          className="opacity-50 grayscale"
-                          width={20}
-                          src={learnhouseAI_icon}
-                          alt=""
-                        />
-                      </i>
-                      <i className="not-italic text-xs font-bold">{t('editor.ai_editor')}</i>
-                      <PlanBadge currentPlan={currentPlan} requiredPlan={(rf?.ai?.required_plan || 'standard') as PlanLevel} size="sm" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <DividerVerticalIcon
-                style={{
-                  marginTop: 'auto',
-                  marginBottom: 'auto',
-                  color: 'grey',
-                  opacity: '0.5',
-                }}
-              />
               <div className="activity-editor-left-options space-x-2 ">
                 {/* Version History Button */}
                 {canUseVersioning ? (
@@ -642,18 +564,8 @@ function Editor(props: EditorProps) {
           style={{ position: 'relative', margin: '0 40px' }}
         >
           <div className="activity-editor-content-wrapper" style={{ flex: 1, margin: 0, marginTop: '97px' }}>
-            <AIEditorToolkit activity={props.activity} editor={editor} />
             <EditorContent editor={editor} />
           </div>
-
-          {/* AI Editor Side Panel */}
-          {editorReady && canUseAI && (
-            <AIEditorSidePanel
-              editor={editor}
-              activity={props.activity}
-              course={props.course}
-            />
-          )}
         </motion.div>
       </CourseProvider>
     </div>

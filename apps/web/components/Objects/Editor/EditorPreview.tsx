@@ -28,7 +28,6 @@ import Flipcard from './Extensions/Flipcard/Flipcard'
 import Scenarios from './Extensions/Scenarios/Scenarios'
 import CodePlayground from './Extensions/CodePlayground/CodePlayground'
 import UserBlock from './Extensions/Users/UserBlock'
-import MagicBlock from './Extensions/MagicBlocks/MagicBlock'
 
 // Lowlight — slim grammar set; see editorLowlight.ts
 import { lowlight } from './editorLowlight'
@@ -132,10 +131,6 @@ function EditorPreview({ content, activity }: EditorPreviewProps) {
         activity: activity,
       }),
       CodePlayground.configure({
-        editable: false,
-        activity: activity,
-      }),
-      MagicBlock.configure({
         editable: false,
         activity: activity,
       }),

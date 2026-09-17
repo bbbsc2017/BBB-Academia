@@ -132,11 +132,6 @@ export enum AnalyticsEvent {
   // ── Search, Copilot, Trail, Certificates, Account ────────────────────────
   SearchExecuted = 'search_executed',
   SearchResultClicked = 'search_result_clicked',
-  CopilotMessageSent = 'copilot_message_sent',
-  CopilotResponseCompleted = 'copilot_response_completed',
-  CopilotResponseFailed = 'copilot_response_failed',
-  CopilotBubbleOpened = 'copilot_bubble_opened',
-  CopilotBubbleMessageSent = 'copilot_bubble_message_sent',
   TrailViewed = 'trail_viewed',
   CertificateViewed = 'certificate_viewed',
   CertificateDownloaded = 'certificate_downloaded',
@@ -179,7 +174,6 @@ export enum AnalyticsEvent {
   // ── Course management (creator) ──────────────────────────────────────────
   CourseCreationTypeSelected = 'course_creation_type_selected',
   CourseCreated = 'course_created',
-  AiCourseCreated = 'ai_course_created',
   CoursePublishedToggled = 'course_published_toggled',
   CourseChangesSaved = 'course_changes_saved',
   ChapterCreated = 'chapter_created',
@@ -188,16 +182,10 @@ export enum AnalyticsEvent {
   CourseAccessChanged = 'course_access_changed',
   CourseStructureReordered = 'course_structure_reordered',
 
-  // ── Content editor + AI authoring ────────────────────────────────────────
+  // ── Content editor ───────────────────────────────────────────────────────
   ActivityEditorOpened = 'activity_editor_opened',
   ActivityContentSaved = 'activity_content_saved',
   EditorBlockInserted = 'editor_block_inserted',
-  AiEditorMessageSent = 'ai_editor_message_sent',
-  AiEditorPanelOpened = 'ai_editor_panel_opened',
-  AiEditorContentInserted = 'ai_editor_content_inserted',
-  AiEditorError = 'ai_editor_error',
-  MagicBlockGenerationRequested = 'magic_block_generation_requested',
-  MagicBlockSaved = 'magic_block_saved',
 
   // ── Assignments (creator + grading) ──────────────────────────────────────
   AssignmentCreated = 'assignment_created',
