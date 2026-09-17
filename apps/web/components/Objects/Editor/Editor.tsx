@@ -91,7 +91,6 @@ interface EditorProps {
 function Editor(props: EditorProps) {
   const { t } = useTranslation()
   const { track } = useLHAnalytics('editor')
-  const [editorReady, setEditorReady] = React.useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false)
   const savedContentSnapshotRef = React.useRef(getEditorContentSnapshot(props.content))
 
@@ -274,7 +273,6 @@ function Editor(props: EditorProps) {
       setHasUnsavedChanges(false)
       track(AnalyticsEvent.ActivityEditorOpened)
       setTimeout(() => {
-        setEditorReady(true)
         props.onReady?.()
       }, 0)
     },

@@ -41,7 +41,7 @@ import React from 'react'
 import LinkInputTooltip from './LinkInputTooltip'
 import { useTranslation } from 'react-i18next'
 
-export const ToolbarButtons = React.memo(({ editor, props }: any) => {
+export const ToolbarButtons = React.memo(({ editor }: any) => {
   const { t } = useTranslation()
   const [showTableMenu, setShowTableMenu] = React.useState(false)
   const [showListMenu, setShowListMenu] = React.useState(false)
@@ -115,7 +115,6 @@ export const ToolbarButtons = React.memo(({ editor, props }: any) => {
     const { from, to } = editor.state.selection
 
     if (editor.isActive('link')) {
-      const currentLink = editor.getAttributes('link')
       setShowLinkInput(true)
     } else {
       setShowLinkInput(true)
@@ -611,3 +610,5 @@ export const ToolbarButtons = React.memo(({ editor, props }: any) => {
     </div>
   )
 })
+
+ToolbarButtons.displayName = 'ToolbarButtons'

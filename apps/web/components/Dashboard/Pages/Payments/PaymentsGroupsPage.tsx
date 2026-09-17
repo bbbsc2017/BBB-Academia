@@ -251,8 +251,8 @@ function GroupSyncPanel({ group, orgId, token }: { group: any; orgId: number; to
 
 function GroupCard({ group, orgId, token, onEdit, onDelete }: {
   group: any; orgId: number; token: string;
-  onEdit: (g: any) => void;
-  onDelete: (id: number) => void;
+  onEdit: (_g: any) => void;
+  onDelete: (_id: number) => void;
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 nice-shadow overflow-hidden flex flex-col">
@@ -321,7 +321,7 @@ function GroupCard({ group, orgId, token, onEdit, onDelete }: {
 
 function GroupForm({ initial, onSubmit, onCancel }: {
   initial?: { name: string; description: string };
-  onSubmit: (data: { name: string; description: string }) => Promise<void>;
+  onSubmit: (_data: { name: string; description: string }) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? '');

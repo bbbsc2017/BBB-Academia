@@ -33,36 +33,6 @@ export default function CourseLearnerProgress({
     color: BAR_COLORS[i % BAR_COLORS.length],
   }))
 
-  const MiniChart = () => (
-    <ResponsiveContainer width="100%" height={160}>
-      <BarChart data={chartRows}>
-        <XAxis dataKey="bracket" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }} />
-        <Bar dataKey="user_count" name={t('analytics.course_analytics.units.learners')} radius={[4, 4, 0, 0]}>
-          {chartRows.map((entry: any, i: number) => (
-            <Cell key={i} fill={entry.color} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  )
-
-  const ModalChart = () => (
-    <ResponsiveContainer width="100%" height={380}>
-      <BarChart data={chartRows}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-        <XAxis dataKey="bracket" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={kFormatter} />
-        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }} />
-        <Bar dataKey="user_count" name={t('analytics.course_analytics.units.learners')} radius={[6, 6, 0, 0]}>
-          {chartRows.map((entry: any, i: number) => (
-            <Cell key={i} fill={entry.color} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  )
-
   return (
     <CourseWidgetCard
       icon={<WidgetIcon icon={ChartBar} bg="bg-[#00a9bf]/10" color="text-[#00a9bf]" />}
@@ -76,7 +46,19 @@ export default function CourseLearnerProgress({
         ) : (
           <div className="space-y-5">
             <p className="text-sm text-gray-500">{t('analytics.course_analytics.learner_progress.total_across_brackets', { count: totalLearners })}</p>
-            <ModalChart />
+            <ResponsiveContainer width="100%" height={380}>
+              <BarChart data={chartRows}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="bracket" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={kFormatter} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }} />
+                <Bar dataKey="user_count" name={t('analytics.course_analytics.units.learners')} radius={[6, 6, 0, 0]}>
+                  {chartRows.map((entry: any, i: number) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
             <div className="flex flex-wrap gap-4">
               {rows.map((row: any, i: number) => (
                 <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
@@ -100,7 +82,17 @@ export default function CourseLearnerProgress({
             <span className="text-2xl font-bold text-gray-900"><AnimatedNumber value={totalLearners} /></span>
             <span className="text-xs text-gray-400">{t('analytics.course_analytics.units.learners')}</span>
           </div>
-          <MiniChart />
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={chartRows}>
+              <XAxis dataKey="bracket" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #f3f4f6', fontSize: 13 }} />
+              <Bar dataKey="user_count" name={t('analytics.course_analytics.units.learners')} radius={[4, 4, 0, 0]}>
+                {chartRows.map((entry: any, i: number) => (
+                  <Cell key={i} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
     </CourseWidgetCard>

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { PlanLevel } from '@services/plans/plans'
 
 interface CourseCreationTypeSelectorProps {
-  onSelectType: (type: 'scratch' | 'migrate') => void
+  onSelectType: (_type: 'scratch' | 'migrate') => void
   currentPlan: PlanLevel
 }
 

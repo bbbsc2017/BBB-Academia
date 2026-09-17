@@ -482,7 +482,7 @@ function AssignmentAnalyticsSubPage({ assignment_uuid }: { assignment_uuid: stri
                                     <Tooltip
                                         cursor={{ fill: '#f9fafb' }}
                                         contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.08)' }}
-                                        formatter={(value: any, name: any, props: any) => {
+                                        formatter={(value: any, name: any, _props: any) => {
                                             if (name === 'avg') return [`${value} / 100`, t('dashboard.assignments.analytics.tasks.avg_grade')];
                                             return [value, name];
                                         }}
@@ -669,7 +669,7 @@ function EmptyChart({ message }: { message: string }) {
 function PerformerRow({
     submission,
     rank,
-    tone,
+    tone: _tone,
     access_token,
 }: {
     submission: Submission;

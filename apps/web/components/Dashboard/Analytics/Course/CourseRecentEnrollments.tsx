@@ -16,7 +16,7 @@ function EnrollmentRow({
   row: any
   users: Record<number, any>
   compact?: boolean
-  t: (key: string, options?: any) => string
+  t: (_key: string, _options?: any) => string
 }) {
   const user = users[row.user_id]
   const name = user
@@ -55,7 +55,7 @@ function EnrollmentsModalContent({
 }: {
   rows: any[]
   users: Record<number, any>
-  t: (key: string, options?: any) => string
+  t: (_key: string, _options?: any) => string
 }) {
   const pg = usePagination(rows, 10)
 
