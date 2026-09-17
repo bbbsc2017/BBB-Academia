@@ -7,7 +7,6 @@ import {
   createExternalVideoActivity,
   createFileActivity,
   createVideoActivityWithProgress,
-  updateVideoCaptions,
 } from '@services/courses/activities'
 import { useBackgroundTasks } from '@components/Contexts/BackgroundTasksContext'
 import { getOrganizationContextInfoWithoutCredentials } from '@services/organizations/orgs'
@@ -83,8 +82,7 @@ function NewActivityButton(props: NewActivityButtonProps) {
     file: any,
     type: any,
     activity: any,
-    chapterId: string,
-    captions?: { enabled: boolean; source_language: string; languages: { code: string; label?: string }[] }
+    chapterId: string
   ) => {
     // Video uploads run in the BACKGROUND with a progress notification, so the
     // modal closes immediately and the teacher can keep working.
@@ -96,7 +94,7 @@ function NewActivityButton(props: NewActivityButtonProps) {
         subtitle: 'Uploading…',
       })
       try {
-        const created = await createVideoActivityWithProgress(
+        await createVideoActivityWithProgress(
           file,
           activity,
           chapterId,
@@ -104,13 +102,6 @@ function NewActivityButton(props: NewActivityButtonProps) {
           (pct) => updateTask(taskId, { progress: pct })
         )
         updateTask(taskId, { status: 'processing', subtitle: 'Finishing up…', progress: 100 })
-        if (captions && created?.activity_uuid) {
-          try {
-            await updateVideoCaptions(created.activity_uuid, captions, access_token)
-          } catch {
-            /* captions are best-effort; upload already succeeded */
-          }
-        }
         track(AnalyticsEvent.ActivityFileUploaded, { file_type: type, upload_succeeded: true })
         await refreshStructure()
         updateTask(taskId, { status: 'done', subtitle: 'Uploaded' })

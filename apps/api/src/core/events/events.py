@@ -75,13 +75,6 @@ def startup_app(app: FastAPI) -> Callable:
         from src.services.utils.hls_jobs import start_consumer
         start_consumer()
 
-        # Start the in-app AI captions consumer (no-op without Redis; idle until an
-        # instructor enables captions on a video).
-        from src.services.utils.caption_jobs import (
-            start_consumer as start_captions_consumer,
-        )
-        start_captions_consumer()
-
         # Start Enterprise Edition Startup tasks if available
         run_ee_startup(app)
 
@@ -99,11 +92,6 @@ def shutdown_app(app: FastAPI) -> Callable:
         # Stop the in-app HLS consumer and wait for in-flight transcodes.
         from src.services.utils.hls_jobs import stop_consumer
         await stop_consumer()
-        # Stop the in-app captions consumer.
-        from src.services.utils.caption_jobs import (
-            stop_consumer as stop_captions_consumer,
-        )
-        await stop_captions_consumer()
         # Wait for in-flight webhook deliveries before closing the HTTP client
         from src.services.webhooks.dispatch import _background_tasks as _webhook_tasks
         from src.services.webhooks.dispatch import close_webhook_client

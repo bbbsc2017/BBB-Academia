@@ -2,7 +2,6 @@
 import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
 import CreateCourseModal from '@components/Objects/Modals/Course/Create/CreateCourse'
 import CourseCreationTypeSelector from '@components/Objects/Modals/Course/Create/CourseCreationTypeSelector'
-import AICourseCreationModal from '@components/Objects/Modals/Course/Create/AICourse/AICourseCreationModal'
 import { BookCopy, Search, X, Trash2, Users, Info } from 'lucide-react'
 import ScormCourseImport from '../../../../../ee/components/Modals/ScormCourseImport'
 import { ImportTypeSelector, LearnHouseCourseImport } from '@components/Objects/Modals/Course/Import'
@@ -46,8 +45,7 @@ function CoursesHome(params: CourseProps) {
   const [newCourseModal, setNewCourseModal] = React.useState(isCreatingCourse)
   const [importCourseModal, setImportCourseModal] = React.useState(false)
   const [importType, setImportType] = React.useState<'select' | 'scorm' | 'learnhouse'>('select')
-  const [creationType, setCreationType] = React.useState<'select' | 'scratch' | 'ai'>('select')
-  const [aiCourseModalOpen, setAiCourseModalOpen] = React.useState(false)
+  const [creationType, setCreationType] = React.useState<'select' | 'scratch'>('select')
   const orgslug = params.orgslug
   const { isAdmin: isUserAdmin } = useAdminStatus()
   const org = useOrg() as any
@@ -188,23 +186,14 @@ function CoursesHome(params: CourseProps) {
 
   const router = useRouter()
 
-  const handleCreationTypeSelect = (type: 'scratch' | 'ai' | 'migrate') => {
+  const handleCreationTypeSelect = (type: 'scratch' | 'migrate') => {
     track(AnalyticsEvent.CourseCreationTypeSelected, { creation_type: type })
-    if (type === 'ai') {
-      setNewCourseModal(false)
-      setAiCourseModalOpen(true)
-    } else if (type === 'migrate') {
+    if (type === 'migrate') {
       setNewCourseModal(false)
       router.push(getUriWithOrg(orgslug, '/dash/courses/migrate'))
     } else {
       setCreationType('scratch')
     }
-  }
-
-  const closeAICourseModal = () => {
-    setAiCourseModalOpen(false)
-    setCreationType('select')
-    mutateCourses()
   }
 
   const getNewCourseModalContent = () => {
@@ -489,13 +478,6 @@ function CoursesHome(params: CourseProps) {
                     <NewCourseButton disabled={courseLimitReached} />
                   </button>
                 }
-              />
-              <AICourseCreationModal
-                isOpen={aiCourseModalOpen}
-                onClose={closeAICourseModal}
-                orgId={orgId!}
-                orgslug={orgslug}
-                accessToken={access_token}
               />
             </div>
           </AuthenticatedClientElement>

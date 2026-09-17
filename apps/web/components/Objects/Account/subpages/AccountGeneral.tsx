@@ -23,7 +23,6 @@ import {
   Lightbulb
 } from 'lucide-react'
 import UserAvatar from '@components/Objects/UserAvatar'
-import AIImageButton from '@components/Objects/AI/AIImageButton'
 import { updateUserAvatar } from '@services/users/users'
 import { constructAcceptValue } from '@/lib/constants'
 import * as Yup from 'yup'
@@ -247,8 +246,6 @@ const UserEditForm = ({
     isLoading: boolean;
     localAvatar: File | null;
     handleFileChange: (_event: any) => Promise<void>;
-    handleAISelect: (_imageUrl: string) => Promise<void>;
-    handleAIImageFile: (_file: File) => Promise<void>;
   };
 }) => {
   const { t } = useTranslation();
@@ -485,11 +482,6 @@ const UserEditForm = ({
                       <UploadCloud size={16} className="mr-2" />
                       {t('user.settings.general.change_avatar')}
                     </Button>
-                    <AIImageButton
-                      onSelect={profilePicture.handleAISelect}
-                      onSelectFile={profilePicture.handleAIImageFile}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-gray-200 rounded-md bg-white hover:bg-gray-50 transition-colors"
-                    />
                   </>
                 )}
                 <div className="flex items-center text-xs text-gray-500">
@@ -555,59 +547,6 @@ function AccountGeneral() {
     }
   }
 
-  const handleAISelect = async (imageUrl: string) => {
-    const userId = session?.data?.user?.id
-    if (!userId) {
-      setError(t('user.settings.general.signin_again', { defaultValue: 'Please sign in again' }))
-      return
-    }
-    try {
-      const response = await fetch(imageUrl)
-      const blob = await response.blob()
-      const file = new File([blob], `ai_avatar_${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' })
-      setLocalAvatar(file)
-      setIsLoading(true)
-      const res = await updateUserAvatar(userId, file, access_token)
-      if (res.success === false) {
-        setError(res.HTTPmessage)
-      } else {
-        // Force refresh session to pick up the new avatar filename
-        await session.update(true)
-        setIsLoading(false)
-        setError('')
-        setSuccess(t('user.settings.general.avatar_updated'))
-      }
-    } catch (_error) {
-      setError('Failed to process AI image')
-      setIsLoading(false)
-    }
-  }
-
-  const handleAIImageFile = async (file: File) => {
-    const userId = session?.data?.user?.id
-    if (!userId) {
-      setError(t('user.settings.general.signin_again', { defaultValue: 'Please sign in again' }))
-      return
-    }
-    try {
-      setLocalAvatar(file)
-      setIsLoading(true)
-      const res = await updateUserAvatar(userId, file, access_token)
-      if (res.success === false) {
-        setError(res.HTTPmessage)
-      } else {
-        // Force refresh session to pick up the new avatar filename
-        await session.update(true)
-        setIsLoading(false)
-        setError('')
-        setSuccess(t('user.settings.general.avatar_updated'))
-      }
-    } catch {
-      setError('Failed to process AI image')
-      setIsLoading(false)
-    }
-  }
-
   if (!userData) {
     return (
       <div className="bg-white rounded-xl nice-shadow p-8">
@@ -661,8 +600,6 @@ function AccountGeneral() {
               isLoading,
               localAvatar,
               handleFileChange,
-              handleAISelect,
-              handleAIImageFile
             }}
           />
         )}

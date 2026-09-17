@@ -8,7 +8,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@lib/query/keys'
 import UnsplashImagePicker from './UnsplashImagePicker'
-import AIImageButton from '@components/Objects/AI/AIImageButton'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { SafeImage, SafeVideo } from '@components/Objects/SafeImage'
@@ -133,13 +132,6 @@ function ThumbnailUpdate({ thumbnailType }: ThumbnailUpdateProps) {
       showError('Failed to process Unsplash image');
       setIsLoading(false);
     }
-  }
-
-  const handleAIImageFile = async (file: File) => {
-    if (!validateFile(file, 'image')) return
-    const blobUrl = URL.createObjectURL(file)
-    setLocalThumbnail({ file, url: blobUrl, type: 'image' })
-    await updateThumbnail(file, 'image')
   }
 
   const updateThumbnail = async (file: File, type: 'image' | 'video') => {
@@ -286,11 +278,6 @@ function ThumbnailUpdate({ thumbnailType }: ThumbnailUpdateProps) {
             <ImageIcon size={16} />
             {t('dashboard.courses.general.thumbnail.gallery')}
           </button>
-          <AIImageButton
-            onSelect={handleUnsplashSelect}
-            onSelectFile={handleAIImageFile}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          />
         </div>
       );
     }

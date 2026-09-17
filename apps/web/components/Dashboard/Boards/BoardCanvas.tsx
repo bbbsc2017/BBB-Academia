@@ -18,7 +18,6 @@ import BoardEffects from './BoardEffects'
 import { BoardCardExtension } from './Extensions/BoardCard'
 import { DrawingStrokeExtension } from './Extensions/DrawingStroke'
 import { YouTubeBlockExtension } from './Extensions/YouTubeBlock'
-import { PlaygroundBlockExtension } from './Extensions/PlaygroundBlock'
 import { ActivityBlockExtension } from './Extensions/ActivityBlock'
 import { EmbedBlockExtension } from './Extensions/EmbedBlock'
 import { WebpageBlockExtension } from './Extensions/WebpageBlock'
@@ -31,7 +30,6 @@ import RemoteCursors from './RemoteCursors'
 import {
   Square,
   YoutubeLogo,
-  Sparkle,
   BookOpen,
   Code,
   Globe,
@@ -100,7 +98,7 @@ function BoardEditorInner({
   provider: HocuspocusProvider
 }) {
   const { track } = useLHAnalytics('dashboard')
-  const [toolMode, setToolMode] = useState<'select' | 'pan' | 'draw' | 'card' | 'youtube' | 'playground' | 'activity' | 'embed' | 'webpage' | 'sticker' | 'frame' | 'note' | 'todo' | 'podcast'>('select')
+  const [toolMode, setToolMode] = useState<'select' | 'pan' | 'draw' | 'card' | 'youtube' | 'activity' | 'embed' | 'webpage' | 'sticker' | 'frame' | 'note' | 'todo' | 'podcast'>('select')
   const [zoom, setZoom] = useState(() =>
     typeof window !== 'undefined' && window.innerWidth <= 768 ? 0.6 : 1
   )
@@ -131,7 +129,6 @@ function BoardEditorInner({
     draw: { icon: PencilSimple, label: 'Draw' },
     card: { icon: Square, label: 'Card' },
     youtube: { icon: YoutubeLogo, label: 'YouTube' },
-    playground: { icon: Sparkle, label: 'AI Playground' },
     activity: { icon: BookOpen, label: 'Activity' },
     embed: { icon: Code, label: 'Embed' },
     webpage: { icon: Globe, label: 'Webpage' },
@@ -188,7 +185,6 @@ function BoardEditorInner({
       BoardCardExtension,
       DrawingStrokeExtension,
       YouTubeBlockExtension,
-      PlaygroundBlockExtension,
       ActivityBlockExtension,
       EmbedBlockExtension,
       WebpageBlockExtension,
@@ -385,25 +381,6 @@ function BoardEditorInner({
       }).run()
       setToolMode('select')
       track(AnalyticsEvent.BoardBlockAdded, { block_type: 'youtube' })
-    } else if (mode === 'playground' && editor) {
-      const rect = canvasRef.current?.getBoundingClientRect()
-      if (!rect) return
-      toolModeRef.current = 'select'
-      const x = (e.clientX - rect.left - pan.x) / zoom
-      const y = (e.clientY - rect.top - pan.y) / zoom
-      const pos = editor.state.doc.content.size
-      editor.chain().insertContentAt(pos, {
-        type: 'playgroundBlock',
-        attrs: {
-          blockUuid: `pg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-          x: Math.round(x),
-          y: Math.round(y),
-          width: 520,
-          height: 400,
-        },
-      }).run()
-      setToolMode('select')
-      track(AnalyticsEvent.BoardBlockAdded, { block_type: 'playground' })
     } else if (mode === 'activity' && editor) {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
