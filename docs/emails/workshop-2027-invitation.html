@@ -24,8 +24,10 @@
       .nav-link { display:inline-block; background:#ffffff; border-radius:999px; color:#00a9bf !important; padding:6px 11px; text-decoration:none; }
       .nav-side { width:38%; vertical-align:middle; }
       .nav-logo { padding:4px 10px 4px 4px; }
-      @media screen and (max-width:640px) {
-        .container { width:100% !important; }
+      .nav-link:hover { background:#00a9bf !important; color:#ffffff !important; }
+      .button:hover, .whatsapp-button:hover { opacity:.82; box-shadow:0 5px 12px rgba(0,169,191,.25); }
+      @media only screen and (max-width:640px) {
+        .container, .container table, .card { width:100% !important; max-width:100% !important; }
         .pad { padding-left:22px !important; padding-right:22px !important; }
         .nav { padding:7px 12px !important; }
         .nav-logo { padding:4px 6px !important; }
@@ -35,14 +37,21 @@
         .title { font-size:30px !important; line-height:1.18 !important; }
         .stack, .stack td { display:block !important; width:100% !important; padding-left:0 !important; padding-right:0 !important; }
         .stack td + td { padding-top:14px !important; }
-        .button { display:block !important; padding-left:18px !important; padding-right:18px !important; }
+        .button { display:block !important; width:auto !important; padding-left:18px !important; padding-right:18px !important; }
         .whatsapp-button { font-size:12px !important; padding-left:18px !important; padding-right:18px !important; }
         .card { border-radius:20px !important; }
+      }
+      @media only screen and (max-width:380px) {
+        .pad { padding-left:16px !important; padding-right:16px !important; }
+        .nav { padding-left:8px !important; padding-right:8px !important; }
+        .nav-logo img { width:42px !important; }
+        .nav-link { font-size:8px !important; padding:5px 6px !important; }
+        .title { font-size:26px !important; }
       }
     </style>
   </head>
   <body class="font" style="margin:0; padding:0; background:#ffffff; color:#1c1c1c; font-family:'Poppins',Arial,Helvetica,sans-serif;">
-    <center class="email-bg" style="width:100%; background-color:#ffffff; background-image:linear-gradient(rgba(0,169,191,.16) 1px, transparent 1px),linear-gradient(90deg,rgba(0,169,191,.16) 1px,transparent 1px); background-size:32px 32px;">
+    <center class="email-bg" style="width:100%; max-width:100%; background-color:#ffffff; background-image:linear-gradient(rgba(0,169,191,.16) 1px, transparent 1px),linear-gradient(90deg,rgba(0,169,191,.16) 1px,transparent 1px); background-size:32px 32px;">
       <table role="presentation" class="email-bg" width="100%" style="width:100%; background-color:#ffffff; background-image:linear-gradient(rgba(0,169,191,.16) 1px, transparent 1px),linear-gradient(90deg,rgba(0,169,191,.16) 1px,transparent 1px); background-size:32px 32px;"><tr><td align="center" style="padding:24px 14px 42px;">
         <table role="presentation" class="container" width="640" style="width:100%; max-width:640px;">
           <tr><td class="nav pad" style="background:linear-gradient(135deg,#00a9bf 0%,rgba(0,169,191,.70) 100%); border-radius:16px; padding:7px 20px;">
