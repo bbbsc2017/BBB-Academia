@@ -42,6 +42,7 @@ from src.services.courses.migration.models import (
     MigrationUploadResponse,
     UploadedFileInfo,
 )
+from src.services.courses.slugs import assign_course_slug
 from src.services.courses.transfer.storage_utils import (
     is_s3_enabled,
     upload_file_to_s3,
@@ -435,6 +436,7 @@ async def create_course_from_migration(
             creation_date=now,
             update_date=now,
         )
+        await assign_course_slug(db_session, course)
         db_session.add(course)
         await db_session.flush()
 

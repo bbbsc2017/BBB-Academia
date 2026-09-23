@@ -44,6 +44,7 @@ from src.security.rbac.rbac import (
     authorization_verify_if_user_is_anon,
 )
 from src.security.superadmin import is_user_superadmin
+from src.services.courses.slugs import assign_course_slug
 from src.services.courses.thumbnails import upload_thumbnail
 from src.services.search.normalization import LIKE_ESCAPE_CHAR, build_like_pattern
 from src.services.webhooks.dispatch import dispatch_webhooks
@@ -661,6 +662,7 @@ async def create_course(
 
     # Insert course and author atomically in a single transaction
     try:
+        await assign_course_slug(db_session, course)
         db_session.add(course)
         await db_session.flush()  # Get the ID without committing
         await db_session.refresh(course)
@@ -1251,6 +1253,7 @@ async def clone_course(
             new_course.thumbnail_video = new_video_name
 
     # Insert new course
+    await assign_course_slug(db_session, new_course)
     db_session.add(new_course)
     await db_session.flush()  # Get new_course.id without committing
     await db_session.refresh(new_course)

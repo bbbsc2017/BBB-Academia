@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import { useOrg } from '@components/Contexts/OrgContext'
 import AuthenticatedClientElement from '@components/Security/AuthenticatedClientElement'
 import ConfirmationModal from '@components/Objects/StyledElements/ConfirmationModal/ConfirmationModal'
@@ -151,7 +152,7 @@ function CourseThumbnail({ course, orgslug, customLink, isDashboard = false, isS
     ? getCourseThumbnailMediaDirectory(org?.org_uuid, course.course_uuid, course.thumbnail_image)
     : '/empty_thumbnail.png'
 
-  const courseLink = customLink ? customLink : getUriWithOrg(orgslug, `/course/${removeCoursePrefix(course.course_uuid)}`)
+  const courseLink = customLink ? customLink : getUriWithOrg(orgslug, `/course/${getCourseUrlSegment(course)}`)
 
   return (
     <div onMouseEnter={handleMouseEnter} className={`group relative flex flex-col bg-white rounded-3xl border border-slate-100 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_20px_36px_-26px_rgba(15,23,42,0.22)] overflow-hidden w-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_28px_44px_-24px_rgba(15,23,42,0.28)] ${isSelected ? 'ring-2 ring-[#00A9BF] ring-offset-2' : ''}`}>

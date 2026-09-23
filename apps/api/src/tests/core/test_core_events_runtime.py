@@ -268,6 +268,7 @@ async def test_events_startup_shutdown_and_reconcile(monkeypatch):
     monkeypatch.setattr(core_events, "check_content_directory", check_content_directory)
     monkeypatch.setattr(core_events, "auto_install", auto_install)
     monkeypatch.setattr(core_events, "_reconcile_packs", reconcile_packs)
+    monkeypatch.setattr(core_events, "_backfill_course_slugs", AsyncMock())
     monkeypatch.setattr(core_events, "run_ee_startup", run_ee_startup)
     monkeypatch.setattr(core_events.asyncio, "create_task", fake_create_task)
     monkeypatch.setattr(

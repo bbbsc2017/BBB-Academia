@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import Link from 'next/link'
 import React, { useEffect, useState, Suspense } from 'react'
 import { getUriWithOrg, withBasePathOnRelative } from '@services/config/config'
@@ -487,7 +488,7 @@ const CourseClient = (props: any) => {
               <h1 className="text-3xl md:text-3xl font-bold">{course.name}</h1>
               <CourseShare
                 courseName={course.name}
-                courseUrl={withBasePathOnRelative(getUriWithOrg(orgslug, `/course/${courseuuid}`))}
+                courseUrl={withBasePathOnRelative(getUriWithOrg(orgslug, `/course/${getCourseUrlSegment(course, courseuuid)}`))}
               />
             </div>
 
@@ -673,7 +674,7 @@ const CourseClient = (props: any) => {
                                     key={activity.activity_uuid}
                                     href={
                                       getUriWithOrg(orgslug, '') +
-                                      `/course/${courseuuid}/activity/${activity.activity_uuid.replace('activity_', '')}`
+                                      `/course/${getCourseUrlSegment(course, courseuuid)}/activity/${activity.activity_uuid.replace('activity_', '')}`
                                     }
                                     rel="noopener noreferrer"
                                     prefetch={false}

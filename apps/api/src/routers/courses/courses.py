@@ -56,6 +56,7 @@ from src.services.courses.courses import (
     update_course,
     update_course_thumbnail,
 )
+from src.services.courses.slugs import resolve_course_identifier
 from src.services.courses.transfer import (
     ImportAnalysisResponse,
     ImportOptions,
@@ -362,6 +363,34 @@ async def api_create_course_thumbnail(
     return await update_course_thumbnail(
         request, course_uuid, current_user, db_session, thumbnail, thumbnail_type
     )
+
+
+class CourseResolveResponse(BaseModel):
+    course_uuid: str
+    slug: str
+
+
+@router.get(
+    "/resolve/{org_slug}/{identifier}",
+    response_model=CourseResolveResponse,
+    summary="Resolve a course slug or UUID",
+    description=(
+        "Map a course slug (or a legacy UUID) inside an organization to the "
+        "course's UUID and canonical slug. Used by the frontend to serve "
+        "slug URLs and redirect legacy UUID URLs to them. Returns identifiers "
+        "only; read access is still enforced when the course itself is fetched."
+    ),
+    responses={404: {"description": "Course not found"}},
+)
+async def api_resolve_course(
+    org_slug: str,
+    identifier: str,
+    db_session: AsyncSession = Depends(get_db_session),
+) -> CourseResolveResponse:
+    course = await resolve_course_identifier(db_session, org_slug, identifier)
+    if not course or not course.slug:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return CourseResolveResponse(course_uuid=course.course_uuid, slug=course.slug)
 
 
 @router.get(

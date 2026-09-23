@@ -34,6 +34,7 @@ from src.security.features_utils.usage import (
     increase_feature_usage,
 )
 from src.security.rbac import AccessAction, check_resource_access
+from src.services.courses.slugs import assign_course_slug
 
 from .models import (
     ImportAnalysisResponse,
@@ -578,6 +579,7 @@ async def _import_single_course(
                     new_course.thumbnail_video = new_filename
 
     # Use flush (not commit) for intermediate entities — the caller manages the transaction
+    await assign_course_slug(db_session, new_course)
     db_session.add(new_course)
     await db_session.flush()
 

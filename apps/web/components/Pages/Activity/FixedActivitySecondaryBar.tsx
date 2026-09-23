@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getUriWithOrg } from '@services/config/config'
 import { useRouter } from 'next/navigation'
@@ -26,7 +27,7 @@ const NavigationButtons = memo(({
   nextActivity: any, 
   currentIndex: number, 
   allActivities: any[], 
-  navigateToActivity: (activity: any) => void 
+  navigateToActivity: (_activity: any) => void 
 }) => {
   const { t } = useTranslation();
   return (
@@ -136,8 +137,7 @@ export default function FixedActivitySecondaryBar(props: FixedActivitySecondaryB
   const navigateToActivity = (activity: any) => {
     if (!activity) return;
     
-    const cleanCourseUuid = props.course.course_uuid?.replace('course_', '');
-    router.push(getUriWithOrg(props.orgslug, '') + `/course/${cleanCourseUuid}/activity/${activity.cleanUuid}`);
+    router.push(getUriWithOrg(props.orgslug, '') + `/course/${getCourseUrlSegment(props.course)}/activity/${activity.cleanUuid}`);
   };
 
   useEffect(() => {

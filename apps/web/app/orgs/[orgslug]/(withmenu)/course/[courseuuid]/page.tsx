@@ -77,7 +77,7 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
       },
     },
     alternates: {
-      canonical: seo.canonical_url || (await getServerCanonicalUrl(params.orgslug, `/course/${params.courseuuid}`)),
+      canonical: seo.canonical_url || (await getServerCanonicalUrl(params.orgslug, `/course/${course_meta.slug || params.courseuuid}`)),
     },
     openGraph: {
       title: seo.og_title || seo.title || defaultTitle,

@@ -1,3 +1,4 @@
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
@@ -78,7 +79,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
   const handleContinueCourse = () => {
     if (!continueActivity) return
     const activityId = continueActivity.activity_uuid.replace('activity_', '')
-    router.push(getUriWithOrg(orgslug, '') + `/course/${courseuuid}/activity/${activityId}`)
+    router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course, courseuuid)}/activity/${activityId}`)
   }
 
   // Public endpoint — works without auth too, but MUST get the access token
@@ -138,7 +139,7 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
           await revalidateTags(['activities'], orgslug)
           router.push(
             getUriWithOrg(orgslug, '') +
-            `/course/${courseuuid}/activity/${firstActivity.activity_uuid.replace('activity_', '')}`
+            `/course/${getCourseUrlSegment(course, courseuuid)}/activity/${firstActivity.activity_uuid.replace('activity_', '')}`
           )
         } else {
           router.refresh()

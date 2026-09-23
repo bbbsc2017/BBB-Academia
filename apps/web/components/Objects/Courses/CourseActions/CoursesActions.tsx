@@ -1,3 +1,4 @@
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import React, { useState } from 'react'
 import { removeCourse, startCourse } from '@services/courses/activity'
 import { revalidateTags } from '@services/utils/ts/requests'
@@ -92,7 +93,7 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
   const handleContinueCourse = () => {
     if (!continueActivity) return
     const activityId = continueActivity.activity_uuid.replace('activity_', '')
-    router.push(getUriWithOrg(orgslug, '') + `/course/${courseuuid}/activity/${activityId}`)
+    router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course, courseuuid)}/activity/${activityId}`)
   }
 
   // Public endpoint — works without auth too, but MUST get the access token
@@ -154,7 +155,7 @@ function CoursesActions({ courseuuid, orgslug, course, trailData }: CourseAction
           // Redirect to the first activity
           router.push(
             getUriWithOrg(orgslug, '') +
-            `/course/${courseuuid}/activity/${firstActivity.activity_uuid.replace('activity_', '')}`
+            `/course/${getCourseUrlSegment(course, courseuuid)}/activity/${firstActivity.activity_uuid.replace('activity_', '')}`
           )
         }
       }

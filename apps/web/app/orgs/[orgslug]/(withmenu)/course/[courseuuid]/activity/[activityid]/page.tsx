@@ -47,7 +47,7 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
         course_meta?.thumbnail_image
       )
     : orgOgImageUrl || '/empty_thumbnail.png'
-  const canonical = await getServerCanonicalUrl(params.orgslug, `/course/${params.courseuuid}/activity/${params.activityid}`)
+  const canonical = await getServerCanonicalUrl(params.orgslug, `/course/${course_meta.slug || params.courseuuid}/activity/${params.activityid}`)
 
   // SEO
   return {

@@ -1,3 +1,4 @@
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Search, ArrowRight, Sparkles, BookCopy, Folder, ArrowUpRight, TextSearch, ScanSearch, Users } from 'lucide-react';
 import { searchOrgContent } from '@services/search/search';
@@ -7,7 +8,6 @@ import { getCourseThumbnailMediaDirectory, getUserAvatarMediaDirectory } from '@
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOrg } from '@components/Contexts/OrgContext';
 import { getUriWithOrg } from '@services/config/config';
-import { removeCoursePrefix } from '../Thumbnails/CourseThumbnail';
 import UserAvatar from '../UserAvatar';
 import { useTranslation } from 'react-i18next';
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics';
@@ -272,7 +272,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             {searchResults.courses.map((course) => (
               <Link
                 key={course.course_uuid}
-                href={getUriWithOrg(orgslug, `/course/${removeCoursePrefix(course.course_uuid)}`)}
+                href={getUriWithOrg(orgslug, `/course/${getCourseUrlSegment(course)}`)}
                 className="flex items-center gap-3 p-2 hover:bg-black/[0.02] rounded-lg transition-colors"
               >
                 <div className="relative">

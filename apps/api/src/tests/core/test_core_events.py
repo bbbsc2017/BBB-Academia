@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -302,6 +303,7 @@ async def test_startup_and_shutdown_app(monkeypatch):
     monkeypatch.setattr(events, "check_content_directory", check_content_directory)
     monkeypatch.setattr(events, "auto_install", fake_auto_install)
     monkeypatch.setattr(events, "_reconcile_packs", fake_reconcile_packs)
+    monkeypatch.setattr(events, "_backfill_course_slugs", AsyncMock())
     monkeypatch.setattr(events, "run_ee_startup", lambda app_: calls.append(("ee", app_)))
     monkeypatch.setattr(
         "src.services.courses.migration.migration_service.cleanup_old_temp_migrations",

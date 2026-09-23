@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import React from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
@@ -134,7 +135,7 @@ export function CommunitySidebar({
               {t('communities.linked_course')}
             </div>
             <Link
-              href={getUriWithOrg(orgslug, `/course/${linkedCourse.course_uuid.replace('course_', '')}`)}
+              href={getUriWithOrg(orgslug, `/course/${getCourseUrlSegment(linkedCourse)}`)}
               className="group block"
             >
               <div className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors">

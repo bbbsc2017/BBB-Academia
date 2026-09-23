@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import { useRouter } from 'next/navigation'
 import { useMediaQuery } from 'usehooks-ts'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -14,10 +15,10 @@ interface ActivityNavigationProps {
 
 export default function ActivityNavigation(props: ActivityNavigationProps): React.ReactNode {
   const router = useRouter();
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const _isMobile = useMediaQuery('(max-width: 768px)');
   const [isBottomNavVisible, setIsBottomNavVisible] = React.useState(true);
   const bottomNavRef = React.useRef<HTMLDivElement>(null);
-  const [navWidth, setNavWidth] = React.useState<number | null>(null);
+  const [_navWidth, setNavWidth] = React.useState<number | null>(null);
   
   // Function to find the current activity's position in the course
   const findActivityPosition = () => {
@@ -54,8 +55,7 @@ export default function ActivityNavigation(props: ActivityNavigationProps): Reac
   const navigateToActivity = (activity: any) => {
     if (!activity) return;
     
-    const cleanCourseUuid = props.course.course_uuid?.replace('course_', '');
-    router.push(getUriWithOrg(props.orgslug, '') + `/course/${cleanCourseUuid}/activity/${activity.cleanUuid}`);
+    router.push(getUriWithOrg(props.orgslug, '') + `/course/${getCourseUrlSegment(props.course)}/activity/${activity.cleanUuid}`);
   };
 
   // Set up intersection observer to detect when bottom nav is out of viewport

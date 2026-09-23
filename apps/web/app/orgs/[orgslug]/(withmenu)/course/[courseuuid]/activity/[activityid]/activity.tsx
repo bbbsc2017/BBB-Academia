@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import Link from 'next/link'
 import { getUriWithOrg } from '@services/config/config'
 import { BookOpenCheck, CheckCircle, ChevronLeft, ChevronRight, MessageSquare, UserRoundPen, Edit2, Maximize2, Minimize2, Trophy, Sparkles, XCircle, Lock, RotateCcw, Infinity as InfinityIcon } from 'lucide-react'
@@ -366,8 +367,7 @@ function ActivityClient(props: ActivityClientProps) {
   const navigateToActivity = (activity: any) => {
     if (!activity) return;
     
-    const cleanCourseUuid = course.course_uuid?.replace('course_', '');
-    router.push(getUriWithOrg(orgslug, '') + `/course/${cleanCourseUuid}/activity/${activity.cleanUuid}`);
+    router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course)}/activity/${activity.cleanUuid}`);
   };
 
   // Initialize focus mode from localStorage
@@ -523,7 +523,7 @@ function ActivityClient(props: ActivityClientProps) {
               </Link>
             )}
             <Link
-              href={getUriWithOrg(orgslug, '') + `/course/${courseuuid}`}
+              href={getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course, courseuuid)}`}
               className="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
             >
               {t('course.back_to_course', 'Back to course')}
@@ -608,7 +608,7 @@ function ActivityClient(props: ActivityClientProps) {
                         >
                           <div className="flex">
                             <Link
-                              href={getUriWithOrg(orgslug, '') + `/course/${courseuuid}`}
+                              href={getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course, courseuuid)}`}
                             >
                               <img
                                 className="w-[60px] h-[34px] rounded-md drop-shadow-md"
@@ -774,7 +774,7 @@ function ActivityClient(props: ActivityClientProps) {
                     <div className="pt-2 pb-3 sm:pb-6">
                       <Breadcrumbs items={[
                         { label: t('courses.courses'), href: getUriWithOrg(orgslug, '/courses'), icon: <BookCopy size={14} /> },
-                        { label: course.name, href: getUriWithOrg(orgslug, `/course/${courseuuid}`) },
+                        { label: course.name, href: getUriWithOrg(orgslug, `/course/${getCourseUrlSegment(course, courseuuid)}`) },
                         { label: displayName }
                       ]} />
                     </div>
@@ -783,7 +783,7 @@ function ActivityClient(props: ActivityClientProps) {
                           <div className="flex space-x-4 sm:space-x-6 items-center">
                             <div className="flex shrink-0">
                               <Link
-                                href={getUriWithOrg(orgslug, '') + `/course/${courseuuid}`}
+                                href={getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course, courseuuid)}`}
                               >
                                 <img
                                   className="w-[60px] h-[34px] sm:w-[100px] sm:h-[57px] rounded-md drop-shadow-md"
@@ -1168,10 +1168,10 @@ export function MarkStatus(props: {
       const cleanCourseUuid = props.course.course_uuid.replace('course_', '');
       await queryClient.invalidateQueries({ queryKey: queryKeys.courses.meta(cleanCourseUuid) });
       if (willCompleteAll || !nextActivity) {
-        router.push(getUriWithOrg(props.orgslug, '') + `/course/${cleanCourseUuid}/activity/end`);
+        router.push(getUriWithOrg(props.orgslug, '') + `/course/${getCourseUrlSegment(props.course)}/activity/end`);
       } else {
         const nextUuid = nextActivity.activity_uuid?.replace('activity_', '');
-        router.push(getUriWithOrg(props.orgslug, '') + `/course/${cleanCourseUuid}/activity/${nextUuid}`);
+        router.push(getUriWithOrg(props.orgslug, '') + `/course/${getCourseUrlSegment(props.course)}/activity/${nextUuid}`);
       }
     } catch (error) {
       console.error('Error marking activity as complete:', error);
@@ -1369,8 +1369,7 @@ function NextActivityButton({ course, currentActivityId, orgslug }: { course: an
   if (!nextActivity) return null;
 
   const navigateToActivity = () => {
-    const cleanCourseUuid = course.course_uuid?.replace('course_', '');
-    router.push(getUriWithOrg(orgslug, '') + `/course/${cleanCourseUuid}/activity/${nextActivity.cleanUuid}`);
+    router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course)}/activity/${nextActivity.cleanUuid}`);
   };
 
   return (
@@ -1422,8 +1421,7 @@ function PreviousActivityButton({ course, currentActivityId, orgslug }: { course
   if (!previousActivity) return null;
 
   const navigateToActivity = () => {
-    const cleanCourseUuid = course.course_uuid?.replace('course_', '');
-    router.push(getUriWithOrg(orgslug, '') + `/course/${cleanCourseUuid}/activity/${previousActivity.cleanUuid}`);
+    router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course)}/activity/${previousActivity.cleanUuid}`);
   };
 
   return (
