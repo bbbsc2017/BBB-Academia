@@ -1,3 +1,4 @@
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import { getOrgCourses, getCourseMetadata } from '@services/courses/courses'
 import { getOrganizationContextInfo } from '@services/organizations/orgs'
 import { getOrgFolders } from '@services/folders/folders'
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
       const courses = await getOrgCourses(orgSlug, null).catch(() => [])
       for (const course of courses) {
         sitemapUrls.push({
-          loc: `${baseUrl}course/${course.course_uuid.replace('course_', '')}`,
+          loc: `${baseUrl}course/${getCourseUrlSegment(course)}`,
           priority: 0.7,
           changefreq: 'weekly',
           lastmod: course.update_date,
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
                   const activityId = (activity.activity_uuid || '').replace('activity_', '')
                   if (activityId) {
                     sitemapUrls.push({
-                      loc: `${baseUrl}course/${course.course_uuid.replace('course_', '')}/activity/${activityId}`,
+                      loc: `${baseUrl}course/${getCourseUrlSegment(course)}/activity/${activityId}`,
                       priority: 0.6,
                       changefreq: 'weekly',
                       lastmod: activity.update_date,

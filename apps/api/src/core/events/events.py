@@ -41,6 +41,19 @@ async def _reconcile_packs():
         logger.warning("Pack reconciliation skipped (non-fatal): %s", e)
 
 
+async def _backfill_course_slugs():
+    """Give courses created before slugs existed a slug (idempotent, non-fatal)."""
+    try:
+        from src.core.events.database import _async_session_factory
+        from src.services.courses.slugs import backfill_course_slugs
+        async with _async_session_factory() as db_session:
+            count = await backfill_course_slugs(db_session)
+            if count:
+                logger.info("Backfilled slugs for %s course(s)", count)
+    except Exception as e:
+        logger.warning("Course slug backfill skipped (non-fatal): %s", e)
+
+
 def startup_app(app: FastAPI) -> Callable:
     async def start_app() -> None:
         # Get LearnHouse Config
@@ -61,6 +74,9 @@ def startup_app(app: FastAPI) -> Callable:
 
         # Reconcile pack credits (Redis ↔ DB)
         await _reconcile_packs()
+
+        # Backfill slugs for pre-existing courses
+        await _backfill_course_slugs()
 
         # Clean up stale migration temp directories (on startup + every 10 min)
         from src.services.courses.migration.migration_service import (

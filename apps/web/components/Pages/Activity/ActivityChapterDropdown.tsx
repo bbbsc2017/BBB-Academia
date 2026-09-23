@@ -1,4 +1,5 @@
 'use client'
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import { useMediaQuery } from 'usehooks-ts'
 import { Check, FileText, ListTree, Video, X, StickyNote, Backpack, ArrowRight } from 'lucide-react'
 import { getUriWithOrg } from '@services/config/config'
@@ -142,7 +143,7 @@ export default function ActivityChapterDropdown(props: ActivityChapterDropdownPr
                     return (
                       <Link
                         key={activity.id}
-                        href={getUriWithOrg(props.orgslug, '') + `/course/${cleanCourseUuid}/activity/${cleanActivityUuid}`}
+                        href={getUriWithOrg(props.orgslug, '') + `/course/${getCourseUrlSegment(props.course)}/activity/${cleanActivityUuid}`}
                         prefetch={false}
                         onClick={() => setIsOpen(false)}
                       >

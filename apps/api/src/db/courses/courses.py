@@ -75,6 +75,7 @@ class Course(CourseBase, table=True):
         sa_column=Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), index=True)
     )
     course_uuid: str = Field(default="", index=True)
+    slug: str | None = Field(default=None, index=True)
     creation_date: str = ""
     update_date: str = ""
     seo: dict | None = Field(default=None, sa_column=Column(JSONB))
@@ -110,6 +111,7 @@ class CourseRead(CourseBase):
     org_id: int = Field(default=None, foreign_key="organization.id")
     authors: list[AuthorWithRole]
     course_uuid: str
+    slug: str | None = None
     creation_date: str
     update_date: str
     thumbnail_type: ThumbnailType | None = Field(default=ThumbnailType.IMAGE)
@@ -124,6 +126,7 @@ class FullCourseRead(CourseBase):
     org_id: int
     org_uuid: str | None = None
     course_uuid: str | None = None
+    slug: str | None = None
     creation_date: str | None = None
     update_date: str | None = None
     thumbnail_type: ThumbnailType | None = Field(default=ThumbnailType.IMAGE)
@@ -139,6 +142,7 @@ class FullCourseRead(CourseBase):
 class FullCourseReadWithTrail(CourseBase):
     id: int
     course_uuid: str | None = None
+    slug: str | None = None
     creation_date: str | None = None
     update_date: str | None = None
     org_id: int = Field(default=None, foreign_key="organization.id")

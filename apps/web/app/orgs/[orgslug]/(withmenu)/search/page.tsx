@@ -1,5 +1,6 @@
 'use client'
 
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -28,7 +29,6 @@ import {
   getPodcastThumbnailMediaDirectory,
 } from '@services/media/media'
 import { getUriWithOrg } from '@services/config/config'
-import { removeCoursePrefix } from '@components/Objects/Thumbnails/CourseThumbnail'
 import UserAvatar from '@components/Objects/UserAvatar'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
@@ -203,7 +203,7 @@ const sections: SectionDescriptor<any>[] = [
     itemKey: (c: ApiCourse) => c.course_uuid,
     renderCard: (course: ApiCourse, ctx) => (
       <ResourceCard
-        href={getUriWithOrg(ctx.orgSlug, `/course/${removeCoursePrefix(course.course_uuid)}`)}
+        href={getUriWithOrg(ctx.orgSlug, `/course/${getCourseUrlSegment(course)}`)}
         imageUrl={course.thumbnail_image
           ? getCourseThumbnailMediaDirectory(ctx.orgUuid, course.course_uuid, course.thumbnail_image)
           : undefined}

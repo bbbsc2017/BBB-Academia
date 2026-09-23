@@ -229,6 +229,55 @@ function urlWithBase(req: NextRequest, pathWithOptionalQuery: string) {
 }
 
 // =============================================================================
+// Course slugs
+// =============================================================================
+//
+// Public course URLs are /course/<slug>. Legacy /course/<uuid> URLs (printed
+// QR codes, old links) keep working: they 308 to the slug URL, and slug URLs
+// are rewritten internally to the uuid route the pages already understand.
+
+interface ResolvedCourse {
+  course_uuid: string
+  slug: string
+}
+
+const _courseCache = new Map<string, { data: ResolvedCourse | null; ts: number }>()
+const COURSE_CACHE_TTL = 60 * 1000
+const COURSE_NEGATIVE_CACHE_TTL = 15 * 1000
+
+// undefined = could not resolve right now (API down): caller serves the URL unchanged.
+async function resolveCourse(
+  orgSlug: string,
+  identifier: string,
+): Promise<ResolvedCourse | null | undefined> {
+  const key = `${orgSlug}/${identifier}`
+  const cached = _courseCache.get(key)
+  if (cached) {
+    const ttl = cached.data ? COURSE_CACHE_TTL : COURSE_NEGATIVE_CACHE_TTL
+    if (Date.now() - cached.ts < ttl) return cached.data
+  }
+
+  try {
+    const res = await fetch(
+      `${getAPIUrl()}courses/resolve/${encodeURIComponent(orgSlug)}/${encodeURIComponent(identifier)}`,
+      { signal: AbortSignal.timeout(3000) },
+    )
+    if (res.ok) {
+      const data = (await res.json()) as ResolvedCourse
+      _courseCache.set(key, { data, ts: Date.now() })
+      return data
+    }
+    if (res.status === 404) {
+      _courseCache.set(key, { data: null, ts: Date.now() })
+      return null
+    }
+  } catch {
+    // Backend unavailable — fall through to the unchanged URL
+  }
+  return undefined
+}
+
+// =============================================================================
 // Middleware
 // =============================================================================
 
@@ -516,8 +565,32 @@ export default async function proxy(req: NextRequest) {
   // -------------------------------------------------------------------------
   const resolved = await resolveTenant(req, instance)
   const requestHeaders = tenantRequestHeaders(req, resolved, instance)
+
+  let targetPath = pathname
+  const courseMatch = pathname.match(/^\/course\/([^/]+)(\/.*)?$/)
+  if (courseMatch) {
+    let segment = courseMatch[1].toLowerCase()
+    try {
+      segment = decodeURIComponent(segment)
+    } catch {
+      // malformed escape — resolve the raw segment (will simply not match)
+    }
+    const rest = courseMatch[2] ?? ''
+    const course = await resolveCourse(resolved.slug, segment)
+    if (course) {
+      if (segment !== course.slug) {
+        // Legacy uuid (or differently-cased) URL → canonical slug URL.
+        return NextResponse.redirect(
+          urlWithBase(req, `/course/${course.slug}${rest}${search}`),
+          308,
+        )
+      }
+      targetPath = `/course/${course.course_uuid.replace(/^course_/, '')}${rest}`
+    }
+  }
+
   const response = NextResponse.rewrite(
-    urlWithBase(req, `/orgs/${resolved.slug}${pathname}${search}`),
+    urlWithBase(req, `/orgs/${resolved.slug}${targetPath}${search}`),
     { request: { headers: requestHeaders } },
   )
   setOrgCookies(response, resolved, instance)

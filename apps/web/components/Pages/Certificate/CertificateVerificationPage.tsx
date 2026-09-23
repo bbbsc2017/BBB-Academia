@@ -1,5 +1,6 @@
 'use client';
 
+import { getCourseUrlSegment } from '@/lib/courses/courseUrl'
 import React, { useEffect, useState } from 'react';
 import { getCertificateByUuid } from '@services/courses/certifications';
 import CertificatePreview from '@components/Dashboard/Pages/Course/EditCourseCertification/CertificatePreview';
@@ -268,7 +269,7 @@ const CertificateVerificationPage: React.FC<CertificateVerificationPageProps> = 
                 {/* View Course Link */}
                 <div className="flex-shrink-0">
                   <Link
-                    href={getUriWithOrg(org?.org_slug || '', `/course/${certificateData.course.course_uuid.replace('course_', '')}`)}
+                    href={getUriWithOrg(org?.org_slug || '', `/course/${getCourseUrlSegment(certificateData.course)}`)}
                     className="inline-flex items-center space-x-1 text-neutral-400 hover:text-neutral-600 transition-colors text-sm"
                   >
                     <span>View Course</span>
