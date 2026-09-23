@@ -27,7 +27,7 @@ const NavigationButtons = memo(({
   nextActivity: any, 
   currentIndex: number, 
   allActivities: any[], 
-  navigateToActivity: (activity: any) => void 
+  navigateToActivity: (_activity: any) => void 
 }) => {
   const { t } = useTranslation();
   return (
@@ -137,7 +137,6 @@ export default function FixedActivitySecondaryBar(props: FixedActivitySecondaryB
   const navigateToActivity = (activity: any) => {
     if (!activity) return;
     
-    const cleanCourseUuid = props.course.course_uuid?.replace('course_', '');
     router.push(getUriWithOrg(props.orgslug, '') + `/course/${getCourseUrlSegment(props.course)}/activity/${activity.cleanUuid}`);
   };
 

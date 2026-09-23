@@ -127,7 +127,7 @@ const CourseThumbnailLanding: React.FC<PropsType> = ({ course, orgslug, customLi
       queryClient.invalidateQueries({ queryKey: queryKeys.courses.list(orgslug) })
       toast.success(t('courses.course_deleted_success'))
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error(t('courses.course_deleted_error'))
     } finally {
       toast.dismiss(toastId)

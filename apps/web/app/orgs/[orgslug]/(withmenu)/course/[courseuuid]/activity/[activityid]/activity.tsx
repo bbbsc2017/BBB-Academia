@@ -367,7 +367,6 @@ function ActivityClient(props: ActivityClientProps) {
   const navigateToActivity = (activity: any) => {
     if (!activity) return;
     
-    const cleanCourseUuid = course.course_uuid?.replace('course_', '');
     router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course)}/activity/${activity.cleanUuid}`);
   };
 
@@ -1370,7 +1369,6 @@ function NextActivityButton({ course, currentActivityId, orgslug }: { course: an
   if (!nextActivity) return null;
 
   const navigateToActivity = () => {
-    const cleanCourseUuid = course.course_uuid?.replace('course_', '');
     router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course)}/activity/${nextActivity.cleanUuid}`);
   };
 
@@ -1423,7 +1421,6 @@ function PreviousActivityButton({ course, currentActivityId, orgslug }: { course
   if (!previousActivity) return null;
 
   const navigateToActivity = () => {
-    const cleanCourseUuid = course.course_uuid?.replace('course_', '');
     router.push(getUriWithOrg(orgslug, '') + `/course/${getCourseUrlSegment(course)}/activity/${previousActivity.cleanUuid}`);
   };
 
