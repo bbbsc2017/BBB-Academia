@@ -960,12 +960,13 @@ function ActivityClient(props: ActivityClientProps) {
                           ) : (
                             <div className="flex flex-col items-stretch gap-5 lg:flex-row">
                               <ActivityCourseSidebar
+                                className="order-2 lg:order-1"
                                 course={course}
                                 currentActivityId={activityid}
                                 orgslug={orgslug}
                                 trailData={trailData}
                               />
-                              <div className={`flex-1 min-w-0 ${activity.activity_type === 'TYPE_SCORM' ? 'rounded-xl overflow-hidden' : 'p-3 sm:p-7 rounded-lg'} ${bgColor} relative isolate`} style={{ zIndex: 'var(--z-base)' }}>
+                              <div className={`order-1 lg:order-2 flex-1 min-w-0 ${activity.activity_type === 'TYPE_SCORM' ? 'rounded-xl overflow-hidden' : 'p-3 sm:p-7 rounded-lg'} ${bgColor} relative isolate`} style={{ zIndex: 'var(--z-base)' }}>
                                 <button
                                   onClick={() => setIsFocusMode(true)}
                                   className={`absolute ${activity.activity_type === 'TYPE_SCORM' ? 'top-2 right-2' : 'top-4 right-4'} hidden sm:flex bg-white/80 hover:bg-white nice-shadow p-2 rounded-full cursor-pointer transition-all duration-200 group overflow-hidden pointer-events-auto`}

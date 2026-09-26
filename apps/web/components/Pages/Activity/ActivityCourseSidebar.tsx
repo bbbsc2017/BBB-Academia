@@ -11,9 +11,10 @@ interface Props {
   currentActivityId: string
   orgslug: string
   trailData?: any
+  className?: string
 }
 
-export default function ActivityCourseSidebar({ course, currentActivityId, orgslug, trailData }: Props) {
+export default function ActivityCourseSidebar({ course, currentActivityId, orgslug, trailData, className = '' }: Props) {
   const { t } = useTranslation()
   const courseId = course.course_uuid?.replace('course_', '')
   const currentId = currentActivityId.replace('activity_', '')
@@ -31,7 +32,7 @@ export default function ActivityCourseSidebar({ course, currentActivityId, orgsl
   }
 
   return (
-    <aside className="activity-course-sidebar activity-glass w-full lg:w-[280px] shrink-0 self-start rounded-2xl p-3 sm:p-4">
+    <aside className={`activity-course-sidebar activity-glass w-full lg:w-[280px] shrink-0 self-start rounded-2xl p-3 sm:p-4 ${className}`}>
       <div className="flex items-center justify-between gap-3 px-1 pb-3">
         <div className="flex items-center gap-2">
           <ListTree size={17} className="text-[#00a9bf]" />
