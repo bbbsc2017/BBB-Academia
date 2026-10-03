@@ -74,3 +74,22 @@ apps/api/ee
 
 # Playwright MCP session artifacts
 .playwright-mcp/
+
+# --- Seguridad: artefactos de herramientas de IA y archivos operativos privados ---
+# Instrucciones de agentes, sesiones y salidas de herramientas de IA no deben
+# versionarse (pueden revelar rutas, cuentas, infraestructura o credenciales).
+.claude/
+.codex/
+.cursor/
+.windsurf/
+.aider*
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+graphify-out/
+# Llaves y accesos
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+ACCESOS*.md
