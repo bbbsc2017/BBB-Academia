@@ -70,6 +70,33 @@ SPRITE_TIMEOUT_S = 30 * 60
 TRANSCODE_TIMEOUT_S = 6 * 60 * 60
 
 
+def _priority_prefix() -> list[str]:
+    """Prepend `nice`/`ionice` so a transcode never starves the live site.
+
+    `-threads 1` (see build_ffmpeg_args) caps ffmpeg at roughly one core, but
+    on a loaded box the OS scheduler can still let that one core's work (and
+    its disk I/O) win over the API/Next.js processes when they contend for
+    the same core — which is exactly what starved real requests during the
+    2026-10 production backfill. Lowest CPU niceness + idle I/O class fixes
+    that: the OS now always prefers the live site's processes when both want
+    the same resource at the same instant. Best-effort — a minimal image
+    without `nice`/`ionice` just runs the command directly, same as before.
+    POSIX-only: a Windows dev box can resolve a `nice.exe` (e.g. Git Bash's
+    MSYS2 build) that isn't a drop-in process-priority wrapper for a native
+    Windows child, so this never applies off of production's Linux containers.
+    """
+    if os.name != "posix":
+        return []
+    prefix = []
+    nice = shutil.which("nice")
+    ionice = shutil.which("ionice")
+    if ionice:
+        prefix += [ionice, "-c3"]  # idle I/O class — never competes with real traffic
+    if nice:
+        prefix += [nice, "-n", "19"]  # lowest CPU scheduling priority
+    return prefix
+
+
 async def _run_subprocess(args, timeout: int):
     """Run a subprocess and return (returncode, stdout, stderr).
 
@@ -81,9 +108,11 @@ async def _run_subprocess(args, timeout: int):
     subprocess machinery entirely. On timeout the process is killed and the
     return code is -1.
     """
+    full_args = _priority_prefix() + list(args)
+
     def _run():
         try:
-            p = subprocess.run(args, capture_output=True, timeout=timeout)
+            p = subprocess.run(full_args, capture_output=True, timeout=timeout)
             return p.returncode, p.stdout or b"", p.stderr or b""
         except subprocess.TimeoutExpired as e:
             return -1, (e.stdout or b""), (e.stderr or b"")
