@@ -19,6 +19,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.events.database import get_db_session
 from src.db.courses.activities import Activity
+from src.db.courses.blocks import Block
 from src.db.courses.courses import Course
 from src.db.podcasts.episodes import PodcastEpisode
 from src.db.podcasts.podcasts import Podcast
@@ -34,6 +35,7 @@ from src.services.courses.transfer.storage_utils import (
     is_s3_enabled,
     read_file_content,
 )
+from src.services.utils.hls_jobs import hls_enabled
 from src.services.utils.hls_playlist import rewrite_playlist
 from src.services.utils.video_streaming import (
     CHUNK_SIZE,
@@ -118,7 +120,7 @@ async def _verify_course_activity_access(
     activity_uuid: str,
     current_user: PublicUser | AnonymousUser | APITokenUser,
     db_session: AsyncSession,
-) -> None:
+) -> tuple[Activity, bool]:
     """
     Verify user has read access to the course/activity.
 
@@ -126,6 +128,12 @@ async def _verify_course_activity_access(
     - Anonymous users can only access public+published courses
     - Authenticated users can access courses they have permission to view
     - Activity must belong to the specified course
+
+    Returns the activity row plus whether the caller also has UPDATE access on
+    the course (i.e. an instructor/admin/author) — used by the raw-MP4 video
+    endpoints to decide whether the once-HLS-is-ready download lock applies
+    (see ``_mp4_locked``): staff still need direct file access to re-upload,
+    verify, or debug a video; regular viewers are pushed to HLS-only.
     """
     # Verify activity exists and belongs to the course
     activity_stmt = select(Activity).where(Activity.activity_uuid == activity_uuid)
@@ -147,6 +155,23 @@ async def _verify_course_activity_access(
 
     if not decision.allowed:
         raise HTTPException(status_code=403, detail=decision.reason)
+
+    update_decision = await checker.check_access(course_uuid, AccessAction.UPDATE, AccessContext.PUBLIC_VIEW)
+    return activity, update_decision.allowed
+
+
+def _mp4_locked(hls_status_holder: dict | None, can_manage: bool) -> bool:
+    """
+    SECURITY: once HLS transcoding is ready, the original progressive MP4 is a
+    single unprotected file (no per-session TTL, no encryption) — leaving it
+    reachable would undo the whole point of serving AES-128 HLS. Lock it out
+    for ordinary viewers once a protected rendition exists; staff who manage
+    the course (re-upload, verify, debug) keep direct access.
+    """
+    if can_manage or not hls_enabled():
+        return False
+    status_ = (hls_status_holder or {}).get("status")
+    return status_ == "ready"
 
 
 async def _verify_podcast_episode_access(
@@ -217,7 +242,14 @@ async def stream_activity_video(
     SECURITY: Validates user has read access to the course via RBAC.
     """
     # SECURITY: Verify user has access to this course/activity
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    activity, can_manage = await _verify_course_activity_access(
+        request, course_uuid, activity_uuid, current_user, db_session
+    )
+    if _mp4_locked((activity.extra_metadata or {}).get("hls"), can_manage):
+        raise HTTPException(
+            status_code=403,
+            detail="This video is now served exclusively via protected HLS playback.",
+        )
 
     # Construct and validate the file path
     file_path = validate_video_path(
@@ -325,7 +357,7 @@ async def stream_activity_hls(
 
     SECURITY: RBAC runs before any content is read or any URL is signed.
     """
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, _can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
 
     rel = _safe_hls_relpath(hls_path)
     if rel is None:
@@ -415,7 +447,7 @@ async def stream_block_hls(
     db_session: AsyncSession = Depends(get_db_session),
 ):
     """Serve a video block's HLS assets. RBAC runs before any content/URL signing."""
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, _can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
 
     rel = _safe_hls_relpath(hls_path)
     if rel is None:
@@ -499,7 +531,7 @@ async def stream_activity_captions(
     db_session: AsyncSession = Depends(get_db_session),
 ):
     """Serve a WebVTT caption track. RBAC runs before any content is read."""
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, _can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
     if not _CAPTION_LANG_RE.match(lang):
         raise HTTPException(status_code=404, detail="Caption track not found")
     asset_key = (
@@ -546,7 +578,7 @@ async def stream_block_audio(
     SECURITY: Validates user has read access to the course via RBAC.
     """
     # SECURITY: Verify user has access to this course/activity
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, _can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
 
     # Construct and validate the file path
     file_path = validate_video_path(
@@ -648,7 +680,7 @@ async def head_block_audio(
 
     SECURITY: Validates user has read access to the course via RBAC.
     """
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, _can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
 
     file_path = validate_video_path(
         CONTENT_DIR,
@@ -717,7 +749,15 @@ async def stream_block_video(
     SECURITY: Validates user has read access to the course via RBAC.
     """
     # SECURITY: Verify user has access to this course/activity
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    block = (
+        await db_session.execute(select(Block).where(Block.block_uuid == block_uuid))
+    ).scalars().first()
+    if block and _mp4_locked((block.content or {}).get("hls"), can_manage):
+        raise HTTPException(
+            status_code=403,
+            detail="This video is now served exclusively via protected HLS playback.",
+        )
 
     # Construct and validate the file path
     file_path = validate_video_path(
@@ -824,7 +864,12 @@ async def head_activity_video(
     SECURITY: Validates user has read access to the course via RBAC.
     """
     # SECURITY: Verify user has access to this course/activity
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    activity, can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    if _mp4_locked((activity.extra_metadata or {}).get("hls"), can_manage):
+        raise HTTPException(
+            status_code=403,
+            detail="This video is now served exclusively via protected HLS playback.",
+        )
 
     file_path = validate_video_path(
         CONTENT_DIR,
@@ -886,7 +931,15 @@ async def head_block_video(
     SECURITY: Validates user has read access to the course via RBAC.
     """
     # SECURITY: Verify user has access to this course/activity
-    await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    _act, can_manage = await _verify_course_activity_access(request, course_uuid, activity_uuid, current_user, db_session)
+    block = (
+        await db_session.execute(select(Block).where(Block.block_uuid == block_uuid))
+    ).scalars().first()
+    if block and _mp4_locked((block.content or {}).get("hls"), can_manage):
+        raise HTTPException(
+            status_code=403,
+            detail="This video is now served exclusively via protected HLS playback.",
+        )
 
     file_path = validate_video_path(
         CONTENT_DIR,

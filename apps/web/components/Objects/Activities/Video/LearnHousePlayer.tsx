@@ -6,6 +6,96 @@ import './player-controls.css'
 import { shouldSendHlsCredentials, type CaptionTrack } from './videoSource'
 
 const SEEK_SECONDS = 15
+const MOBILE_SEEK_SECONDS = 10
+const DOUBLE_TAP_MS = 300
+
+/**
+ * Double-tap-to-seek zones over the left/right thirds of the video, the
+ * touch-control pattern shared by YouTube/Vidstack/Plyr: a single tap
+ * toggles play/pause (same as a desktop click), a second tap within
+ * DOUBLE_TAP_MS in the SAME zone seeks ±10s and flashes an icon. Touch-only
+ * (`pointer: coarse`) — desktop mouse users keep Video.js's own native
+ * click/hover handling untouched. Returns a cleanup function.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function attachMobileSeekZones(player: any, container: HTMLElement): () => void {
+  if (typeof window === 'undefined') return () => {}
+  let isCoarsePointer = false
+  try {
+    isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
+  } catch {
+    isCoarsePointer = false
+  }
+  if (!isCoarsePointer) return () => {}
+
+  const ARROW_PATHS: Record<'left' | 'right', string> = {
+    left: "<path d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/><path d='M3 3v5h5'/>",
+    right: "<path d='M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/>",
+  }
+
+  const cleanupFns: Array<() => void> = []
+
+  ;(['left', 'right'] as const).forEach((side) => {
+    const zone = document.createElement('div')
+    zone.className = `lh-seek-zone lh-seek-zone-${side}`
+
+    const flash = document.createElement('div')
+    flash.className = `lh-seek-flash lh-seek-flash-${side}`
+    flash.innerHTML =
+      `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" ` +
+      `stroke-linecap="round" stroke-linejoin="round">${ARROW_PATHS[side]}</svg>` +
+      `<span>${MOBILE_SEEK_SECONDS}</span>`
+
+    container.appendChild(zone)
+    container.appendChild(flash)
+
+    let lastTapAt = 0
+    let singleTapTimer: ReturnType<typeof setTimeout> | null = null
+    let flashHideTimer: ReturnType<typeof setTimeout> | null = null
+    const delta = side === 'left' ? -MOBILE_SEEK_SECONDS : MOBILE_SEEK_SECONDS
+
+    const showFlash = () => {
+      flash.classList.add('lh-flash-visible')
+      if (flashHideTimer) clearTimeout(flashHideTimer)
+      flashHideTimer = setTimeout(() => flash.classList.remove('lh-flash-visible'), 500)
+    }
+
+    const onTap = (e: Event) => {
+      e.preventDefault()
+      const now = Date.now()
+      if (now - lastTapAt < DOUBLE_TAP_MS) {
+        lastTapAt = 0
+        if (singleTapTimer) {
+          clearTimeout(singleTapTimer)
+          singleTapTimer = null
+        }
+        const cur = player.currentTime() ?? 0
+        const dur = player.duration() || Infinity
+        player.currentTime(Math.max(0, Math.min(dur, cur + delta)))
+        showFlash()
+      } else {
+        lastTapAt = now
+        if (singleTapTimer) clearTimeout(singleTapTimer)
+        singleTapTimer = setTimeout(() => {
+          singleTapTimer = null
+          if (player.paused()) player.play()
+          else player.pause()
+        }, DOUBLE_TAP_MS)
+      }
+    }
+
+    zone.addEventListener('pointerup', onTap)
+    cleanupFns.push(() => {
+      zone.removeEventListener('pointerup', onTap)
+      if (singleTapTimer) clearTimeout(singleTapTimer)
+      if (flashHideTimer) clearTimeout(flashHideTimer)
+      zone.remove()
+      flash.remove()
+    })
+  })
+
+  return () => cleanupFns.forEach((fn) => fn())
+}
 
 /* Register ±15s seek-button components once (Video.js Button API — no plugin). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,6 +177,7 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null)
 
   const playerRef = useRef<any>(null)
+  const detachSeekZonesRef = useRef<(() => void) | null>(null)
   const fellBackRef = useRef(false)
   const captionBlobUrls = useRef<string[]>([])
   const retriedRef = useRef(false)
@@ -223,13 +314,24 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
         /* seek buttons are best-effort */
       }
 
+      // Touch-only double-tap-to-seek zones (see attachMobileSeekZones).
+      try {
+        detachSeekZonesRef.current = attachMobileSeekZones(player, player.el() as HTMLElement)
+      } catch {
+        /* best-effort */
+      }
+
       // Casual-download deterrents (cosmetic — not real protection; the segments
-      // are AES-128 encrypted server-side for the actual bar-raising). Picture-in-
-      // picture is intentionally LEFT ENABLED (users asked for it).
+      // are AES-128 encrypted server-side and the raw MP4 is locked once HLS is
+      // ready — see stream.py — for the actual bar-raising). Picture-in-picture
+      // is intentionally LEFT ENABLED (users asked for it).
       try {
         const techEl = player.el().querySelector('video') as HTMLVideoElement | null
         if (techEl) {
           techEl.setAttribute('controlsList', 'nodownload')
+          // Stops the "drag the <video> element onto the desktop to save it"
+          // affordance some browsers expose even with controlsList=nodownload.
+          techEl.addEventListener('dragstart', (e: Event) => e.preventDefault())
         }
         player.el().addEventListener('contextmenu', (e: Event) => e.preventDefault())
       } catch {
@@ -306,6 +408,10 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
 
     return () => {
       disposed = true
+      if (detachSeekZonesRef.current) {
+        detachSeekZonesRef.current()
+        detachSeekZonesRef.current = null
+      }
       if (playerRef.current) {
         playerRef.current.dispose()
         playerRef.current = null

@@ -147,3 +147,116 @@
   background-color: #00a9bf;
   color: #fff;
 }
+
+/* ---------------------------------------------------------------------
+   Mobile / touch controls.
+   Reference: the touch-control conventions shared by Vidstack and Plyr —
+   larger (>=44px, Apple/Google's own minimum) touch targets, a fatter
+   scrubber hit-area without a visually fatter track, and double-tap-to-seek
+   zones over the video itself. Gated to `(pointer: coarse)` so desktop mouse
+   users keep Video.js's stock click/hover behavior untouched.
+   ------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .video-js .vjs-control-bar {
+    height: 3.2em;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Every control button gets a real >=44px tap target even though the
+     visible icon stays the same size (padding grows, not the glyph). */
+  .video-js .vjs-control-bar .vjs-button {
+    width: 3em;
+  }
+  .video-js .vjs-control-bar .vjs-button > .vjs-icon-placeholder:before {
+    font-size: 1.7em;
+  }
+
+  /* Fatter invisible hit-area around the slim progress track, so dragging
+     with a finger doesn't require pixel-precise placement on the 0.3em
+     line. The track itself stays visually slim (see the base rule above). */
+  .video-js .vjs-progress-control {
+    height: 2.4em;
+    top: -1.1em;
+  }
+  .video-js .vjs-progress-control .vjs-progress-holder {
+    margin: 0 0.8em;
+  }
+  .video-js .vjs-play-progress:before {
+    font-size: 1.1em;
+  }
+
+  /* Volume is a hover-only flyout on desktop; on touch it must be a direct
+     tap target instead (no hover state exists to reveal it). */
+  .video-js .vjs-volume-panel {
+    width: 3em;
+  }
+
+  .video-js .vjs-big-play-button {
+    width: 3.6em;
+    height: 3.6em;
+    line-height: 3.5em;
+  }
+}
+
+/* Double-tap-to-seek zones, overlaid on the video, left of/right of center.
+   Stop short of the control bar (bottom: var(--lh-controlbar-h)) so taps
+   there still reach the real controls. The zone/flash elements and their
+   icon markup are created in LearnHousePlayer.tsx (attachMobileSeekZones);
+   this stylesheet only owns their layout/animation. */
+.learnhouse-player {
+  --lh-controlbar-h: 4em;
+}
+.learnhouse-player .lh-seek-zone {
+  position: absolute;
+  top: 0;
+  bottom: var(--lh-controlbar-h);
+  width: 40%;
+  z-index: 2;
+  touch-action: manipulation;
+}
+.learnhouse-player .lh-seek-zone-left {
+  left: 0;
+}
+.learnhouse-player .lh-seek-zone-right {
+  right: 0;
+}
+.learnhouse-player .lh-seek-flash {
+  position: absolute;
+  top: 50%;
+  width: 4.5em;
+  height: 4.5em;
+  margin-top: -2.25em;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform: scale(0.8);
+}
+.learnhouse-player .lh-seek-flash.lh-seek-flash-left {
+  left: 12%;
+}
+.learnhouse-player .lh-seek-flash.lh-seek-flash-right {
+  right: 12%;
+}
+.learnhouse-player .lh-seek-flash.lh-flash-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+.learnhouse-player .lh-seek-flash svg {
+  width: 2em;
+  height: 2em;
+}
+.learnhouse-player .lh-seek-flash span {
+  position: absolute;
+  bottom: 0.7em;
+  font-size: 0.7em;
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-default, 'Poppins'), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+}

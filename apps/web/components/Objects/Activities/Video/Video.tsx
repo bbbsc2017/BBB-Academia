@@ -90,17 +90,14 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
                         activityUuid: activity.activity_uuid,
                       })
                     : null
-                  // Always compute the progressive MP4 URL so the player can fall
-                  // back to it if the HLS source errors (partial/broken transcode).
-                  const fallbackSrc = isHls
-                    ? resolveActivityVideoSource({
-                        hlsReady: false,
-                        orgUuid: resolvedOrgUuid,
-                        courseUuid: course?.course_uuid,
-                        activityUuid: activity.activity_uuid,
-                        filename: activity.content?.filename,
-                      }).src
-                    : undefined
+                  // No MP4 fallback once HLS is ready: the backend locks that
+                  // raw-file endpoint for ordinary viewers as soon as a
+                  // protected HLS rendition exists (see stream.py's
+                  // _mp4_locked), so handing it to the player here would just
+                  // trade a transient HLS hiccup for a hard 403 instead of the
+                  // intended graceful retry-then-error-overlay behavior in
+                  // LearnHousePlayer.
+                  const fallbackSrc = undefined
                   // Ready AI caption tracks attach to either source (HLS or MP4).
                   const captions = resolveActivityCaptions(activity, {
                     orgUuid: resolvedOrgUuid,

@@ -335,6 +335,24 @@ async def update_video_activity(
 
             flag_modified(activity, "content")
 
+            # SECURITY: the old HLS rendition (if any) was transcoded from the
+            # video being replaced. Clear its "ready" status immediately so the
+            # stale rendition is never served for the new file, and so the raw
+            # MP4 lock in stream.py (which only engages once status == "ready")
+            # doesn't block the new upload from playing while it reprocesses.
+            new_meta = dict(activity.extra_metadata) if activity.extra_metadata else {}
+            new_meta.pop("hls", None)
+            activity.extra_metadata = new_meta
+            flag_modified(activity, "extra_metadata")
+
+            try:
+                from src.services.utils.hls_jobs import enqueue as enqueue_hls
+                enqueue_hls(activity.activity_uuid)
+            except Exception:
+                logger.exception(
+                    "Failed to enqueue HLS re-transcode for %s", activity.activity_uuid
+                )
+
     activity.update_date = str(datetime.now())
     db_session.add(activity)
     await db_session.commit()
