@@ -278,12 +278,17 @@ function VideoBlockComponent(props: ExtendedNodeViewProps) {
     ? getVideoBlockHlsMasterUrl(orgUuid, courseUuid, activityUuid, blockObject.block_uuid)
     : null
 
-  // Adaptive HLS when ready (with the MP4 as fallback), else the progressive MP4.
+  // Adaptive HLS when ready, else the progressive MP4. No MP4 fallback once
+  // HLS is ready: the backend locks that raw-file endpoint for ordinary
+  // viewers as soon as a protected HLS rendition exists (see stream.py's
+  // _mp4_locked), so handing it to the player here would just trade a
+  // transient HLS hiccup for a hard 403 instead of the intended graceful
+  // retry-then-error-overlay behavior in LearnHousePlayer.
   const videoUrl = hlsMasterUrl || mp4Url
   const playerProps = {
     src: videoUrl || '',
     isHls: !!hlsMasterUrl,
-    fallbackSrc: hlsMasterUrl && mp4Url ? mp4Url : undefined,
+    fallbackSrc: undefined,
     thumbnails:
       hlsReady && hlsMeta?.thumbnails?.url && blockObject && orgUuid && courseUuid && activityUuid
         ? {
