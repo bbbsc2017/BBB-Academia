@@ -9,6 +9,7 @@ from src.services.courses.activities.video import (
     ExternalVideo,
     create_external_video_activity,
     create_video_activity,
+    update_video_activity,
 )
 
 
@@ -93,6 +94,85 @@ class TestCreateVideoActivity:
             )
 
         assert result.name == "Test Video"
+
+
+class TestUpdateVideoActivity:
+    @pytest.mark.asyncio
+    async def test_reupload_clears_stale_hls_status_and_reenqueues(
+        self, mock_request, db, org, course, chapter, activity, admin_user
+    ):
+        # SECURITY: a stale "ready" status from the video being replaced would
+        # (a) keep pointing players at the old rendition and (b) keep the raw
+        # MP4 download lock in stream.py engaged for content that no longer
+        # has a matching protected rendition. Both must be cleared immediately.
+        activity.extra_metadata = {"hls": {"status": "ready", "master": "old/master.m3u8"}}
+        db.add(activity)
+        await db.commit()
+
+        with patch(
+            "src.services.courses.activities.video.check_resource_access",
+            new_callable=AsyncMock,
+        ), patch(
+            "src.services.courses.activities.video.upload_video",
+            new_callable=AsyncMock,
+            return_value="new_video.mp4",
+        ), patch(
+            "src.services.utils.hls_jobs.enqueue"
+        ) as enqueue_mock:
+            result = await update_video_activity(
+                mock_request,
+                activity_uuid=activity.activity_uuid,
+                current_user=admin_user,
+                db_session=db,
+                video_file=_mock_video_file(filename="new_video.mp4"),
+            )
+
+        assert result.content["filename"] == "new_video.mp4"
+        assert "hls" not in (result.extra_metadata or {})
+        enqueue_mock.assert_called_once_with(activity.activity_uuid)
+
+    @pytest.mark.asyncio
+    async def test_name_only_update_leaves_hls_status_and_enqueue_untouched(
+        self, mock_request, db, org, course, chapter, activity, admin_user
+    ):
+        activity.extra_metadata = {"hls": {"status": "ready", "master": "old/master.m3u8"}}
+        db.add(activity)
+        await db.commit()
+
+        with patch(
+            "src.services.courses.activities.video.check_resource_access",
+            new_callable=AsyncMock,
+        ), patch(
+            "src.services.utils.hls_jobs.enqueue"
+        ) as enqueue_mock:
+            result = await update_video_activity(
+                mock_request,
+                activity_uuid=activity.activity_uuid,
+                current_user=admin_user,
+                db_session=db,
+                name="Renamed",
+            )
+
+        assert result.name == "Renamed"
+        assert result.extra_metadata["hls"]["status"] == "ready"
+        enqueue_mock.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_raises_409_for_invalid_video_content_type(
+        self, mock_request, db, org, course, chapter, activity, admin_user
+    ):
+        with patch(
+            "src.services.courses.activities.video.check_resource_access",
+            new_callable=AsyncMock,
+        ), pytest.raises(HTTPException) as exc:
+            await update_video_activity(
+                mock_request,
+                activity_uuid=activity.activity_uuid,
+                current_user=admin_user,
+                db_session=db,
+                video_file=_mock_video_file(content_type="text/plain"),
+            )
+        assert exc.value.status_code == 409
 
 
 class TestCreateExternalVideoActivity:
