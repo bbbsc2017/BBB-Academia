@@ -71,9 +71,12 @@ RUN bun run build
 # ───────────────────────────────────────────────
 FROM python:3.14.3-slim-bookworm AS runner
 
-# Single apt layer: nginx, curl, netcat, node, pm2
+# Single apt layer: nginx, curl, netcat, node, pm2, ffmpeg (HLS transcoding —
+# src/services/utils/hls_transcode.py shells out to the `ffmpeg`/`ffprobe`
+# binaries; without this package every transcode job fails cleanly with
+# status "failed" and LEARNHOUSE_HLS_ENABLED=true becomes a silent no-op)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx curl netcat-openbsd ca-certificates gnupg unzip build-essential \
+    && apt-get install -y --no-install-recommends nginx curl netcat-openbsd ca-certificates gnupg unzip build-essential ffmpeg \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && npm install -g pm2 \
