@@ -46,7 +46,7 @@ function NewAssignment({ submitActivity: _submitActivity, chapterId, course, clo
   const [gradingType, setGradingType] = React.useState('ALPHABET')
   const [autoGrading, setAutoGrading] = React.useState(false)
   const [antiCopyPaste, setAntiCopyPaste] = React.useState(false)
-  const [showCorrectAnswers, setShowCorrectAnswers] = React.useState(false)
+  const [showCorrectAnswers, setShowCorrectAnswers] = React.useState(true)
   const [allowRetries, setAllowRetries] = React.useState(false)
   const [maxRetries, setMaxRetries] = React.useState(0)
 

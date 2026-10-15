@@ -31,10 +31,9 @@ class AssignmentBase(SQLModel):
     anti_copy_paste: bool | None = False
     # When True, after a submission is GRADED the student's task view reveals
     # the correct answers (which quiz options were right, the accepted short
-    # answer, the expected number, the correct form blanks). Defaults to False
-    # so existing assignments don't start leaking answer keys automatically —
-    # the teacher must explicitly opt in.
-    show_correct_answers: bool | None = False
+    # answer, the expected number, and the correct form blanks). Published
+    # assignments reveal this feedback by default; teachers can turn it off.
+    show_correct_answers: bool | None = True
     # When True, after a submission is GRADED the student may reset their work
     # and try the assignment again. The retry wipes per-task submissions and
     # the user submission row back to a fresh state — only the attempt
