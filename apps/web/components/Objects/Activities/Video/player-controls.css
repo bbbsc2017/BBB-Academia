@@ -106,9 +106,13 @@
 
 /* Slim, pill-shaped progress bar with the brand accent. */
 .video-js .vjs-progress-control .vjs-progress-holder {
+  position: relative;
   height: 0.3em;
   border-radius: 999px;
   margin: 0 0.6em;
+}
+.video-js .vjs-play-progress {
+  height: 100%;
 }
 .video-js .vjs-play-progress,
 .video-js .vjs-play-progress:before {
@@ -117,8 +121,9 @@
 .video-js .vjs-play-progress:before {
   color: #00a9bf;
   font-size: 0.85em;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-top: 0 !important;
 }
 .video-js .vjs-volume-level,
 .video-js .vjs-slider-bar {
@@ -197,8 +202,9 @@
   }
   .video-js .vjs-play-progress:before {
     font-size: 1.1em;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin-top: 0 !important;
   }
 
   /* Volume is a hover-only flyout on desktop; on touch it must be a direct
@@ -208,7 +214,7 @@
   }
 
   /* Keep only the essential controls visible in the compact mobile bar.
-     Speed, quality and subtitles remain available from the three-dot menu. */
+     Subtitles remain available from the three-dot menu when provided. */
   .video-js .vjs-seek-back-15,
   .video-js .vjs-seek-forward-15,
   .video-js .vjs-playback-rate,

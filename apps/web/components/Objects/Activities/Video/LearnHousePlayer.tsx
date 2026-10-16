@@ -175,30 +175,6 @@ function registerMobileMoreButton(videojs: any) {
         menu?.appendChild(section)
       }
 
-      addSection('Velocidad', ['0.5x', '0.75x', 'Normal', '1.25x', '1.5x', '2x'], (value) => {
-        const rate = value === 'Normal' ? 1 : Number(value.replace('x', ''))
-        player.playbackRate(rate)
-      })
-
-      const levels = player.qualityLevels?.()
-      if (levels && levels.length) {
-        const qualityValues = ['Auto']
-        for (let index = 0; index < levels.length; index += 1) {
-          const height = levels[index]?.height
-          if (height) qualityValues.push(`${height}p`)
-        }
-        addSection('Calidad', qualityValues, (value) => {
-          if (value === 'Auto') {
-            for (let index = 0; index < levels.length; index += 1) levels[index].enabled = true
-            return
-          }
-          const selectedHeight = Number(value.replace('p', ''))
-          for (let index = 0; index < levels.length; index += 1) {
-            levels[index].enabled = levels[index]?.height === selectedHeight
-          }
-        })
-      }
-
       const tracks = player.textTracks?.()
       if (tracks && tracks.length) {
         const captions = ['Subtítulos: apagados']
@@ -251,8 +227,6 @@ interface LearnHousePlayerProps {
   captions?: CaptionTrack[]
 }
 
-const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2]
-
 /**
  * Video.js player with adaptive HLS, quality selection and mobile controls.
  *
@@ -287,9 +261,6 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
 
     ;(async () => {
       const { default: videojs } = await import('video.js')
-      // Order matters: quality-levels must register before the selector.
-      await import('videojs-contrib-quality-levels')
-      await import('videojs-hls-quality-selector')
       await import('videojs-sprite-thumbnails')
       if (disposed || !containerRef.current) return
 
@@ -328,7 +299,6 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
         poster: poster || undefined,
         autoplay: !!details?.autoplay,
         muted: !!details?.muted,
-        playbackRates: PLAYBACK_RATES,
         sources: [{ src, type: isHls ? 'application/x-mpegURL' : 'video/mp4' }],
         html5: {
           vhs: { overrideNative: true },
@@ -428,7 +398,7 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
           bar.addChild('LhSeekBack', {}, 1)
           bar.addChild('LhSeekForward', {}, 2)
         }
-        if (bar && !bar.getChild('LhMobileMore')) {
+        if (bar && captions?.length && !bar.getChild('LhMobileMore')) {
           bar.addChild('LhMobileMore', {}, bar.children().length)
         }
       } catch {
@@ -457,14 +427,6 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
         player.el().addEventListener('contextmenu', (e: Event) => e.preventDefault())
       } catch {
         /* best-effort */
-      }
-
-      // Quality gear (populated from HLS renditions; harmless for MP4).
-      try {
-         
-        ;(player as any).hlsQualitySelector?.({ displayCurrentQuality: true })
-      } catch {
-        /* selector is best-effort */
       }
 
       // Hover-scrub preview thumbnails.
