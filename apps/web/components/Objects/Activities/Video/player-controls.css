@@ -110,7 +110,8 @@
 .video-js .vjs-play-progress:before {
   color: #00a9bf;
   font-size: 0.85em;
-  top: -0.28em;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .video-js .vjs-volume-level,
 .video-js .vjs-slider-bar {
@@ -189,6 +190,8 @@
   }
   .video-js .vjs-play-progress:before {
     font-size: 1.1em;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   /* Volume is a hover-only flyout on desktop; on touch it must be a direct
@@ -220,6 +223,13 @@
   .video-js .vjs-progress-control {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  /* In the embedded mobile player the progress track is too compressed to
+     be useful and visually collapses into a tiny line. Keep it available in
+     fullscreen, where there is enough room for accurate touch seeking. */
+  .video-js:not(.vjs-fullscreen) .vjs-progress-control {
+    display: none;
   }
 
   .video-js .vjs-time-control {
