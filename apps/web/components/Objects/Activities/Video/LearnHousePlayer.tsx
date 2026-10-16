@@ -122,6 +122,103 @@ function registerSeekButtons(videojs: any) {
   make('LhSeekForward', 'vjs-seek-forward-15', `Forward ${SEEK_SECONDS} seconds`, SEEK_SECONDS)
 }
 
+/* A compact touch-only overflow menu keeps the mobile control bar usable. */
+function registerMobileMoreButton(videojs: any) {
+  const Button = videojs.getComponent('Button')
+  if (videojs.getComponent('LhMobileMore')) return
+
+  class MobileMoreButton extends Button {
+    constructor(player: any, options: any) {
+      super(player, options)
+      this.controlText('More video options')
+      this.addClass('lh-mobile-more')
+    }
+
+    handleClick() {
+      const player = this.player()
+      const root = player.el() as HTMLElement
+      let menu = root.querySelector('.lh-mobile-more-menu') as HTMLElement | null
+
+      if (menu) {
+        menu.remove()
+        return
+      }
+
+      menu = document.createElement('div')
+      menu.className = 'lh-mobile-more-menu'
+      menu.setAttribute('role', 'menu')
+      menu.setAttribute('aria-label', 'More video options')
+
+      const title = document.createElement('div')
+      title.className = 'lh-mobile-more-title'
+      title.textContent = 'Opciones'
+      menu.appendChild(title)
+
+      const addSection = (label: string, values: string[], onSelect: (value: string) => void) => {
+        const section = document.createElement('div')
+        section.className = 'lh-mobile-more-section'
+        const heading = document.createElement('div')
+        heading.className = 'lh-mobile-more-label'
+        heading.textContent = label
+        section.appendChild(heading)
+        values.forEach((value) => {
+          const option = document.createElement('button')
+          option.type = 'button'
+          option.className = 'lh-mobile-more-option'
+          option.textContent = value
+          option.addEventListener('click', () => {
+            onSelect(value)
+            menu?.remove()
+          })
+          section.appendChild(option)
+        })
+        menu?.appendChild(section)
+      }
+
+      addSection('Velocidad', ['0.5x', '0.75x', 'Normal', '1.25x', '1.5x', '2x'], (value) => {
+        const rate = value === 'Normal' ? 1 : Number(value.replace('x', ''))
+        player.playbackRate(rate)
+      })
+
+      const levels = player.qualityLevels?.()
+      if (levels && levels.length) {
+        const qualityValues = ['Auto']
+        for (let index = 0; index < levels.length; index += 1) {
+          const height = levels[index]?.height
+          if (height) qualityValues.push(`${height}p`)
+        }
+        addSection('Calidad', qualityValues, (value) => {
+          if (value === 'Auto') {
+            for (let index = 0; index < levels.length; index += 1) levels[index].enabled = true
+            return
+          }
+          const selectedHeight = Number(value.replace('p', ''))
+          for (let index = 0; index < levels.length; index += 1) {
+            levels[index].enabled = levels[index]?.height === selectedHeight
+          }
+        })
+      }
+
+      const tracks = player.textTracks?.()
+      if (tracks && tracks.length) {
+        const captions = ['Subtítulos: apagados']
+        for (let index = 0; index < tracks.length; index += 1) {
+          if (tracks[index].kind === 'subtitles') captions.push(tracks[index].label || tracks[index].language)
+        }
+        addSection('Subtítulos', captions, (value) => {
+          for (let index = 0; index < tracks.length; index += 1) {
+            tracks[index].mode = value === 'Subtítulos: apagados' ? 'disabled' : tracks[index].label === value ? 'showing' : 'disabled'
+          }
+        })
+      }
+
+      root.appendChild(menu)
+    }
+  }
+
+  videojs.registerComponent('LhMobileMore', MobileMoreButton)
+}
+
 interface VideoDetails {
   startTime?: number
   endTime?: number | null
@@ -157,9 +254,7 @@ interface LearnHousePlayerProps {
 const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
 /**
- * Video.js-based player (default skin): adaptive HLS with an automatic quality
- * selector and hover-scrub thumbnail previews; falls back to a progressive MP4
- * source when HLS isn't ready.
+ * Video.js player with adaptive HLS, quality selection and mobile controls.
  *
  * Video.js and its plugins are imported dynamically inside an effect so nothing
  * touches `window`/`document` during SSR.
@@ -175,7 +270,6 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
   captions,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
-
   const playerRef = useRef<any>(null)
   const detachSeekZonesRef = useRef<(() => void) | null>(null)
   const fellBackRef = useRef(false)
@@ -186,6 +280,7 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
 
   useEffect(() => {
     let disposed = false
+    let removeFullscreenHandler: (() => void) | null = null
     fellBackRef.current = false
     retriedRef.current = false
     setLoadError(false)
@@ -199,6 +294,7 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
       if (disposed || !containerRef.current) return
 
       registerSeekButtons(videojs)
+      registerMobileMoreButton(videojs)
 
 
       // Send the auth cookie only to our API playlist endpoint (RBAC); presigned
@@ -243,6 +339,28 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
         onReady?.()
       })
       playerRef.current = player
+
+      // Mobile browsers may enter fullscreen while the device remains in
+      // portrait. Lock the video to landscape when supported and release the
+      // lock as soon as fullscreen ends. The CSS fallback handles browsers
+      // that do not expose Screen Orientation Lock.
+      const lockLandscapeOnFullscreen = async () => {
+        const isTouch = window.matchMedia?.('(pointer: coarse)').matches
+        if (!isTouch) return
+        try {
+          const video = player.el().querySelector('video') as HTMLVideoElement | null
+          const isLandscapeVideo = !video || !video.videoWidth || video.videoWidth >= video.videoHeight
+          if (player.isFullscreen() && isLandscapeVideo) {
+            await screen.orientation?.lock?.('landscape')
+          } else {
+            screen.orientation?.unlock?.()
+          }
+        } catch {
+          // iOS Safari does not expose orientation locking; CSS handles it.
+        }
+      }
+      player.on('fullscreenchange', lockLandscapeOnFullscreen)
+      removeFullscreenHandler = () => player.off('fullscreenchange', lockLandscapeOnFullscreen)
 
       // Durable, layered recovery so the user is NEVER left with a dead player:
       //   1. HLS source errors/stalls -> switch to the progressive MP4
@@ -309,6 +427,9 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
         if (bar && !bar.getChild('LhSeekBack')) {
           bar.addChild('LhSeekBack', {}, 1)
           bar.addChild('LhSeekForward', {}, 2)
+        }
+        if (bar && !bar.getChild('LhMobileMore')) {
+          bar.addChild('LhMobileMore', {}, bar.children().length)
         }
       } catch {
         /* seek buttons are best-effort */
@@ -413,6 +534,12 @@ const LearnHousePlayer: React.FC<LearnHousePlayerProps> = ({
         detachSeekZonesRef.current = null
       }
       if (playerRef.current) {
+        try {
+          removeFullscreenHandler?.()
+          screen.orientation?.unlock?.()
+        } catch {
+          /* orientation lock is best-effort */
+        }
         playerRef.current.dispose()
         playerRef.current = null
       }
