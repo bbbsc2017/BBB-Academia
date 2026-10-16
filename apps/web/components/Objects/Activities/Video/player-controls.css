@@ -95,6 +95,13 @@
   );
   height: 4em;
   padding: 0 0.5em;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.video-js .vjs-control-bar .vjs-control,
+.video-js .vjs-control-bar .vjs-control * {
+  pointer-events: auto;
 }
 
 /* Slim, pill-shaped progress bar with the brand accent. */
@@ -347,6 +354,14 @@
   width: 40%;
   z-index: 2;
   touch-action: manipulation;
+}
+
+/* Never let touch-only overlays participate in desktop pointer handling. */
+@media (pointer: fine) {
+  .learnhouse-player .lh-seek-zone {
+    display: none;
+    pointer-events: none;
+  }
 }
 .learnhouse-player .lh-seek-zone-left {
   left: 0;
