@@ -35,7 +35,6 @@ from src.services.courses.transfer.storage_utils import (
     is_s3_enabled,
     read_file_content,
 )
-from src.services.utils.hls_jobs import hls_enabled
 from src.services.utils.hls_playlist import rewrite_playlist
 from src.services.utils.video_streaming import (
     CHUNK_SIZE,
@@ -167,8 +166,18 @@ def _mp4_locked(hls_status_holder: dict | None, can_manage: bool) -> bool:
     reachable would undo the whole point of serving AES-128 HLS. Lock it out
     for ordinary viewers once a protected rendition exists; staff who manage
     the course (re-upload, verify, debug) keep direct access.
+
+    Deliberately NOT gated on hls_enabled(): that flag only controls whether
+    NEW transcode jobs get started (src/services/utils/hls_jobs.py's
+    enqueue/start_consumer) — it has no bearing on whether an ALREADY-ready
+    rendition is servable (the /stream/hls/... endpoints below serve existing
+    files regardless of the flag, and the frontend picks HLS-vs-MP4 purely
+    from this per-video status, not the live flag either). So an operator
+    pausing the flag to stop new backfill work (e.g. to relieve CPU/I/O
+    pressure during peak traffic, resuming overnight) must not silently
+    un-protect videos that already finished.
     """
-    if can_manage or not hls_enabled():
+    if can_manage:
         return False
     status_ = (hls_status_holder or {}).get("status")
     return status_ == "ready"

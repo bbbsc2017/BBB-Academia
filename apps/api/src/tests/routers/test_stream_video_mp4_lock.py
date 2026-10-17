@@ -5,6 +5,11 @@ it would defeat the point of encrypted HLS. `_mp4_locked` / the raw MP4 GET and
 HEAD endpoints in src/routers/stream.py must refuse ordinary viewers once a
 protected rendition exists, while staff who manage the course (re-upload,
 verify, debug) keep direct access.
+
+The lock is deliberately NOT gated on LEARNHOUSE_HLS_ENABLED: an operator may
+pause that flag to stop new backfill transcoding (e.g. to relieve CPU/I/O
+pressure during peak traffic) without un-protecting videos that already
+finished — see _mp4_locked's docstring.
 """
 
 from datetime import UTC, datetime
@@ -65,24 +70,25 @@ async def ready_block(db, org, course, activity):
 # Unit tests for the pure helper
 # ---------------------------------------------------------------------------
 
-def test_mp4_locked_false_when_hls_disabled(monkeypatch):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: False)
-    assert stream_mod._mp4_locked({"status": "ready"}, can_manage=False) is False
-
-
-def test_mp4_locked_false_when_can_manage(monkeypatch):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
+def test_mp4_locked_false_when_can_manage():
     assert stream_mod._mp4_locked({"status": "ready"}, can_manage=True) is False
 
 
-def test_mp4_locked_false_when_not_ready(monkeypatch):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
+def test_mp4_locked_false_when_not_ready():
     for holder in (None, {}, {"status": "processing"}, {"status": "failed"}):
         assert stream_mod._mp4_locked(holder, can_manage=False) is False
 
 
-def test_mp4_locked_true_when_ready_and_cannot_manage(monkeypatch):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
+def test_mp4_locked_true_when_ready_and_cannot_manage():
+    assert stream_mod._mp4_locked({"status": "ready"}, can_manage=False) is True
+
+
+def test_mp4_locked_true_even_when_hls_backfill_is_paused(monkeypatch):
+    # Pausing new transcoding (operator flips LEARNHOUSE_HLS_ENABLED off to
+    # relieve load) must not un-protect a video that already finished.
+    import src.services.utils.hls_jobs as hls_jobs_mod
+
+    monkeypatch.setattr(hls_jobs_mod, "hls_enabled", lambda: False)
     assert stream_mod._mp4_locked({"status": "ready"}, can_manage=False) is True
 
 
@@ -93,7 +99,6 @@ def test_mp4_locked_true_when_ready_and_cannot_manage(monkeypatch):
 async def test_activity_mp4_blocked_for_regular_user_once_hls_ready(
     client_factory, monkeypatch, db, org, course, chapter, activity, regular_user
 ):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
     activity.extra_metadata = {"hls": {"status": "ready"}}
     db.add(activity)
@@ -110,7 +115,6 @@ async def test_activity_mp4_blocked_for_regular_user_once_hls_ready(
 async def test_activity_mp4_blocked_for_anonymous_on_public_course_once_hls_ready(
     client_factory, monkeypatch, db, org, course, chapter, activity, anonymous_user
 ):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
     activity.extra_metadata = {"hls": {"status": "ready"}}
     db.add(activity)
@@ -125,7 +129,6 @@ async def test_activity_mp4_blocked_for_anonymous_on_public_course_once_hls_read
 async def test_activity_mp4_allowed_for_admin_once_hls_ready(
     client_factory, monkeypatch, db, org, course, chapter, activity, admin_user
 ):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
     monkeypatch.setattr(stream_mod, "is_s3_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "generate_presigned_get_url", lambda k: f"https://r2/{k}")
@@ -139,15 +142,17 @@ async def test_activity_mp4_allowed_for_admin_once_hls_ready(
     assert r.status_code == 302
 
 
-async def test_activity_mp4_allowed_when_hls_disabled_even_if_marked_ready(
+async def test_activity_mp4_still_blocked_when_hls_backfill_paused(
     client_factory, monkeypatch, db, org, course, chapter, activity, regular_user
 ):
-    # Stale "ready" metadata from a prior deployment where HLS was on must not
-    # lock viewers out once the operator has turned HLS back off.
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: False)
+    # An operator pausing LEARNHOUSE_HLS_ENABLED to stop new transcode jobs
+    # (e.g. to relieve CPU/I/O load) must not reopen a video that's already
+    # protected — HLS playback for it keeps working regardless of the flag
+    # (see _mp4_locked's docstring), so there's no safety reason to unlock it.
+    import src.services.utils.hls_jobs as hls_jobs_mod
+
+    monkeypatch.setattr(hls_jobs_mod, "hls_enabled", lambda: False)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
-    monkeypatch.setattr(stream_mod, "is_s3_enabled", lambda: True)
-    monkeypatch.setattr(stream_mod, "generate_presigned_get_url", lambda k: f"https://r2/{k}")
     activity.extra_metadata = {"hls": {"status": "ready"}}
     db.add(activity)
     await db.commit()
@@ -155,7 +160,7 @@ async def test_activity_mp4_allowed_when_hls_disabled_even_if_marked_ready(
     client = await client_factory(regular_user)
     url = f"/video/{org.org_uuid}/{course.course_uuid}/{activity.activity_uuid}/clip.mp4"
     r = await client.get(url, follow_redirects=False)
-    assert r.status_code == 302
+    assert r.status_code == 403
 
 
 async def test_activity_mp4_allowed_while_hls_still_processing(
@@ -163,7 +168,6 @@ async def test_activity_mp4_allowed_while_hls_still_processing(
 ):
     # Mid-transcode: no protected rendition exists yet, so the MP4 fallback
     # must stay reachable or playback would break for everyone.
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
     monkeypatch.setattr(stream_mod, "is_s3_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "generate_presigned_get_url", lambda k: f"https://r2/{k}")
@@ -184,7 +188,6 @@ async def test_activity_mp4_allowed_while_hls_still_processing(
 async def test_block_mp4_blocked_for_regular_user_once_hls_ready(
     client_factory, monkeypatch, org, course, chapter, activity, ready_block, regular_user
 ):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
 
     client = await client_factory(regular_user)
@@ -198,7 +201,6 @@ async def test_block_mp4_blocked_for_regular_user_once_hls_ready(
 async def test_block_mp4_allowed_for_admin_once_hls_ready(
     client_factory, monkeypatch, org, course, chapter, activity, ready_block, admin_user
 ):
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
     monkeypatch.setattr(stream_mod, "is_s3_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "generate_presigned_get_url", lambda k: f"https://r2/{k}")
@@ -214,7 +216,6 @@ async def test_block_mp4_allowed_for_unrelated_block_uuid(
 ):
     # No Block row matches this block_uuid (e.g. legacy content predating the
     # Block table) — must not crash and must not lock out by default.
-    monkeypatch.setattr(stream_mod, "hls_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "get_file_info", lambda p: (1000, "video/mp4", True))
     monkeypatch.setattr(stream_mod, "is_s3_enabled", lambda: True)
     monkeypatch.setattr(stream_mod, "generate_presigned_get_url", lambda k: f"https://r2/{k}")
